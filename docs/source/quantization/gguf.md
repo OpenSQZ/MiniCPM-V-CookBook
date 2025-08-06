@@ -32,5 +32,5 @@ Once the conversion is complete, use the `llama-quantize` tool to quantize the F
 
 ```bash
 cd build/bin/
-./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf Q4_K_M
+./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf Q4_K_M
 ```

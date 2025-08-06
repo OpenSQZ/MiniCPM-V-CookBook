@@ -59,7 +59,7 @@ cp -r ./build-apple/llama.xcframework ../MiniCPM_demo_iOS/MiniCPM-demo/thirdpart
 * HuggingFace: [https://huggingface.co/openbmb/MiniCPM-V-4-gguf](https://huggingface.co/openbmb/MiniCPM-V-4-gguf)
 * ModelScope: [https://modelscope.cn/models/OpenBMB/MiniCPM-V-4-gguf](https://modelscope.cn/models/OpenBMB/MiniCPM-V-4-gguf)
 
-Download the language model file (e.g., `Model-3.6B-Q4_K_M.gguf`) and the vision model file (`mmproj-model-f16.gguf`) from the repository.
+Download the language model file (e.g., `ggml-model-Q4_K_M.gguf`) and the vision model file (`mmproj-model-f16.gguf`) from the repository.
 
 ### 2: Convert from PyTorch Model
 
@@ -78,5 +78,5 @@ python ./tools/mtmd/legacy-models/minicpmv-convert-image-encoder-to-gguf.py -m .
 python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 
 # int4 quantized
-./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-f16.gguf ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf Q4_K_M
+./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf Q4_K_M
 ```

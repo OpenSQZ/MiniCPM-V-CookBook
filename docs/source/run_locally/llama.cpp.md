@@ -142,7 +142,7 @@ You can use our official GGUF files or prepare your own GGUF file.
 
 ### Download official MiniCPM-V 4.0 GGUF files
 
-Download converted language model file (e.g., `Model-3.6B-Q4_K_M.gguf`) and vision model file (`mmproj-model-f16.gguf`) from:
+Download converted language model file (e.g., `ggml-model-Q4_K_M.gguf`) and vision model file (`mmproj-model-f16.gguf`) from:
 *   HuggingFace: https://huggingface.co/openbmb/MiniCPM-V-4-gguf
 *   ModelScope: https://modelscope.cn/models/OpenBMB/MiniCPM-V-4-gguf
 
@@ -155,7 +155,7 @@ huggingface-cli download <model_repo> <gguf_file> --local-dir <local_dir>
 For example:
 
 ```bash
-huggingface-cli download openbmb/MiniCPM-V-4-gguf Model-3.6B-Q4_K_M.gguf --local-dir .
+huggingface-cli download openbmb/MiniCPM-V-4-gguf ggml-model-Q4_K_M.gguf --local-dir .
 ```
 
 This will download the MiniCPM-V 4.0 model in GGUF format quantized with the scheme Q4_K_M.
@@ -186,7 +186,7 @@ python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 
 # quantize int4 version
 cd build/bin/
-./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf Q4_K_M
+./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf Q4_K_M
 ```
 
 ## Run MiniCPM-V 4.0 with llama.cpp
@@ -202,10 +202,10 @@ cd build/bin/
 ./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-F16.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # run quantized int4 version
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # or run in interactive mode
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
 ```
 
 Simple argument reference:
@@ -217,9 +217,9 @@ Simple argument reference:
 Here are more detailed explanations to the command:
 
 *   **Model**: `llama-cli` supports using model files from local path, Hugging Face hub, or remote URL.
-    *   To use a local path, pass `-m Model-3.6B-Q4_K_M.gguf`
+    *   To use a local path, pass `-m ggml-model-Q4_K_M.gguf`
     *   To use the model file from Hugging Face hub, pass `-hf openbmb/MiniCPM-V-4-gguf:Q4_K_M`
-    *   To use a remote URL, pass `-mu https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/Model-3.6B-Q4_K_M.gguf?download=true`.
+    *   To use a remote URL, pass `-mu https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/ggml-model-Q4_K_M.gguf?download=true`.
 
 *   **Speed Optimization**:
     *   CPU: `llama-cli` by default will use CPU and you can change `-t` to specify how many threads you would like it to use, e.g., `-t 8` means using 8 threads.
@@ -238,7 +238,7 @@ Here are more detailed explanations to the command:
 he core command is similar to that of llama-cli. In addition, it supports thinking content parsing and tool call parsing.
 
 ```bash
-./llama-server -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -ngl 100 -...
+./llama-server -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -ngl 100 -...
 ```
 
 By default, the server will listen at `http://localhost:8080` which can be changed by passing `--host` and `--port`. The web front end can be assessed from a browser at `http://localhost:8080/`. The OpenAI compatible API is at `http://localhost:8080/v1/`.

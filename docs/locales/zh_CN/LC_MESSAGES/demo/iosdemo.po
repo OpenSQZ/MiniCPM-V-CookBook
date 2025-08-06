@@ -117,9 +117,9 @@ msgstr ""
 
 #: ../../source/demo/iosdemo.md:62 428bb8212d2d4d018a2e6cdc4cc71985
 msgid ""
-"Download the language model file (e.g., `Model-3.6B-Q4_K_M.gguf`) and the"
+"Download the language model file (e.g., `ggml-model-Q4_K_M.gguf`) and the"
 " vision model file (`mmproj-model-f16.gguf`) from the repository."
-msgstr "从仓库中下载语言模型文件（例如 `Model-3.6B-Q4_K_M.gguf`）和视觉模型文件（`mmproj-model-f16.gguf`）。"
+msgstr "从仓库中下载语言模型文件（例如 `ggml-model-Q4_K_M.gguf`）和视觉模型文件（`mmproj-model-f16.gguf`）。"
 
 #: ../../source/demo/iosdemo.md:64 3a40a62d34754779913df22c0fbd1a61
 msgid "2: Convert from PyTorch Model"

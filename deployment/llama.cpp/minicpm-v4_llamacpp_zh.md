@@ -29,7 +29,7 @@ cmake --build build --config Release
 *   HuggingFace: https://huggingface.co/openbmb/MiniCPM-V-4-gguf
 *   魔搭社区: https://modelscope.cn/models/OpenBMB/MiniCPM-V-4-gguf
 
-从仓库中下载语言模型文件（如: `Model-3.6B-Q4_K_M.gguf`）与视觉模型文件（`mmproj-model-f16.gguf`）
+从仓库中下载语言模型文件（如: `ggml-model-Q4_K_M.gguf`）与视觉模型文件（`mmproj-model-f16.gguf`）
 
 ### 方法二: 从 Pytorch 模型转换
 
@@ -47,7 +47,7 @@ python ./tools/mtmd/legacy-models/minicpmv-convert-image-encoder-to-gguf.py -m .
 python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 
 # int4 量化版本
-./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-f16.gguf ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf Q4_K_M
+./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf Q4_K_M
 ```
 
 ## 3. 模型推理
@@ -56,13 +56,13 @@ python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 cd build/bin/
 
 # 运行 f16 版本
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-f16.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-F16.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # 运行 int4 量化版本
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # 或以交互模式运行
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
 ```
 
 **命令行参数解析:**

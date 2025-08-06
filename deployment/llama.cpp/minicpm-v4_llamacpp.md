@@ -25,7 +25,7 @@ cmake --build build --config Release
 
 ### Option 1: Download official GGUF files
 
-Download converted language model file (e.g., `Model-3.6B-Q4_K_M.gguf`) and vision model file (`mmproj-model-f16.gguf`) from:
+Download converted language model file (e.g., `ggml-model-Q4_K_M.gguf`) and vision model file (`mmproj-model-f16.gguf`) from:
 *   HuggingFace: https://huggingface.co/openbmb/MiniCPM-V-4-gguf
 *   ModelScope: https://modelscope.cn/models/OpenBMB/MiniCPM-V-4-gguf
 
@@ -45,7 +45,7 @@ python ./tools/mtmd/legacy-models/minicpmv-convert-image-encoder-to-gguf.py -m .
 python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 
 # quantize int4 version
-./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-f16.gguf ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf Q4_K_M
+./llama-quantize ../MiniCPM-V-4/model/Model-3.6B-F16.gguf ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf Q4_K_M
 ```
 
 ## 3. Model Inference
@@ -54,13 +54,13 @@ python ./convert_hf_to_gguf.py ../MiniCPM-V-4/model
 cd build/bin/
 
 # run f16 version
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-f16.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-F16.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # run quantized int4 version
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -p "What is in the image?"
 
 # or run in interactive mode
-./llama-mtmd-cli -m ../MiniCPM-V-4/model/Model-3.6B-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
+./llama-mtmd-cli -m ../MiniCPM-V-4/model/ggml-model-Q4_K_M.gguf --mmproj ../MiniCPM-V-4/mmproj-model-f16.gguf -c 4096 --temp 0.7 --top-p 0.8 --top-k 100 --repeat-penalty 1.05 --image xx.jpg -i
 ```
 
 **Argument Reference:**

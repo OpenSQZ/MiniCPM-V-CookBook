@@ -453,9 +453,9 @@ msgstr "下载官方 MiniCPM-V 4.0 GGUF 文件"
 
 #: ../../source/run_locally/llama.cpp.md:145 b12d3023266640e2bc6bacb7cd837cbb
 msgid ""
-"Download converted language model file (e.g., `Model-3.6B-Q4_K_M.gguf`) "
+"Download converted language model file (e.g., `ggml-model-Q4_K_M.gguf`) "
 "and vision model file (`mmproj-model-f16.gguf`) from:"
-msgstr "下载转换后的语言模型文件（如 `Model-3.6B-Q4_K_M.gguf`）和视觉模型文件（`mmproj-model-f16.gguf`）："
+msgstr "下载转换后的语言模型文件（如 `ggml-model-Q4_K_M.gguf`）和视觉模型文件（`mmproj-model-f16.gguf`）："
 
 #: ../../source/run_locally/llama.cpp.md:146 c9d4764712164d9c8d08dfd795772f55
 msgid "HuggingFace: https://huggingface.co/openbmb/MiniCPM-V-4-gguf"
@@ -596,8 +596,8 @@ msgid ""
 msgstr "**模型**：`llama-cli` 支持本地路径、Hugging Face hub 或远程 URL 的模型文件。"
 
 #: ../../source/run_locally/llama.cpp.md:220 74ff77f9c7d544fb8cd1e7f19465b0ba
-msgid "To use a local path, pass `-m Model-3.6B-Q4_K_M.gguf`"
-msgstr "本地路径用法：`-m Model-3.6B-Q4_K_M.gguf`"
+msgid "To use a local path, pass `-m ggml-model-Q4_K_M.gguf`"
+msgstr "本地路径用法：`-m ggml-model-Q4_K_M.gguf`"
 
 #: ../../source/run_locally/llama.cpp.md:221 ea9f2bd93aec449eaacf49260ccf1c7c
 msgid ""
@@ -608,11 +608,11 @@ msgstr "Hugging Face hub 用法：`-hf openbmb/MiniCPM-V-4-gguf:Q4_K_M`"
 #: ../../source/run_locally/llama.cpp.md:222 7922c683eaac416a9f5b745e47e01297
 msgid ""
 "To use a remote URL, pass `-mu "
-"https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/Model-3.6B-"
+"https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/ggml-model-"
 "Q4_K_M.gguf?download=true`."
 msgstr ""
 "远程 URL 用法：`-mu "
-"https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/Model-3.6B-"
+"https://huggingface.co/openbmb/MiniCPM-V-4-gguf/resolve/main/ggml-model-"
 "Q4_K_M.gguf?download=true`"
 
 #: ../../source/run_locally/llama.cpp.md:224 ad7439e7fd304b8cb489ba2a5f0eb3ef
