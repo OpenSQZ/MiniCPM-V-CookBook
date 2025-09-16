@@ -5,7 +5,7 @@
 ### 1.1 Install vLLM
 
 ```bash
-pip install vllm==0.10.1
+pip install vllm==0.10.2
 ```
 
 For video inference, install the video module:
