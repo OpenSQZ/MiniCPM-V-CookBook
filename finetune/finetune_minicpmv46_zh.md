@@ -37,7 +37,10 @@ MAX_JOBS=32 NVCC_THREADS=4 pip install --no-build-isolation flash-attn==2.8.3
 git clone https://github.com/modelscope/ms-swift.git
 cd ms-swift
 pip install -e .
+pip install transformers==5.7.0
 ```
+
+注意：MiniCPM-V 4.6 在 `transformers>=5.7.0` 版本被官方支持。请保证最后安装的 `transformers` 版本为 5.7.0 及以上。
 
 - **依赖版本参考**
 
@@ -209,7 +212,10 @@ git clone https://github.com/hiyouga/LlamaFactory.git
 cd LlamaFactory
 pip install -e .
 pip install -r requirements/metrics.txt -r requirements/deepspeed.txt
+pip install transformers==5.7.0
 ```
+
+注意：MiniCPM-V 4.6 在 `transformers>=5.7.0` 版本被官方支持。请保证最后安装的 `transformers` 版本为 5.7.0 及以上。
 
 - **依赖版本参考**
 

@@ -30,6 +30,7 @@ git clone https://github.com/hiyouga/LlamaFactory.git
 cd LlamaFactory
 pip install -e .
 pip install -r requirements/metrics.txt -r requirements/deepspeed.txt
+pip install transformers==5.7.0
 ```
 
 **依赖版本参考**
