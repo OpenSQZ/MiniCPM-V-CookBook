@@ -21,7 +21,7 @@ We support a wide range of users, from individuals to enterprises and researcher
 
 - **Individuals**: Enjoy effortless inference using [Ollama](./deployment/ollama/minicpm-v4_6_ollama.md) and [Llama.cpp](./deployment/llama.cpp/minicpm-v4_6_llamacpp.md) with minimal setup.
 - **Enterprises**: Achieve high-throughput, scalable performance with [vLLM](./deployment/vllm/minicpm-v4_6_vllm.md) and [SGLang](./deployment/sglang/minicpm-v4_6_sglang.md).
-- **Researchers**: Leverage advanced frameworks including [Transformers](./finetune/finetune_full.md) , [LLaMA-Factory](./finetune/finetune_llamafactory.md), [SWIFT](./finetune/swift.md), and [Align-anything](./finetune/align_anything.md) to enable flexible model development and cutting-edge experimentation.
+- **Researchers**: Leverage advanced frameworks including [Transformers](./finetune/official/finetune_full.md) , [LLaMA-Factory](./finetune/llamafactory/finetune_llamafactory.md), [SWIFT](./finetune/swift/swift.md), and [Align-anything](./finetune/align-anything/align_anything.md) to enable flexible model development and cutting-edge experimentation.
 
 ### Versatile Deployment Scenarios
 
@@ -70,7 +70,7 @@ Explore real-world examples of MiniCPM-V deployed on edge devices using our cura
 
 **Data preparation**
 
-Follow the [guidance](./finetune/dataset_guidance.md) to set up your training datasets.
+Follow the [guidance](./finetune/official/dataset_guidance.md) to set up your training datasets.
 
 **Training**
 
@@ -79,10 +79,10 @@ We provide training methods serving different needs as following:
 
 | Framework                                            | Description                                        |
 | ---------------------------------------------------- | -------------------------------------------------- |
-| [Transformers](./finetune/finetune_full.md)          | Most flexible for customization                    |
-| [LLaMA-Factory](./finetune/finetune_llamafactory.md) | Modular fine-tuning toolkit                        |
-| [SWIFT](./finetune/swift.md)                         | Lightweight and fast parameter-efficient tuning    |
-| [Align-anything](./finetune/align_anything.md)       | Visual instruction alignment for multimodal models |
+| [Transformers](./finetune/official/finetune_full.md)          | Most flexible for customization                    |
+| [LLaMA-Factory](./finetune/llamafactory/finetune_llamafactory.md) | Modular fine-tuning toolkit                        |
+| [SWIFT](./finetune/swift/swift.md)                         | Lightweight and fast parameter-efficient tuning    |
+| [Align-anything](./finetune/align-anything/align_anything.md)       | Visual instruction alignment for multimodal models |
 
 
 ## 📦 Serving Recipes

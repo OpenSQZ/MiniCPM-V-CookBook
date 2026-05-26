@@ -176,7 +176,7 @@ llamafactory-cli train "$CONFIG_FILE"
 
 [https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ](https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ)
 
-<img src="./assets/finetune_minicpmv46/minicpmv46_lf_ft_dynamics.png" alt="Llama-Factory 训练过程" />
+<img src="../assets/finetune_minicpmv46/minicpmv46_lf_ft_dynamics.png" alt="Llama-Factory 训练过程" />
 
 
 
@@ -209,4 +209,4 @@ llamafactory-cli train "$CONFIG_FILE"
   A: The respective coordinates of airplanes: <point>310 370</point>, <point>360 275</point>, <point>385 486</point>, <point>402 180</point>, <point>439 368</point>, <point>474 611</point>, <point>505 250</point>, <point>532 448</point>, <point>536 818</point>, <point>597 328</point>. So the total count is 10.
   ```
 
-  <img src="./assets/finetune_minicpmv46/sample_2.png" alt="LlamaFactory sample" />
+  <img src="../assets/finetune_minicpmv46/sample_2.png" alt="LlamaFactory sample" />
