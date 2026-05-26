@@ -366,6 +366,9 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../../v4.6/quantization/awq.html">AWQ</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">演示</div><ul class="nav-group-children"><li><a class="" href="../../v4.6/demos/gradio.html">Gradio</a></li>
 <li><a class="" href="../../v4.6/demos/ios.html">iOS</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../../v4.6/finetune/llamafactory.html">LLaMA-Factory（Counting 示例）</a></li>
+<li><a class="" href="../../v4.6/finetune/swift.html">ms-swift（Counting 示例）</a></li>
+<li><a class="" href="../../v4.6/finetune/swift-dpo.html">ms-swift（DPO）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -382,14 +385,14 @@ footer.page-footer a:hover { color: var(--primary); }
 <ol>
 <li>获取LlamaFactory Github代码</li>
 </ol>
-<div class="code"><pre><span></span><code><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">hiyouga</span><span class="o">/</span><span class="n">LLaMA</span><span class="o">-</span><span class="n">Factory</span><span class="o">.</span><span class="n">git</span>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/hiyouga/LLaMA-Factory.git
 </code></pre></div>
 
 <ol>
 <li>安装LlamaFactory的依赖</li>
 </ol>
-<div class="code"><pre><span></span><code><span class="n">cd</span> <span class="n">LLaMA</span><span class="o">-</span><span class="n">Factory</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[torch,metrics,deepspeed,minicpm_v]</span>
+<div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>LLaMA-Factory
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[torch,metrics,deepspeed,minicpm_v]</span>
 </code></pre></div>
 
 <h2 id="构造数据">构造数据</h2>
@@ -470,7 +473,7 @@ footer.page-footer a:hover { color: var(--primary); }
 </code></pre></div>
 
 <h3 id="构建音频数据集">构建音频数据集</h3>
-<p><strong>注意：仅MiniCPM-o 2.6模型支持音频微调</strong></p>
+<p><strong>注意：仅MiniCPM-o 2.6、MiniCPM-o 4.5模型支持音频微调</strong></p>
 <p>参照LLaMA-Factory/<a href="https://github.com/hiyouga/LLaMA-Factory/blob/main/data/dataset_info.json">data</a>下的<strong>mllm_audio_demo.json</strong>数据集,按照相同格式构造数据，结构如下：</p>
 <p>如需在多轮对话中使用图片，请在每轮对话的user content中添加<code>&lt;audio&gt;</code>标签，并在images中添加相应的图片路径。<code>&lt;audio&gt;</code> 标签数量需要与 <code>audios</code>中的值数量相匹配。</p>
 <div class="code"><pre><span></span><code><span class="p">[</span>
@@ -558,9 +561,9 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <h2 id="创建训练的配置yaml文件">创建训练的配置yaml文件：</h2>
 <h3 id="lora微调">Lora微调</h3>
-<p>创建minicpmv4_5_lora_sft.yaml的配置文件，并且放入LLaMA-Factory/minicpm_config。</p>
+<p>创建minicpmo4_5_lora_sft.yaml的配置文件，并且放入LLaMA-Factory/minicpm_config。</p>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-o-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
 <span class="c1">### method</span>
@@ -571,25 +574,25 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <span class="c1">### dataset</span>
 <span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># 改成你上面data/data_info.json的文件下新增的键名</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span><span class="w"> </span><span class="c1"># 不要改</span>
-<span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span><span class="w"> </span><span class="c1"># 包多模态在哪占用的模型token长度</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_o</span><span class="w"> </span><span class="c1"># 不要改</span>
+<span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span><span class="w"> </span><span class="c1"># 占用的模型token长度</span>
 <span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1">#最多用多少条数据</span>
 <span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
 <span class="c1">### output</span>
-<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/lora/sft</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmo4_5/lora/sft</span>
 <span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span><span class="w"> </span><span class="c1">#多少步报错一次</span>
+<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span><span class="w"> </span><span class="c1"># 多少步保存一次</span>
 <span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># 是否绘制损失函数</span>
-<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#是否覆盖之前的保存</span>
+<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># 是否覆盖之前的保存</span>
 <span class="nt">save_total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 
 <span class="c1">### train</span>
-<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1">#训练batch_size</span>
-<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"> </span><span class="c1">#梯度累积次数</span>
+<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1"># 训练batch_size</span>
+<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"> </span><span class="c1"># 梯度累积次数</span>
 <span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-5</span><span class="w"> </span><span class="c1"># 学习率</span>
-<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span><span class="w"> </span><span class="c1">#最多训练轮次</span>
+<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span><span class="w"> </span><span class="c1"># 最多训练轮次</span>
 <span class="nt">lr_scheduler_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
 <span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
 <span class="nt">bf16</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -598,12 +601,20 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <span class="c1">### eval</span>
 <span class="nt">do_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+
+<span class="c1">### video processor</span>
+<span class="nt">video_fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15.0</span><span class="w"> </span><span class="c1"># 每秒采样帧数</span>
+<span class="nt">video_maxlen</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">128</span><span class="w"> </span><span class="c1"># 最大采样帧数</span>
+<span class="nt">enable_high_fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># 高刷新率</span>
+<span class="nt">double_frame_duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span><span class="w"> </span><span class="c1"># 视频时长小于30s时双倍采样</span>
+<span class="nt">packing_maxlen</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"> </span><span class="c1"># 每个packing大小</span>
+<span class="nt">time_scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span><span class="w"> </span><span class="c1"># temporal id的单位尺度（秒）</span>
 </code></pre></div>
 
 <h3 id="全量微调">全量微调</h3>
-<p>创建全量训练配置minicpmv4_5_full_sft.yaml文件，并且放入LLaMA-Factory/minicpm_config：</p>
+<p>创建全量训练配置minicpmo4_5_full_sft.yaml文件，并且放入LLaMA-Factory/minicpm_config：</p>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-o-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">freeze_vision_tower</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#冻结图像模块</span>
 <span class="nt">print_param_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -617,14 +628,14 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <span class="c1">### dataset</span>
 <span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># 改成你上面data/data_info.json的文件下新增的键名</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span><span class="w"> </span><span class="c1">#</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_o</span><span class="w"> </span><span class="c1">#</span>
 <span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span>
 <span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
 <span class="c1">### output</span>
-<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/full/sft</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmo4_5/full/sft</span>
 <span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -649,28 +660,28 @@ footer.page-footer a:hover { color: var(--primary); }
 <h2 id="模型训练">模型训练</h2>
 <h3 id="全量训练">全量训练</h3>
 <div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>LLaMA-Factory
-llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_full_sft.yaml
+llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmo4_5_full_sft.yaml
 </code></pre></div>
 
 <h3 id="lora训练">Lora训练</h3>
 <ol>
 <li>开始训练</li>
 </ol>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_lora_sft.yaml
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmo4_5_lora_sft.yaml
 </code></pre></div>
 
 <ol>
 <li>创建合并脚本merge.yaml</li>
 </ol>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-model_name_or_path:<span class="w"> </span>openbmb/MiniCPM-V-4_5<span class="w"> </span><span class="c1"># 这里可以填入原始模型地址，可以是本地模型</span>
-adapter_name_or_path:<span class="w"> </span>saves/minicpm_v4_5/lora/sft<span class="w"> </span><span class="c1"># 这里填入保存的lora模型地址</span>
-template:<span class="w"> </span>minicpm_v
+model_name_or_path:<span class="w"> </span>openbmb/MiniCPM-o-4_5<span class="w"> </span><span class="c1"># 这里可以填入原始模型地址，可以是本地模型</span>
+adapter_name_or_path:<span class="w"> </span>saves/minicpm_o4_5/lora/sft<span class="w"> </span><span class="c1"># 这里填入保存的lora模型地址</span>
+template:<span class="w"> </span>minicpm_o
 finetuning_type:<span class="w"> </span>lora
 trust_remote_code:<span class="w"> </span><span class="nb">true</span>
 
 <span class="c1">### export</span>
-export_dir:<span class="w"> </span>models/minicpmv4_5_lora_sft
+export_dir:<span class="w"> </span>models/minicpmo4_5_lora_sft
 export_size:<span class="w"> </span><span class="m">2</span>
 export_device:<span class="w"> </span>cpu
 export_legacy_format:<span class="w"> </span><span class="nb">false</span>
@@ -679,7 +690,7 @@ export_legacy_format:<span class="w"> </span><span class="nb">false</span>
 <ol>
 <li>合并模型</li>
 </ol>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span>configs/minicpmv4_5_lora_export.yaml
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span>configs/minicpmo4_5_lora_export.yaml
 </code></pre></div></article>
 
   <footer class="page-footer">

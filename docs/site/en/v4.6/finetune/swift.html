@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="no-transitions">
+<html lang="en" class="no-transitions">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="多图问答 — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
-<title>多图问答 — MiniCPM-V & o Cookbook</title>
+<meta name="description" content="ms-swift (Counting example) — Recipes for vision, speech, and live-streaming multimodal AI.">
+<title>ms-swift (Counting example) — MiniCPM-V & o Cookbook</title>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
 <link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
@@ -306,7 +306,7 @@ footer.page-footer a:hover { color: var(--primary); }
   })();
 </script>
 </head>
-<body data-version="v4.6" data-lang="zh" data-slug="v4.6/inference/multi-images">
+<body data-version="v4.6" data-lang="en" data-slug="v4.6/finetune/swift">
 
 <header class="topbar">
   <button class="topbar-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">☰</button>
@@ -315,33 +315,33 @@ footer.page-footer a:hover { color: var(--primary); }
     <span class="brand-text">MiniCPM-V & o Cookbook</span>
   </a>
   <div class="topbar-search">
-    <input type="search" placeholder="搜索文档…" id="pagefind-search">
+    <input type="search" placeholder="Search docs…" id="pagefind-search">
   </div>
   <nav class="topbar-actions">
-    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="切换主题（自动 / 浅色 / 深色）" title="切换主题（自动 / 浅色 / 深色）">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="Toggle theme (auto / light / dark)" title="Toggle theme (auto / light / dark)">
       <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
-      <span class="theme-toggle-label">自动</span>
+      <span class="theme-toggle-label">Auto</span>
     </button>
     <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook" target="_blank" rel="noopener">GitHub</a>
     <a href="https://huggingface.co/openbmb" target="_blank" rel="noopener">HuggingFace</a>
-    <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">魔搭社区</a>
+    <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">ModelScope</a>
     <a href="https://discord.gg/rftuRMbqzf" target="_blank" rel="noopener">Discord</a>
-    <a href="https://huggingface.co/papers/2509.18154" target="_blank" rel="noopener">技术报告</a>
+    <a href="https://huggingface.co/papers/2509.18154" target="_blank" rel="noopener">Paper</a>
   </nav>
 </header>
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <a class="sidebar-lang-switch" href="../../../en/v4.6/inference/multi-images.html" rel="alternate" hreflang="en">English</a>
+    <a class="sidebar-lang-switch" href="../../../zh/v4.6/finetune/swift.html" rel="alternate" hreflang="zh">中文</a>
   </div>
   <ul class="nav-list">
-  <li><a class="" href="../../index.html">首页</a></li>
+  <li><a class="" href="../../index.html">Home</a></li>
 </ul>
-<div class="sidebar-section-title">版本</div>
+<div class="sidebar-section-title">Version</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="multi-images.html" selected>MiniCPM-V 4.6 [latest]</option>
-    <option value="../../v4.5/inference/multi-images.html">MiniCPM-V 4.5</option>
+    <option value="swift.html" selected>MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
     <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
     <option value="../../minicpm4_1/overview.html">MiniCPM 4.1</option>
@@ -350,29 +350,29 @@ footer.page-footer a:hover { color: var(--primary); }
   </select>
 </div>
 <ul class="nav-list">
-<li><a class="" href="../overview.html">概览</a></li>
-<li class="nav-group"><div class="nav-group-header">推理</div><ul class="nav-group-children"><li><a class="" href="single-image.html">单图问答</a></li>
-<li><a class="active" href="multi-images.html">多图问答</a></li>
-<li><a class="" href="video-understanding.html">视频理解</a></li>
-<li class="nav-group collapsed"><div class="nav-group-header">其他视觉任务</div><ul class="nav-group-children"><li><a class="" href="ocr.html">OCR</a></li>
-<li><a class="" href="pdf-parse.html">PDF 解析</a></li>
-<li><a class="" href="grounding.html">视觉定位</a></li></ul></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">部署</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
+<li><a class="" href="../overview.html">Overview</a></li>
+<li class="nav-group"><div class="nav-group-header">Inference</div><ul class="nav-group-children"><li><a class="" href="../inference/single-image.html">Single-image QA</a></li>
+<li><a class="" href="../inference/multi-images.html">Multi-image QA</a></li>
+<li><a class="" href="../inference/video-understanding.html">Video QA</a></li>
+<li class="nav-group collapsed"><div class="nav-group-header">Other visual tasks</div><ul class="nav-group-children"><li><a class="" href="../inference/ocr.html">OCR</a></li>
+<li><a class="" href="../inference/pdf-parse.html">PDF parsing</a></li>
+<li><a class="" href="../inference/grounding.html">Visual grounding</a></li></ul></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Deployment</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="../quantization/gguf.html">GGUF</a></li>
+<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/gguf.html">GGUF</a></li>
 <li><a class="" href="../quantization/bnb.html">BNB</a></li>
 <li><a class="" href="../quantization/awq.html">AWQ</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">演示</div><ul class="nav-group-children"><li><a class="" href="../demos/gradio.html">Gradio</a></li>
+<li class="nav-group"><div class="nav-group-header">Demos</div><ul class="nav-group-children"><li><a class="" href="../demos/gradio.html">Gradio</a></li>
 <li><a class="" href="../demos/ios.html">iOS</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory（Counting 示例）</a></li>
-<li><a class="" href="../finetune/swift.html">ms-swift（Counting 示例）</a></li>
-<li><a class="" href="../finetune/swift-dpo.html">ms-swift（DPO）</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="llamafactory.html">LLaMA-Factory (Counting example)</a></li>
+<li><a class="active" href="swift.html">ms-swift (Counting example)</a></li>
+<li><a class="" href="swift-dpo.html">ms-swift (DPO)</a></li></ul></li>
 </ul>
-<div class="sidebar-section-title">跨版本</div>
+<div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
-<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../../shared/finetune/official.html">官方脚本微调</a></li>
+<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../../shared/finetune/official.html">Official scripts</a></li>
 <li><a class="" href="../../shared/finetune/llamafactory.html">LLaMA-Factory</a></li>
 <li><a class="" href="../../shared/finetune/swift.html">SWIFT</a></li>
 <li><a class="" href="../../shared/finetune/align-anything.html">Align-anything</a></li></ul></li>
@@ -380,58 +380,214 @@ footer.page-footer a:hover { color: var(--primary); }
 </aside>
 
 <main class="content" id="content">
-  <article><h1 id="多图问答-minicpm-v-4-6">多图问答（MiniCPM-V 4.6）</h1>
-<h2 id="加载模型">加载模型</h2>
-<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoProcessor</span><span class="p">,</span> <span class="n">AutoModelForImageTextToText</span>
+  <article><h1 id="minicpm-v-4-6-fine-tuning-tutorial-ms-swift">MiniCPM-V 4.6 Fine-Tuning Tutorial (ms-swift)</h1>
+<h2 id="model-and-task-overview">Model and Task Overview</h2>
+<p>This section uses the counting task <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> as a fine-tuning example.</p>
+<p>Training task:</p>
+<ul>
+<li>Input an image and a counting question</li>
+<li>The target <code>assistant</code> response first lists the coordinates of each target object in <code>x y</code> format, for example, <code>&lt;point&gt;573 489&lt;/point&gt;</code>, and then outputs the final count, such as <code>0</code>, <code>3</code>, or <code>10</code>.</li>
+</ul>
+<h2 id="environment-setup">Environment Setup</h2>
+<p><strong>Minimum runnable installation steps</strong></p>
+<div class="code"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.10<span class="w"> </span>-y
+conda<span class="w"> </span>activate<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span>
 
-<span class="n">model_path</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4.6&quot;</span>  <span class="c1"># 或 &quot;openbmb/MiniCPM-V-4.6-Thinking&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0
 
-<span class="n">processor</span> <span class="o">=</span> <span class="n">AutoProcessor</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForImageTextToText</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
-    <span class="n">model_path</span><span class="p">,</span>
-    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>
-    <span class="n">attn_implementation</span><span class="o">=</span><span class="s2">&quot;sdpa&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0<span class="w"> </span><span class="nv">accelerate</span><span class="o">==</span><span class="m">1</span>.13.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">deepspeed</span><span class="o">==</span><span class="m">0</span>.18.3<span class="w"> </span><span class="nv">peft</span><span class="o">==</span><span class="m">0</span>.18.1<span class="w"> </span><span class="nv">trl</span><span class="o">==</span><span class="m">0</span>.24.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wandb<span class="w"> </span>ninja<span class="w"> </span>einops<span class="w"> </span>safetensors<span class="w"> </span>tokenizers<span class="w"> </span>sentencepiece
+
+<span class="nv">MAX_JOBS</span><span class="o">=</span><span class="m">32</span><span class="w"> </span><span class="nv">NVCC_THREADS</span><span class="o">=</span><span class="m">4</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-build-isolation<span class="w"> </span>flash-attn<span class="o">==</span><span class="m">2</span>.8.3
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/modelscope/ms-swift.git
+<span class="nb">cd</span><span class="w"> </span>ms-swift
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0
 </code></pre></div>
 
-<h2 id="多图对话">多图对话</h2>
-<div class="code"><pre><span></span><code><span class="n">image1</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;assets/multi1.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
-<span class="n">image2</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;assets/multi2.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
-
-<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span>
-    <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image1</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image2</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>  <span class="s2">&quot;text&quot;</span><span class="p">:</span>  <span class="s2">&quot;比较这两张图片，告诉我它们之间的差异。&quot;</span><span class="p">},</span>
-    <span class="p">],</span>
-<span class="p">}]</span>
-
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
-    <span class="n">messages</span><span class="p">,</span>
-    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-
-<span class="n">out_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-    <span class="n">out_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span>
-    <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+<p>Note: MiniCPM-V 4.6 is officially supported by <code>transformers&gt;=5.7.0</code>. Please make sure the final version of <code>transformers</code> in your environment is larger or equal to <code>5.7.0</code>.</p>
+<p><strong>Reference dependency versions</strong></p>
+<div class="code"><pre><span></span><code>python                        3.10.0
+accelerate                    1.13.0
+deepspeed                     0.18.3
+flash_attn                    2.8.3
+ms_swift                      latest official code
+torch                         2.8.0
+torchvision                   0.23.0
+transformers                  5.7.0
 </code></pre></div>
 
-<h2 id="示例图片">示例图片</h2>
-<p><img alt="alt text" src="./assets/multi1.png"></p>
-<p><img alt="alt text" src="./assets/multi2.png"></p></article>
+<h3 id="2-2-data-preparation">2.2 Data Preparation</h3>
+<p>Download the dataset from <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> and convert it into the ms-swift format.</p>
+<p><strong>Data format reference:</strong>
+  <code>json
+  {
+      "messages": [
+          {
+              "content": "&lt;image&gt;\nCarefully observe the image. Are there any people in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.",
+              "role": "user"
+          },
+          {
+              "content": "&lt;think&gt;\n\n&lt;/think&gt;\n\nThe respective coordinates of people: &lt;point&gt;236 469&lt;/point&gt;, &lt;point&gt;307 232&lt;/point&gt;, &lt;point&gt;362 434&lt;/point&gt;, &lt;point&gt;485 521&lt;/point&gt;, &lt;point&gt;487 340&lt;/point&gt;, &lt;point&gt;615 386&lt;/point&gt;, &lt;point&gt;735 441&lt;/point&gt;, &lt;point&gt;870 615&lt;/point&gt;. So the total count is 8.",
+              "role": "assistant"
+          }
+      ],
+      "images": [
+          "/path/to/images/*.jpg"
+      ],
+      "source_file": "pixmo-count",
+      "orig_index": 1,
+      "channel": "pixmo-count"
+  }</code>
+- For the Counting task, adding supervision on point prediction can improve fine-tuning performance. Therefore, we recommend concatenating the <code>points</code> coordinates from the dataset into the assistant response.
+- Since MiniCPM-V 4.6 normalizes image coordinates to <code>0~1000</code>, the point coordinates also need to be transformed as follows:
+  <code>python
+  def expected_norm(x_px: float, y_px: float, width: int, height: int) -&gt; Tuple[int, int]:
+      return int((x_px / width) * 1000.0), int((y_px / height) * 1000.0)</code></p>
+<h2 id="launch-training">Launch Training</h2>
+<p>After configuring the model path, training set path, validation set path, and output directory, run the following script to start training.</p>
+<div class="code"><pre><span></span><code>run_swift.sh
+<span class="c1">#!/bin/bash</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="k">:-</span><span class="nv">0</span><span class="p">,1,2,3,4,5,6,7</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NPROC_PER_NODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NPROC_PER_NODE</span><span class="k">:-</span><span class="nv">8</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MASTER_PORT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MASTER_PORT</span><span class="k">:-</span><span class="nv">29632</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_API_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_API_KEY</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_PROJECT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_PROJECT</span><span class="k">:-</span><span class="nv">MiniCPMV46</span><span class="p">-Counting</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_RUN_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">DOWNSAMPLE_MODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DOWNSAMPLE_MODE</span><span class="k">:-</span><span class="nv">4x</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">SWIFT_BIN</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SWIFT_BIN</span><span class="k">:-</span><span class="nv">swift</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="k">:-</span><span class="p">/path/to/minicpm-v-4_6</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">TRAIN_DATA</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAIN_DATA</span><span class="k">:-</span><span class="p">/path/to/task_dataset/train/pixmo_count_train_with_channel</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">VALID_DATA</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALID_DATA</span><span class="k">:-</span><span class="p">/path/to/task_dataset/val/validation-00000-of-00001-swift.parquet</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">DEEPSPEED_CONFIG</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEEPSPEED_CONFIG</span><span class="k">:-</span><span class="nv">zero2</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">SCRIPT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="k">:-</span><span class="nv">path</span><span class="p">/to/outdir</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="si">${</span><span class="nv">SWIFT_BIN</span><span class="si">}</span><span class="w"> </span>sft<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model_type<span class="w"> </span>minicpmv4_6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--template<span class="w"> </span>minicpmv4_6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--add_non_thinking_prefix<span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run_name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAIN_DATA</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--val_dataset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALID_DATA</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--deepspeed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEEPSPEED_CONFIG</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--tuner_type<span class="w"> </span>full<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--torch_dtype<span class="w"> </span>bfloat16<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--freeze_vit<span class="w"> </span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--packing<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max_length<span class="w"> </span><span class="m">4096</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--num_train_epochs<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--per_device_train_batch_size<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--gradient_accumulation_steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--learning_rate<span class="w"> </span>5e-6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--warmup_ratio<span class="w"> </span><span class="m">0</span>.05<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--logging_steps<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--save_steps<span class="w"> </span><span class="m">132</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--eval_strategy<span class="w"> </span>steps<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--eval_steps<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--save_total_limit<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--load_from_cache_file<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset_num_proc<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataloader_num_workers<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--enable_channel_loss<span class="w"> </span>True<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--attn_impl<span class="w"> </span>flash_attn<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--loss_scale<span class="w"> </span>ignore_empty_think<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output_dir<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--report_to<span class="w"> </span>wandb
+</code></pre></div>
+
+<p>Key parameter notes</p>
+<ul>
+<li>Training supports two visual token compression ratios, <code>16x</code> and <code>4x</code>, which are controlled by <code>export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"</code>.</li>
+<li>The current version of <code>transformers</code> still has issues with packed training for the Qwen3.5 series. For now, please use <code>--packing false</code>. This document will be updated once an official fix is available.</li>
+<li><code>--add_non_thinking_prefix true</code> can append <code>&lt;think&gt;\n\n&lt;/think&gt;\n\n</code> to training prompts, achieve no-thinking training.</li>
+</ul>
+<h2 id="training-curves">Training Curves</h2>
+<p><a href="https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting/reports/ms-swift---VmlldzoxNjgxMDk0Ng">https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting/reports/ms-swift---VmlldzoxNjgxMDk0Ng</a></p>
+<p><img src="../assets/finetune_minicpmv46/minicpmv46_swift_ft_dynamics.png" alt="ms-swift training curves" /></p>
+<h2 id="evaluation-results">Evaluation Results</h2>
+<p>Evaluation metrics explanation:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acc@0</td>
+<td>Exact match accuracy (predicted value = ground truth)</td>
+</tr>
+<tr>
+<td>Acc@0 Top1</td>
+<td>The highest Acc@0 score among all checkpoints saved during training</td>
+</tr>
+<tr>
+<td>Acc@0 Avg.Top3</td>
+<td>The average Acc@0 score of the top three checkpoints saved during training</td>
+</tr>
+</tbody>
+</table>
+<p>The table below shows the results under two visual token compression ratios:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Visual Token Compression Ratio</th>
+<th>Acc@0 Top1</th>
+<th>Acc@0 Avg.Top3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>16</td>
+<td>46.5</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>4</td>
+<td>51.8</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>16</td>
+<td>79.7</td>
+<td>79.3</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>4</td>
+<td>84.3</td>
+<td>83.9</td>
+</tr>
+</tbody>
+</table>
+<p><small>[1]: MiniCPM-V 4.6 is the original model without fine-tuning, so only one Acc@0 result (Acc@0 Top1) is available and Acc@0 Avg.Top3 cannot be computed.</small></p>
+<p>Output example:</p>
+<p>```text
+  Q: Carefully observe the image. Are there any airplanes in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.</p>
+<p>A: The respective coordinates of airplanes: <point>310 370</point>, <point>365 277</point>, <point>388 486</point>, <point>405 185</point>, <point>437 368</point>, <point>474 611</point>, <point>503 250</point>, <point>527 451</point>, <point>535 818</point>, <point>597 331</point>. So the total count is 10.
+  ```</p>
+<p><img src="../assets/finetune_minicpmv46/sample_1.png" alt="ms-swift sample" /></p></article>
 
   <footer class="page-footer">
-    <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
-    <span>由 <code>build_docs.py</code> 自动生成</span>
+    <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>
+    <span>Built with <code>build_docs.py</code></span>
   </footer>
 </main>
 

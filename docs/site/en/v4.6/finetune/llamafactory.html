@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="LLaMA-Factory — Recipes for vision, speech, and live-streaming multimodal AI.">
-<title>LLaMA-Factory — MiniCPM-V & o Cookbook</title>
+<meta name="description" content="LLaMA-Factory (Counting example) — Recipes for vision, speech, and live-streaming multimodal AI.">
+<title>LLaMA-Factory (Counting example) — MiniCPM-V & o Cookbook</title>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
 <link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
@@ -306,7 +306,7 @@ footer.page-footer a:hover { color: var(--primary); }
   })();
 </script>
 </head>
-<body data-version="minicpm4_1" data-lang="en" data-slug="minicpm4_1/finetune/llamafactory">
+<body data-version="v4.6" data-lang="en" data-slug="v4.6/finetune/llamafactory">
 
 <header class="topbar">
   <button class="topbar-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">☰</button>
@@ -332,7 +332,7 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <a class="sidebar-lang-switch" href="../../../zh/minicpm4_1/finetune/llamafactory.html" rel="alternate" hreflang="zh">中文</a>
+    <a class="sidebar-lang-switch" href="../../../zh/v4.6/finetune/llamafactory.html" rel="alternate" hreflang="zh">中文</a>
   </div>
   <ul class="nav-list">
   <li><a class="" href="../../index.html">Home</a></li>
@@ -340,26 +340,35 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">Version</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="../../v4.6/finetune/llamafactory.html">MiniCPM-V 4.6 [latest]</option>
+    <option value="llamafactory.html" selected>MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
     <option value="../../minicpm5/finetune/llamafactory.html">MiniCPM 5 [latest-llm]</option>
-    <option value="llamafactory.html" selected>MiniCPM 4.1</option>
+    <option value="../../minicpm4_1/finetune/llamafactory.html">MiniCPM 4.1</option>
     <option value="../../minicpm4/finetune/llamafactory.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/finetune/llamafactory.html">MiniCPM-SALA [research]</option>
   </select>
 </div>
 <ul class="nav-list">
 <li><a class="" href="../overview.html">Overview</a></li>
-<li class="nav-group"><div class="nav-group-header">Inference</div><ul class="nav-group-children"><li><a class="" href="../inference/chat.html">Chat (Hybrid Reasoning)</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Inference</div><ul class="nav-group-children"><li><a class="" href="../inference/single-image.html">Single-image QA</a></li>
+<li><a class="" href="../inference/multi-images.html">Multi-image QA</a></li>
+<li><a class="" href="../inference/video-understanding.html">Video QA</a></li>
+<li class="nav-group collapsed"><div class="nav-group-header">Other visual tasks</div><ul class="nav-group-children"><li><a class="" href="../inference/ocr.html">OCR</a></li>
+<li><a class="" href="../inference/pdf-parse.html">PDF parsing</a></li>
+<li><a class="" href="../inference/grounding.html">Visual grounding</a></li></ul></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Deployment</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
-<li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX (Apple Silicon)</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/awq.html">AWQ</a></li>
-<li><a class="" href="../quantization/gptq.html">GPTQ (+ QAT)</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="active" href="llamafactory.html">LLaMA-Factory</a></li></ul></li>
+<li><a class="" href="../deployment/ollama.html">Ollama</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/gguf.html">GGUF</a></li>
+<li><a class="" href="../quantization/bnb.html">BNB</a></li>
+<li><a class="" href="../quantization/awq.html">AWQ</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Demos</div><ul class="nav-group-children"><li><a class="" href="../demos/gradio.html">Gradio</a></li>
+<li><a class="" href="../demos/ios.html">iOS</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="active" href="llamafactory.html">LLaMA-Factory (Counting example)</a></li>
+<li><a class="" href="swift.html">ms-swift (Counting example)</a></li>
+<li><a class="" href="swift-dpo.html">ms-swift (DPO)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -371,119 +380,236 @@ footer.page-footer a:hover { color: var(--primary); }
 </aside>
 
 <main class="content" id="content">
-  <article><h1 id="llama-factory-minicpm-4-4-1">LLaMA-Factory (MiniCPM 4 / 4.1)</h1>
-<div class="admonition admonition-note" markdown="0">
-<p class="admonition-title">Note</p>
-<p><a href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a> is a one-stop framework for SFT / DPO / RLHF fine-tuning. MiniCPM 4 / 4.1 ride the upstream LLaMA-Factory mainline — no fork required.</p>
-</div>
+  <article><h1 id="minicpm-v-4-6-fine-tuning-tutorial-llama-factory">MiniCPM-V 4.6 Fine-Tuning Tutorial (LlaMA-Factory)</h1>
+<h2 id="model-and-task-overview">Model and Task Overview</h2>
+<p>This section uses the counting task <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> as a fine-tuning example.</p>
+<p>Training task:</p>
+<ul>
+<li>Input an image and a counting question</li>
+<li>The target <code>assistant</code> response first lists the coordinates of each target object in <code>x y</code> format, for example, <code>&lt;point&gt;573 489&lt;/point&gt;</code>, and then outputs the final count, such as <code>0</code>, <code>3</code>, or <code>10</code>.</li>
+</ul>
+<h2 id="environment-setup">Environment Setup</h2>
+<p><strong>Minimum runnable installation steps</strong></p>
+<div class="code"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11<span class="w"> </span>-y
+conda<span class="w"> </span>activate<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span>
 
-<h2 id="1-install-llama-factory">1. Install LLaMA-Factory</h2>
-<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/hiyouga/LLaMA-Factory.git
-<span class="nb">cd</span><span class="w"> </span>LLaMA-Factory
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[torch,metrics,deepspeed]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0
+
+pip<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0<span class="w"> </span><span class="nv">accelerate</span><span class="o">==</span><span class="m">1</span>.13.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">deepspeed</span><span class="o">==</span><span class="m">0</span>.18.3<span class="w"> </span><span class="nv">peft</span><span class="o">==</span><span class="m">0</span>.18.1<span class="w"> </span><span class="nv">trl</span><span class="o">==</span><span class="m">0</span>.24.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wandb<span class="w"> </span>ninja<span class="w"> </span>einops<span class="w"> </span>safetensors<span class="w"> </span>tokenizers<span class="w"> </span>sentencepiece
+
+<span class="nv">MAX_JOBS</span><span class="o">=</span><span class="m">32</span><span class="w"> </span><span class="nv">NVCC_THREADS</span><span class="o">=</span><span class="m">4</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-build-isolation<span class="w"> </span>flash-attn<span class="o">==</span><span class="m">2</span>.8.3
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hiyouga/LlamaFactory.git
+<span class="nb">cd</span><span class="w"> </span>LlamaFactory
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements/metrics.txt<span class="w"> </span>-r<span class="w"> </span>requirements/deepspeed.txt
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0
 </code></pre></div>
 
-<blockquote>
-<p>Use LLaMA-Factory <code>&gt;= 0.9.0</code>. MiniCPM 4 / 4.1 are text-only — no <code>[minicpm_v]</code> extra needed.</p>
-</blockquote>
-<h2 id="2-prepare-the-dataset">2. Prepare the dataset</h2>
-<p>LLaMA-Factory expects JSON in the <strong>sharegpt</strong> format. Save as <code>data/my_sft.json</code>:</p>
-<div class="code"><pre><span></span><code><span class="p">[</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;conversations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="p">{</span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;human&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Write a short article about edge AI.&quot;</span><span class="p">},</span>
-<span class="w">      </span><span class="p">{</span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gpt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Edge AI is the practice of...&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="p">]</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;conversations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="p">{</span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;human&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;List three benefits of on-device inference.&quot;</span><span class="p">},</span>
-<span class="w">      </span><span class="p">{</span><span class="nt">&quot;from&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gpt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1. Lower latency...\n2. Better privacy...\n3. Offline availability...&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="p">]</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">]</span>
+<p>Note: MiniCPM-V 4.6 is officially supported by <code>transformers&gt;=5.7.0</code>. Please make sure the final version of <code>transformers</code> in your environment is larger or equal to <code>5.7.0</code>.</p>
+<p><strong>Reference dependency versions</strong></p>
+<div class="code"><pre><span></span><code>python                        3.11.0
+accelerate                    1.13.0
+deepspeed                     0.18.3
+flash_attn                    2.8.3
+llamafactory                  latest official code
+torch                         2.8.0
+torchvision                   0.23.0
+transformers                  5.7.0
 </code></pre></div>
 
-<p>Register the dataset in <code>data/dataset_info.json</code>:</p>
-<div class="code"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;my_sft&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;file_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;my_sft.json&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;formatting&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sharegpt&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;columns&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;conversations&quot;</span><span class="w"> </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<h2 id="3-lora-sft">3. LoRA SFT</h2>
-<p>Create <code>configs/lora_minicpm4_1.yaml</code>:</p>
+<h2 id="data-preparation">Data Preparation</h2>
+<p>Download the dataset from <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> and convert it into the json format.</p>
+<p><strong>Data format reference:</strong>
+  <code>json
+  {
+      "messages": [
+          {
+              "content": "&lt;image&gt;\nCarefully observe the image. Are there any people in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.",
+              "role": "user"
+          },
+          {
+              "content": "&lt;think&gt;\n\n&lt;/think&gt;\n\nThe respective coordinates of people: &lt;point&gt;236 469&lt;/point&gt;, &lt;point&gt;307 232&lt;/point&gt;, &lt;point&gt;362 434&lt;/point&gt;, &lt;point&gt;485 521&lt;/point&gt;, &lt;point&gt;487 340&lt;/point&gt;, &lt;point&gt;615 386&lt;/point&gt;, &lt;point&gt;735 441&lt;/point&gt;, &lt;point&gt;870 615&lt;/point&gt;. So the total count is 8.",
+              "role": "assistant"
+          }
+      ],
+      "images": [
+          "/path/to/images/*.jpg"
+      ],
+      "source_file": "pixmo-count",
+      "orig_index": 1,
+      "channel": "pixmo-count"
+  }</code>
+- For the Counting task, adding supervision on point prediction can improve fine-tuning performance. Therefore, we recommend concatenating the <code>points</code> coordinates from the dataset into the assistant response.
+- Since MiniCPM-V 4.6 normalizes image coordinates to <code>0~1000</code>, the point coordinates also need to be transformed as follows:
+  <code>python
+  def expected_norm(x_px: float, y_px: float, width: int, height: int) -&gt; Tuple[int, int]:
+      return int((x_px / width) * 1000.0), int((y_px / height) * 1000.0)</code>
+- For fine-tuning, we recommend adding <code>&lt;think&gt;\n\n&lt;/think&gt;\n\n</code> to the assistant prefix. For thinking tasks, use <code>&lt;think&gt;\n</code> instead.</p>
+<h2 id="launch-training">Launch Training</h2>
+<p>After configuring the model path, training set path, validation set path, and output directory, run the following script to start training.</p>
+<ul>
+<li>Configure <code>train.yaml</code></li>
+</ul>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM4.1-8B</span><span class="w">   </span><span class="c1"># or openbmb/MiniCPM4-8B</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/minicpm-v-4_6</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">flash_attn</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fa2</span>
 
 <span class="c1">### method</span>
 <span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sft</span>
 <span class="nt">do_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lora</span>
-<span class="nt">lora_target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
+<span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
+<span class="nt">freeze_vision_tower</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">deepspeed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LlamaFactory/examples/deepspeed/ds_z2_config.json</span>
 
 <span class="c1">### dataset</span>
-<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_sft</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm4</span>
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixmo_count_train</span>
+<span class="nt">eval_dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixmo_count_val</span>
+<span class="nt">dataset_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/dataset_dir</span><span class="w"> </span><span class="c1"># dataset_dir should contain dataset_info.json file</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v_4_6</span>
 <span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span>
+<span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">dataloader_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 <span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
 
 <span class="c1">### output</span>
-<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpm4_1-lora</span>
-<span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
-<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/output_dir</span>
+<span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">132</span>
+<span class="nt">save_total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="nt">eval_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">steps</span>
+<span class="nt">eval_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
 <span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">report_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wandb</span>
 
 <span class="c1">### train</span>
-<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
-<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
-<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-4</span>
-<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">per_device_eval_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0e-6</span>
+<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4.0</span>
 <span class="nt">lr_scheduler_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
-<span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span>
 <span class="nt">bf16</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">max_grad_norm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="nt">ddp_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180000000</span>
+<span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<span class="nt">adam_beta2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.95</span>
 </code></pre></div>
 
-<p>Launch:</p>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/lora_minicpm4_1.yaml
-</code></pre></div>
-
-<div class="admonition admonition-tip" markdown="0">
-<p class="admonition-title">Tip</p>
-<p>If the <code>minicpm4</code> template isn't recognised yet by your LLaMA-Factory version, fall back to <code>template: cpm</code> or rebuild from the latest <code>main</code> — MiniCPM 4 template support has been merged upstream.</p>
-</div>
-
-<h2 id="4-full-fine-tuning">4. Full fine-tuning</h2>
-<p>For full-parameter fine-tuning swap <code>finetuning_type: full</code> and bump GPU count via DeepSpeed:</p>
-<div class="code"><pre><span></span><code><span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
-<span class="nt">deepspeed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">examples/deepspeed/ds_z3_config.json</span>
-</code></pre></div>
-
-<p>Use 8 × A100 80G or equivalent. For most users LoRA + bf16 on 1–2 GPUs is enough.</p>
-<h2 id="5-merge-lora-export">5. Merge LoRA &amp; export</h2>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--model_name_or_path<span class="w"> </span>openbmb/MiniCPM4.1-8B<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--adapter_name_or_path<span class="w"> </span>saves/minicpm4_1-lora<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--template<span class="w"> </span>minicpm4<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--finetuning_type<span class="w"> </span>lora<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--export_dir<span class="w"> </span>saves/minicpm4_1-merged<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--export_size<span class="w"> </span><span class="m">2</span><span class="w"> </span>--export_legacy_format<span class="w"> </span><span class="nb">false</span>
-</code></pre></div>
-
-<p>The exported directory is a standalone HF model — drop it into any of the <a href="../deployment/">deployment guides</a> under MiniCPM 4 / 4.1.</p>
-<h2 id="6-notes">6. Notes</h2>
 <ul>
-<li>Dataset templates: SFT (<code>sharegpt</code>, <code>alpaca</code>), DPO (<code>dpo_pairs</code>), KTO (<code>kto_pairs</code>). Hybrid-reasoning training data should include <code>&lt;think&gt;...&lt;/think&gt;</code> blocks in the assistant turn.</li>
-<li>Tokenizer is loaded from the original Hub model — no offline tokenizer surgery needed.</li>
-<li>For other fine-tuning toolkits (SWIFT, Align-anything, Transformers Trainer), see the shared finetune section in the sidebar.</li>
-</ul></article>
+<li>Run <code>run.sh</code></li>
+</ul>
+<div class="code"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="k">:-</span><span class="nv">0</span><span class="p">,1,2,3,4,5,6,7</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NPROC_PER_NODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NPROC_PER_NODE</span><span class="k">:-</span><span class="nv">8</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MASTER_PORT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MASTER_PORT</span><span class="k">:-</span><span class="nv">29632</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_API_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_API_KEY</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_PROJECT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_PROJECT</span><span class="k">:-</span><span class="nv">MiniCPMV46</span><span class="p">-Counting</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_RUN_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># MiniCPMV 4.6 downsample mode: 4x for high-resolution, 16x for default</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">DOWNSAMPLE_MODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DOWNSAMPLE_MODE</span><span class="k">:-</span><span class="nv">4x</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">DISABLE_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span>
+<span class="c1"># Activate the lfv46 conda environment</span>
+
+<span class="c1"># IMPORTANT: Unset USE_V1 to use the v2 launcher</span>
+<span class="nb">unset</span><span class="w"> </span>USE_V1
+
+<span class="nv">CONFIG_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">/train.yaml&quot;</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="k">:-</span><span class="p">/path/to/output_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Training with config: </span><span class="nv">$CONFIG_FILE</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Output dir: </span><span class="nv">$OUTPUT_DIR</span><span class="s2">&quot;</span>
+
+llamafactory-cli<span class="w"> </span>train<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CONFIG_FILE</span><span class="s2">&quot;</span>
+</code></pre></div>
+
+<p>Key parameter notes</p>
+<ul>
+<li>Training supports two visual token compression ratios, <code>16x</code> and <code>4x</code>, which are controlled by <code>export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"</code>.</li>
+<li>The current version of <code>transformers</code> still has issues with packed training for the Qwen3.5 series. For now, please do not use the packing mode. This document will be updated once an official fix is available.</li>
+</ul>
+<h2 id="training-curves">Training Curves</h2>
+<p><a href="https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ">https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ</a></p>
+<p><img src="../assets/finetune_minicpmv46/minicpmv46_lf_ft_dynamics.png" alt="Llama-Factory training curves" /></p>
+<h2 id="evaluation-results">Evaluation Results</h2>
+<p>Evaluation metrics explanation:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acc@0</td>
+<td>Exact match accuracy (predicted value = ground truth)</td>
+</tr>
+<tr>
+<td>Acc@0 Top1</td>
+<td>The highest Acc@0 score among all checkpoints saved during training</td>
+</tr>
+<tr>
+<td>Acc@0 Avg.Top3</td>
+<td>The average Acc@0 score of the top three checkpoints saved during training</td>
+</tr>
+</tbody>
+</table>
+<p>The table below shows the results under two visual token compression ratios:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Visual Token Compression Ratio</th>
+<th>Acc@0 Top1</th>
+<th>Acc@0 Avg.Top3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>16</td>
+<td>46.5</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>4</td>
+<td>51.8</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>16</td>
+<td>78.4</td>
+<td>78.1</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>4</td>
+<td>83.1</td>
+<td>82.5</td>
+</tr>
+</tbody>
+</table>
+<p><small>[1]: MiniCPM-V 4.6 is the original model without fine-tuning, so only one Acc@0 result (Acc@0 Top1) is available and Acc@0 Avg.Top3 cannot be computed.</small></p>
+<p>Output example:</p>
+<p>```text
+  Q: Carefully observe the image. Are there any airplanes in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.</p>
+<p>A: The respective coordinates of airplanes: <point>310 370</point>, <point>360 275</point>, <point>385 486</point>, <point>402 180</point>, <point>439 368</point>, <point>474 611</point>, <point>505 250</point>, <point>532 448</point>, <point>536 818</point>, <point>597 328</point>. So the total count is 10.
+  ```</p>
+<p><img src="../assets/finetune_minicpmv46/sample_2.png" alt="LlamaFactory sample" /></p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

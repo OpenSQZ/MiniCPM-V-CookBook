@@ -108,6 +108,18 @@ versions:
             src:   demo/ios_demo/ios.md
             url:   demos/ios
 
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory (Counting example)", zh: "LLaMA-Factory（Counting 示例）" }
+            src:   finetune/llama-factory/llamafactory_minicpmv46.md
+            url:   finetune/llamafactory
+          - title: { en: "ms-swift (Counting example)",      zh: "ms-swift（Counting 示例）" }
+            src:   finetune/swift/swift_minicpmv46.md
+            url:   finetune/swift
+          - title: { en: "ms-swift (DPO)",                    zh: "ms-swift（DPO）" }
+            src:   finetune/swift/swift_dpo_minicpmv46.md
+            url:   finetune/swift-dpo
+
   - id: v4.5
     label: { en: "MiniCPM-V 4.5",  zh: "MiniCPM-V 4.5" }
     nav:
@@ -271,7 +283,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llamafactory_minicpm5.md
+            src:   finetune/llama-factory/llamafactory_minicpm5.md
             url:   finetune/llamafactory
 
   - id: minicpm4_1
@@ -317,7 +329,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llamafactory_minicpm4.md
+            src:   finetune/llama-factory/llamafactory_minicpm4.md
             url:   finetune/llamafactory
 
   - id: minicpm4
@@ -351,7 +363,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llamafactory_minicpm4.md
+            src:   finetune/llama-factory/llamafactory_minicpm4.md
             url:   finetune/llamafactory
 
   - id: minicpm-sala
@@ -377,7 +389,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llamafactory_minicpm-sala.md
+            src:   finetune/llama-factory/llamafactory_minicpm-sala.md
             url:   finetune/llamafactory
 
 # Cross-version pages (under /shared/...)
@@ -385,17 +397,17 @@ shared:
   - group: { en: "Fine-tuning", zh: "微调" }
     items:
       - title: { en: "Official scripts",   zh: "官方脚本微调" }
-        src:   finetune/official_scripts.md
-        src_zh: finetune/official_scripts_zh.md
+        src:   finetune/official/official_scripts.md
+        src_zh: finetune/official/official_scripts_zh.md
         url:   finetune/official
       - title: { en: "LLaMA-Factory",      zh: "LLaMA-Factory" }
-        src:   finetune/finetune_llamafactory.md
+        src:   finetune/llama-factory/finetune_llamafactory.md
         url:   finetune/llamafactory
       - title: { en: "SWIFT",              zh: "SWIFT" }
-        src:   finetune/swift.md
+        src:   finetune/swift/swift.md
         url:   finetune/swift
       - title: { en: "Align-anything",     zh: "Align-anything" }
-        src:   finetune/align_anything.md
+        src:   finetune/align-anything/align_anything.md
         url:   finetune/align-anything
 
 

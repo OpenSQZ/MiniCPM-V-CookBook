@@ -366,6 +366,9 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../../v4.6/quantization/awq.html">AWQ</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Demos</div><ul class="nav-group-children"><li><a class="" href="../../v4.6/demos/gradio.html">Gradio</a></li>
 <li><a class="" href="../../v4.6/demos/ios.html">iOS</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../../v4.6/finetune/llamafactory.html">LLaMA-Factory (Counting example)</a></li>
+<li><a class="" href="../../v4.6/finetune/swift.html">ms-swift (Counting example)</a></li>
+<li><a class="" href="../../v4.6/finetune/swift-dpo.html">ms-swift (DPO)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -470,7 +473,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </code></pre></div>
 
 <h3 id="building-audio-dataset">Building Audio Dataset</h3>
-<p><strong>Note: Only MiniCPM-o 2.6 model supports audio fine-tuning</strong></p>
+<p><strong>Note: Only MiniCPM-o 2.6 and MiniCPM-o 4.5 supports audio fine-tuning</strong></p>
 <p>Refer to the <strong>mllm_audio_demo.json</strong> dataset under <a href="https://github.com/hiyouga/LLaMA-Factory/blob/main/data/dataset_info.json">LLaMA-Factory/data</a> and construct your data in the same format. The structure is as follows:</p>
 <p>To use audio in multi-turn conversations, add the <code>&lt;audio&gt;</code> tag in the user's content for each turn, and add the corresponding audio paths in the <code>audios</code> field. The number of <code>&lt;audio&gt;</code> tags should match the number of values in <code>audios</code>.</p>
 <div class="code"><pre><span></span><code><span class="p">[</span>
@@ -557,9 +560,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
    }</code></p>
 <h2 id="create-training-configuration-yaml-files">Create Training Configuration YAML Files</h2>
 <h3 id="lora-fine-tuning">LoRA Fine-tuning</h3>
-<p>Create a configuration file named <code>minicpmv4_5_lora_sft.yaml</code> and place it in <code>LLaMA-Factory/minicpm_config</code>.</p>
+<p>Create a configuration file named <code>minicpmo4_5_lora_sft.yaml</code> and place it in <code>LLaMA-Factory/minicpm_config</code>.</p>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># Can be MiniCPM-V or MiniCPM-o local model</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-o-4_5</span><span class="w"> </span><span class="c1"># Can be MiniCPM-V or MiniCPM-o local model</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
 <span class="c1">### method</span>
@@ -570,14 +573,14 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="c1">### dataset</span>
 <span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># Use the key you added in data/dataset_info.json</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span><span class="w"> </span><span class="c1"># Do not change</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_o</span><span class="w"> </span><span class="c1"># Do not change</span>
 <span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span><span class="w"> </span><span class="c1"># Model token length including multimodal</span>
 <span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1"># Max number of samples</span>
 <span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
 <span class="c1">### output</span>
-<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/lora/sft</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmo4_5/lora/sft</span>
 <span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span><span class="w"> </span><span class="c1"># Save every N steps</span>
 <span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Plot loss curve</span>
@@ -597,12 +600,20 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="c1">### eval</span>
 <span class="nt">do_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+
+<span class="c1">### video processor</span>
+<span class="nt">video_fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15.0</span>
+<span class="nt">video_maxlen</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">128</span>
+<span class="nt">enable_high_fps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">double_frame_duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="nt">packing_maxlen</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="nt">time_scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
 </code></pre></div>
 
 <h3 id="full-fine-tuning">Full Fine-tuning</h3>
-<p>Create a full training configuration file <code>minicpmv4_5_full_sft.yaml</code> and place it in <code>LLaMA-Factory/minicpm_config</code>:</p>
+<p>Create a full training configuration file <code>minicpmo4_5_full_sft.yaml</code> and place it in <code>LLaMA-Factory/minicpm_config</code>:</p>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># MiniCPM-o-2_6 or MiniCPM-V-2_6 or local path</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-o-4_5</span><span class="w"> </span><span class="c1"># MiniCPM-o-2_6 or MiniCPM-V-2_6 or local path</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">freeze_vision_tower</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Freeze vision module</span>
 <span class="nt">print_param_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -616,14 +627,14 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 
 <span class="c1">### dataset</span>
 <span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># Use the key you added in data/dataset_info.json</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_o</span>
 <span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span>
 <span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
 <span class="c1">### output</span>
-<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/full/sft</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmo4_5/full/sft</span>
 <span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
 <span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -648,28 +659,28 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <h2 id="model-training">Model Training</h2>
 <h3 id="full-training">Full Training</h3>
 <div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>LLaMA-Factory
-llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_full_sft.yaml
+llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmo4_5_full_sft.yaml
 </code></pre></div>
 
 <h3 id="lora-training">LoRA Training</h3>
 <ol>
 <li>Start training:</li>
 </ol>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_lora_sft.yaml
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmo4_5_lora_sft.yaml
 </code></pre></div>
 
 <ol>
 <li>Create a merge script <code>merge.yaml</code>:</li>
 </ol>
 <div class="code"><pre><span></span><code><span class="c1">### model</span>
-<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># Original model path, can be local</span>
-<span class="nt">adapter_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpm_v4_5/lora/sft</span><span class="w"> </span><span class="c1"># Path to saved LoRA model</span>
-<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-o-4_5</span><span class="w"> </span><span class="c1"># Original model path, can be local</span>
+<span class="nt">adapter_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpm_o4_5/lora/sft</span><span class="w"> </span><span class="c1"># Path to saved LoRA model</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_o</span>
 <span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lora</span>
 <span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
 <span class="c1">### export</span>
-<span class="nt">export_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">models/minicpmv4_5_lora_sft</span>
+<span class="nt">export_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">models/minicpmo4_5_lora_sft</span>
 <span class="nt">export_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <span class="nt">export_device</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpu</span>
 <span class="nt">export_legacy_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
@@ -678,7 +689,7 @@ llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/min
 <ol>
 <li>Merge the model:</li>
 </ol>
-<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span>configs/minicpmv4_5_lora_export.yaml
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span>configs/minicpmo4_5_lora_export.yaml
 </code></pre></div></article>
 
   <footer class="page-footer">

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="多图问答 — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
-<title>多图问答 — MiniCPM-V & o Cookbook</title>
+<meta name="description" content="LLaMA-Factory（Counting 示例） — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
+<title>LLaMA-Factory（Counting 示例） — MiniCPM-V & o Cookbook</title>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
 <link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
@@ -306,7 +306,7 @@ footer.page-footer a:hover { color: var(--primary); }
   })();
 </script>
 </head>
-<body data-version="v4.6" data-lang="zh" data-slug="v4.6/inference/multi-images">
+<body data-version="v4.6" data-lang="zh" data-slug="v4.6/finetune/llamafactory">
 
 <header class="topbar">
   <button class="topbar-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">☰</button>
@@ -332,7 +332,7 @@ footer.page-footer a:hover { color: var(--primary); }
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <a class="sidebar-lang-switch" href="../../../en/v4.6/inference/multi-images.html" rel="alternate" hreflang="en">English</a>
+    <a class="sidebar-lang-switch" href="../../../en/v4.6/finetune/llamafactory.html" rel="alternate" hreflang="en">English</a>
   </div>
   <ul class="nav-list">
   <li><a class="" href="../../index.html">首页</a></li>
@@ -340,23 +340,23 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">版本</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="multi-images.html" selected>MiniCPM-V 4.6 [latest]</option>
-    <option value="../../v4.5/inference/multi-images.html">MiniCPM-V 4.5</option>
+    <option value="llamafactory.html" selected>MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
-    <option value="../../minicpm4_1/overview.html">MiniCPM 4.1</option>
-    <option value="../../minicpm4/overview.html">MiniCPM 4</option>
-    <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
+    <option value="../../minicpm5/finetune/llamafactory.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/finetune/llamafactory.html">MiniCPM 4.1</option>
+    <option value="../../minicpm4/finetune/llamafactory.html">MiniCPM 4</option>
+    <option value="../../minicpm-sala/finetune/llamafactory.html">MiniCPM-SALA [research]</option>
   </select>
 </div>
 <ul class="nav-list">
 <li><a class="" href="../overview.html">概览</a></li>
-<li class="nav-group"><div class="nav-group-header">推理</div><ul class="nav-group-children"><li><a class="" href="single-image.html">单图问答</a></li>
-<li><a class="active" href="multi-images.html">多图问答</a></li>
-<li><a class="" href="video-understanding.html">视频理解</a></li>
-<li class="nav-group collapsed"><div class="nav-group-header">其他视觉任务</div><ul class="nav-group-children"><li><a class="" href="ocr.html">OCR</a></li>
-<li><a class="" href="pdf-parse.html">PDF 解析</a></li>
-<li><a class="" href="grounding.html">视觉定位</a></li></ul></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">推理</div><ul class="nav-group-children"><li><a class="" href="../inference/single-image.html">单图问答</a></li>
+<li><a class="" href="../inference/multi-images.html">多图问答</a></li>
+<li><a class="" href="../inference/video-understanding.html">视频理解</a></li>
+<li class="nav-group collapsed"><div class="nav-group-header">其他视觉任务</div><ul class="nav-group-children"><li><a class="" href="../inference/ocr.html">OCR</a></li>
+<li><a class="" href="../inference/pdf-parse.html">PDF 解析</a></li>
+<li><a class="" href="../inference/grounding.html">视觉定位</a></li></ul></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">部署</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
@@ -366,9 +366,9 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../quantization/awq.html">AWQ</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">演示</div><ul class="nav-group-children"><li><a class="" href="../demos/gradio.html">Gradio</a></li>
 <li><a class="" href="../demos/ios.html">iOS</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory（Counting 示例）</a></li>
-<li><a class="" href="../finetune/swift.html">ms-swift（Counting 示例）</a></li>
-<li><a class="" href="../finetune/swift-dpo.html">ms-swift（DPO）</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="active" href="llamafactory.html">LLaMA-Factory（Counting 示例）</a></li>
+<li><a class="" href="swift.html">ms-swift（Counting 示例）</a></li>
+<li><a class="" href="swift-dpo.html">ms-swift（DPO）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -380,54 +380,232 @@ footer.page-footer a:hover { color: var(--primary); }
 </aside>
 
 <main class="content" id="content">
-  <article><h1 id="多图问答-minicpm-v-4-6">多图问答（MiniCPM-V 4.6）</h1>
-<h2 id="加载模型">加载模型</h2>
-<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoProcessor</span><span class="p">,</span> <span class="n">AutoModelForImageTextToText</span>
+  <article><h1 id="minicpm-v-4-6-微调教程-llama-factory">MiniCPM-V 4.6 微调教程 (LlaMA-Factory)</h1>
+<h2 id="模型与任务概览">模型与任务概览</h2>
+<p>本章节以 counting 任务 <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> 作为微调示例。</p>
+<p>训练任务：</p>
+<ul>
+<li>输入一张图片和一个计数问题</li>
+<li><code>assistant</code> 目标输出需要先给出每个目标物体点的位置，用 <code>x y</code> 坐标表示，如 <code>&lt;point&gt;573 489&lt;/point&gt;</code>，再输出最终数量，例如 <code>0</code>、<code>3</code>、<code>10</code>。</li>
+</ul>
+<h2 id="环境说明">环境说明</h2>
+<p><strong>最小可运行安装步骤</strong></p>
+<div class="code"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11<span class="w"> </span>-y
+conda<span class="w"> </span>activate<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.6-Counting&quot;</span>
 
-<span class="n">model_path</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4.6&quot;</span>  <span class="c1"># 或 &quot;openbmb/MiniCPM-V-4.6-Thinking&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0
 
-<span class="n">processor</span> <span class="o">=</span> <span class="n">AutoProcessor</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForImageTextToText</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
-    <span class="n">model_path</span><span class="p">,</span>
-    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>
-    <span class="n">attn_implementation</span><span class="o">=</span><span class="s2">&quot;sdpa&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0<span class="w"> </span><span class="nv">accelerate</span><span class="o">==</span><span class="m">1</span>.13.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">deepspeed</span><span class="o">==</span><span class="m">0</span>.18.3<span class="w"> </span><span class="nv">peft</span><span class="o">==</span><span class="m">0</span>.18.1<span class="w"> </span><span class="nv">trl</span><span class="o">==</span><span class="m">0</span>.24.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wandb<span class="w"> </span>ninja<span class="w"> </span>einops<span class="w"> </span>safetensors<span class="w"> </span>tokenizers<span class="w"> </span>sentencepiece
+
+<span class="nv">MAX_JOBS</span><span class="o">=</span><span class="m">32</span><span class="w"> </span><span class="nv">NVCC_THREADS</span><span class="o">=</span><span class="m">4</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-build-isolation<span class="w"> </span>flash-attn<span class="o">==</span><span class="m">2</span>.8.3
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hiyouga/LlamaFactory.git
+<span class="nb">cd</span><span class="w"> </span>LlamaFactory
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements/metrics.txt<span class="w"> </span>-r<span class="w"> </span>requirements/deepspeed.txt
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.7.0
 </code></pre></div>
 
-<h2 id="多图对话">多图对话</h2>
-<div class="code"><pre><span></span><code><span class="n">image1</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;assets/multi1.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
-<span class="n">image2</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;assets/multi2.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
-
-<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span>
-    <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image1</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image2</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>  <span class="s2">&quot;text&quot;</span><span class="p">:</span>  <span class="s2">&quot;比较这两张图片，告诉我它们之间的差异。&quot;</span><span class="p">},</span>
-    <span class="p">],</span>
-<span class="p">}]</span>
-
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
-    <span class="n">messages</span><span class="p">,</span>
-    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-
-<span class="n">out_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-    <span class="n">out_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span>
-    <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+<p>注意：MiniCPM-V 4.6 在 <code>transformers&gt;=5.7.0</code> 版本被官方支持。请保证最后安装的 <code>transformers</code> 版本为 5.7.0 及以上。</p>
+<p><strong>依赖版本参考</strong></p>
+<div class="code"><pre><span></span><code>python                        3.11.0
+accelerate                    1.13.0
+deepspeed                     0.18.3
+flash_attn                    2.8.3
+llamafactory                  官方最新代码
+torch                         2.8.0
+torchvision                   0.23.0
+transformers                  5.7.0
 </code></pre></div>
 
-<h2 id="示例图片">示例图片</h2>
-<p><img alt="alt text" src="./assets/multi1.png"></p>
-<p><img alt="alt text" src="./assets/multi2.png"></p></article>
+<h2 id="数据准备">数据准备</h2>
+<p>从 <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> 下载数据集，并将其转换为 json 格式。</p>
+<p><strong>数据格式参考：</strong>
+  <code>json
+  {
+      "messages": [
+          {
+              "content": "&lt;image&gt;\nCarefully observe the image. Are there any people in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.",
+              "role": "user"
+          },
+          {
+              "content": "&lt;think&gt;\n\n&lt;/think&gt;\n\nThe respective coordinates of people: &lt;point&gt;236 469&lt;/point&gt;, &lt;point&gt;307 232&lt;/point&gt;, &lt;point&gt;362 434&lt;/point&gt;, &lt;point&gt;485 521&lt;/point&gt;, &lt;point&gt;487 340&lt;/point&gt;, &lt;point&gt;615 386&lt;/point&gt;, &lt;point&gt;735 441&lt;/point&gt;, &lt;point&gt;870 615&lt;/point&gt;. So the total count is 8.",
+              "role": "assistant"
+          }
+      ],
+      "images": [
+          "/path/to/images/*.jpg"
+      ],
+      "source_file": "pixmo-count",
+      "orig_index": 1,
+      "channel": "pixmo-count"
+  }</code>
+- Counting 任务中加入对 points 预测的监督能够提高微调的效果，因此我们推荐将数据中的 points 坐标拼到 assistant 回复中。
+- 由于 MiniCPM-V 4.6 会将图片坐标归一化到 <code>0~1000</code>，因此也需要对 points 坐标进行以下处理：
+  <code>python
+  def expected_norm(x_px: float, y_px: float, width: int, height: int) -&gt; Tuple[int, int]:
+      return int((x_px / width) * 1000.0), int((y_px / height) * 1000.0)</code>
+- 微调训练推荐在 assistant 前缀中加入 <code>&lt;think&gt;\n\n&lt;/think&gt;\n\n</code>。（如果是 thinking 的任务，则加入 <code>&lt;think&gt;\n</code>）    </p>
+<h2 id="启动训练">启动训练</h2>
+<p>配置好模型路径、训练集路径、验证集路径和输出目录后，执行以下脚本即可以开始训练。
+- 配置 <code>train.yaml</code></p>
+<div class="code"><pre><span></span><code><span class="c1">### model</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/minicpm-v-4_6</span>
+<span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">flash_attn</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fa2</span>
+
+<span class="c1">### method</span>
+<span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sft</span>
+<span class="nt">do_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
+<span class="nt">freeze_vision_tower</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">deepspeed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LlamaFactory/examples/deepspeed/ds_z2_config.json</span>
+
+<span class="c1">### dataset</span>
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixmo_count_train</span>
+<span class="nt">eval_dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pixmo_count_val</span>
+<span class="nt">dataset_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/dataset_dir</span><span class="w"> </span><span class="c1"># dataset_dir should contain dataset_info.json file</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v_4_6</span>
+<span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span>
+<span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">dataloader_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="c1">### output</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/output_dir</span>
+<span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">132</span>
+<span class="nt">save_total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="nt">eval_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">steps</span>
+<span class="nt">eval_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">report_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wandb</span>
+
+<span class="c1">### train</span>
+<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">per_device_eval_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0e-6</span>
+<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4.0</span>
+<span class="nt">lr_scheduler_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
+<span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span>
+<span class="nt">bf16</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">max_grad_norm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="nt">ddp_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180000000</span>
+<span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<span class="nt">adam_beta2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.95</span>
+</code></pre></div>
+
+<ul>
+<li>执行 <code>run.sh</code></li>
+</ul>
+<div class="code"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="k">:-</span><span class="nv">0</span><span class="p">,1,2,3,4,5,6,7</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NPROC_PER_NODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NPROC_PER_NODE</span><span class="k">:-</span><span class="nv">8</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MASTER_PORT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MASTER_PORT</span><span class="k">:-</span><span class="nv">29632</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_API_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_API_KEY</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_PROJECT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_PROJECT</span><span class="k">:-</span><span class="nv">MiniCPMV46</span><span class="p">-Counting</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_RUN_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_NAME</span><span class="k">:-</span><span class="nv">mcpmv46_count</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># MiniCPMV 4.6 downsample mode: 4x for high-resolution, 16x for default</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">DOWNSAMPLE_MODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DOWNSAMPLE_MODE</span><span class="k">:-</span><span class="nv">4x</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">DISABLE_VERSION_CHECK</span><span class="o">=</span><span class="m">1</span>
+<span class="c1"># Activate the lfv46 conda environment</span>
+
+<span class="c1"># IMPORTANT: Unset USE_V1 to use the v2 launcher</span>
+<span class="nb">unset</span><span class="w"> </span>USE_V1
+
+<span class="nv">CONFIG_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$0</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">/train.yaml&quot;</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="k">:-</span><span class="p">/path/to/output_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Training with config: </span><span class="nv">$CONFIG_FILE</span><span class="s2">&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Output dir: </span><span class="nv">$OUTPUT_DIR</span><span class="s2">&quot;</span>
+
+llamafactory-cli<span class="w"> </span>train<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CONFIG_FILE</span><span class="s2">&quot;</span>
+</code></pre></div>
+
+<p>关键参数说明
+- 训练支持 <code>16x</code>、<code>4x</code> 两种视觉 Token 压缩率，通过 <code>export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"</code> 参数进行控制。
+- 当前版本的 <code>transformers</code> 对 Qwen3.5 系列的 packing 训练的支持仍存在问题，目前请先不要使用 packing 模式，官方修复后本文档也会进行更新。</p>
+<h2 id="训练过程">训练过程</h2>
+<p><a href="https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ">https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting-LF/reports/Llama-Factory---VmlldzoxNjgyNzk4NQ</a></p>
+<p><img src="../assets/finetune_minicpmv46/minicpmv46_lf_ft_dynamics.png" alt="Llama-Factory 训练过程" /></p>
+<h2 id="评测结果">评测结果</h2>
+<p>评测指标说明：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acc@0</td>
+<td>精确匹配率，即预测值与真实值完全一致</td>
+</tr>
+<tr>
+<td>Acc@0 Top1</td>
+<td>训练过程保存的所有 checkpoint 中，评测结果 Acc@0 的最高分数</td>
+</tr>
+<tr>
+<td>Acc@0 Avg.Top3</td>
+<td>训练过程保存的所有 checkpoint 中，评测结果 Acc@0 前三名的平均分数</td>
+</tr>
+</tbody>
+</table>
+<p>下表展示了两种视觉 Token 压缩率设置下的评测结果：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>视觉 Token 压缩率</th>
+<th>Acc@0 Top1</th>
+<th>Acc@0 Avg.Top3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>16</td>
+<td>46.5</td>
+<td>N/A  [1]</td>
+</tr>
+<tr>
+<td>MiniCPM-V 4.6</td>
+<td>4</td>
+<td>51.8</td>
+<td>N/A  [1]</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>16</td>
+<td>78.4</td>
+<td>78.1</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>4</td>
+<td>83.1</td>
+<td>82.5</td>
+</tr>
+</tbody>
+</table>
+<p><small>[1]: MiniCPM-V 4.6 为原始模型，未经微调，仅有一个 Acc@0 结果 (Acc@0 Top1)，无法计算 Acc@0 Avg.Top3</small></p>
+<p>输出样例：</p>
+<p>```text
+  Q: Carefully observe the image. Are there any airplanes in the image? If yes, please list their respective coordinates and provide the total count. If no, answer 0.</p>
+<p>A: The respective coordinates of airplanes: <point>310 370</point>, <point>360 275</point>, <point>385 486</point>, <point>402 180</point>, <point>439 368</point>, <point>474 611</point>, <point>505 250</point>, <point>532 448</point>, <point>536 818</point>, <point>597 328</point>. So the total count is 10.
+  ```</p>
+<p><img src="../assets/finetune_minicpmv46/sample_2.png" alt="LlamaFactory sample" /></p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
