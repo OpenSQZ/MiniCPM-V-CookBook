@@ -106,7 +106,7 @@ LLM_TYPE="qwen" # if use openbmb/MiniCPM-V-2, please set LLM_TYPE=minicpm, if us
 To launch your training, run the following script:
 
 ```
-sh finetune_ds.sh
+sh official/finetune_ds.sh
 ```
 
 
@@ -115,7 +115,7 @@ sh finetune_ds.sh
 The LoRA allows light-weight model tuning with only a small subset of parameters updated. We provide the LoRA implementation based on `peft`. To launch your training, run the following script:
 
 ```
-sh finetune_lora.sh
+sh official/finetune_lora.sh
 ```
 
 After training, you could load the model with the path to the adapter. We advise you to use absolute path for your pretrained model. This is because LoRA only saves the adapter and the absolute path in the adapter configuration json file is used for finding out the pretrained model to load.

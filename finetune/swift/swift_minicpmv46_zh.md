@@ -29,7 +29,10 @@ MAX_JOBS=32 NVCC_THREADS=4 pip install --no-build-isolation flash-attn==2.8.3
 git clone https://github.com/modelscope/ms-swift.git
 cd ms-swift
 pip install -e .
+pip install transformers==5.7.0
 ```
+
+注意：MiniCPM-V 4.6 在 `transformers>=5.7.0` 版本被官方支持。请保证最后安装的 `transformers` 版本为 5.7.0 及以上。
 
 **依赖版本参考**
 
@@ -75,7 +78,6 @@ transformers                  5.7.0
   def expected_norm(x_px: float, y_px: float, width: int, height: int) -> Tuple[int, int]:
       return int((x_px / width) * 1000.0), int((y_px / height) * 1000.0)
   ```
-- 微调训练推荐在 assistant 前缀中加入 `<think>\n\n</think>\n\n`，并且在训练时使用 `--loss_scale ignore_empty_think` 参数保证空 think 在计算 loss 时被 mask 掉。（如果是 thinking 的任务，则加入 `<think>\n`）
 
 ## 启动训练
 
@@ -111,6 +113,7 @@ ${SWIFT_BIN} sft \
   --model "${MODEL_PATH}" \
   --model_type minicpmv4_6 \
   --template minicpmv4_6 \
+  --add_non_thinking_prefix true \
   --run_name "${WANDB_RUN_NAME}" \
   --dataset "${TRAIN_DATA}" \
   --val_dataset "${VALID_DATA}" \
@@ -135,7 +138,6 @@ ${SWIFT_BIN} sft \
   --dataloader_num_workers 16 \
   --enable_channel_loss True \
   --attn_impl flash_attn \
-  --loss_scale ignore_empty_think \
   --output_dir "${OUTPUT_DIR}" \
   --report_to wandb
 ```
@@ -143,13 +145,13 @@ ${SWIFT_BIN} sft \
 关键参数说明
 - 训练支持 `16x`、`4x` 两种视觉 Token 压缩率，通过 `export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"` 参数进行控制。
 - 当前版本的 `transformers` 对 Qwen3.5 系列的 packing 训练的支持仍存在问题，目前请使用 `--packing false`，官方修复后本文档也会进行更新。
-- 如果先前的数据集构建过程中进行了提示词隔离，即在 assistant 回复加入 `<think>\n\n</think>\n\n` 前缀，这样的改动需要结合 `--loss_scale ignore_empty_think` 来确保前缀在计算 loss 时被 mask 掉。
+- `--add_non_thinking_prefix true` 可以在训练提示词后加入 `<think>\n\n</think>\n\n`，实现无 thinking 训练。
 
 ## 训练过程
 
 [https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting/reports/ms-swift---VmlldzoxNjgxMDk0Ng](https://wandb.ai/majy24-tsinghua-university/MiniCPMV46-Counting/reports/ms-swift---VmlldzoxNjgxMDk0Ng)
 
-<img src="./assets/finetune_minicpmv46/minicpmv46_swift_ft_dynamics.png" alt="ms-swift 训练过程" />
+<img src="../assets/finetune_minicpmv46/minicpmv46_swift_ft_dynamics.png" alt="ms-swift 训练过程" />
 
 
 
@@ -180,4 +182,4 @@ ${SWIFT_BIN} sft \
 
   A: The respective coordinates of airplanes: <point>310 370</point>, <point>365 277</point>, <point>388 486</point>, <point>405 185</point>, <point>437 368</point>, <point>474 611</point>, <point>503 250</point>, <point>527 451</point>, <point>535 818</point>, <point>597 331</point>. So the total count is 10.
   ```
-  <img src="./assets/finetune_minicpmv46/sample_1.png" alt="ms-swift sample" />
+  <img src="../assets/finetune_minicpmv46/sample_1.png" alt="ms-swift sample" />
