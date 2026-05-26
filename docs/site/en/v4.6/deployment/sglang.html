@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="sglang.html" selected>MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/deployment/sglang.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/sglang.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/deployment/sglang.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/deployment/sglang.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/deployment/sglang.html">MiniCPM 4.1</option>
     <option value="../../minicpm4/deployment/sglang.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/deployment/sglang.html">MiniCPM-SALA [research]</option>
   </select>
@@ -379,7 +380,7 @@ footer.page-footer a:hover { color: var(--primary); }
   <article><h1 id="minicpm-v-4-6-sglang-documentation">MiniCPM-V 4.6 - SGLang Documentation</h1>
 <div class="admonition admonition-note" markdown="0">
 <p class="admonition-title">Note</p>
-<p>MiniCPM-V 4.6 has been merged into the official SGLang <code>main</code> branch (<a href="https://github.com/sgl-project/sglang/pull/24855">PR #24855</a>, merged on 2026-05-10; the accompanying docs / fix PRs are merged too). <strong>No fork is required</strong> — install directly from upstream.</p>
+<p>MiniCPM-V 4.6 is supported on the official SGLang <code>main</code> branch since <a href="https://github.com/sgl-project/sglang/pull/24998">PR #24998</a> (merged 2026-05-12). <strong>No fork is required</strong> — install directly from upstream, making sure your checkout is at or after that commit.</p>
 <p>MiniCPM-V 4.6 is registered in <code>transformers&gt;=5.7.0</code> as a standalone architecture (<code>MiniCPMV4_6ForConditionalGeneration</code>); the SGLang adapter follows that layout.</p>
 </div>
 
@@ -390,7 +391,7 @@ footer.page-footer a:hover { color: var(--primary); }
 </ul>
 <h2 id="1-installing-sglang">1. Installing SGLang</h2>
 <h3 id="install-sglang-from-upstream-main">Install SGLang from upstream main</h3>
-<p>Until the next SGLang release ships with this merge, install from upstream <code>main</code> (watch <a href="https://github.com/sgl-project/sglang/releases">SGLang Releases</a>; once a tagged release includes the merge, <code>pip install -U "sglang[all]"</code> is enough):</p>
+<p>Until a tagged SGLang release ships with #24998, install from upstream <code>main</code> (watch <a href="https://github.com/sgl-project/sglang/releases">SGLang Releases</a>; once a release includes that PR, <code>pip install -U "sglang[all]"</code> is enough):</p>
 <div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sgl-project/sglang.git
 <span class="nb">cd</span><span class="w"> </span>sglang
 

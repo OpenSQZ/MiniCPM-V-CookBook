@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="vllm.html" selected>MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/deployment/vllm.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/vllm.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/deployment/vllm.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/deployment/vllm.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/deployment/vllm.html">MiniCPM 4.1</option>
     <option value="../../minicpm4/deployment/vllm.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -404,12 +405,12 @@ footer.page-footer a:hover { color: var(--primary); }
 </blockquote>
 <h2 id="1-environment-setup">1. Environment Setup</h2>
 <h3 id="1-1-install-vllm">1.1 Install vLLM</h3>
-<p>MiniCPM-V 4.6 has been merged into the official vLLM <code>main</code> branch (<a href="https://github.com/vllm-project/vllm/pull/41254">PR #41254</a>, merged on 2026-05-12). <strong>No fork is required</strong> — install directly from the upstream repo:</p>
+<p>MiniCPM-V 4.6 is supported on the official vLLM <code>main</code> branch since <a href="https://github.com/vllm-project/vllm/pull/43213">PR #43213</a> (merged 2026-05-22). <strong>No fork is required</strong> — install directly from the upstream repo, making sure your checkout is at or after that commit:</p>
 <div class="code"><pre><span></span><code><span class="c1"># Create a clean conda environment</span>
 conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>vllm-v46<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.10<span class="w"> </span>-y
 conda<span class="w"> </span>activate<span class="w"> </span>vllm-v46
 
-<span class="c1"># Install from upstream main (requires CUDA toolkit)</span>
+<span class="c1"># Install from upstream main (requires CUDA toolkit; HEAD must include #43213)</span>
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/vllm-project/vllm.git
 <span class="nb">cd</span><span class="w"> </span>vllm
 <span class="nv">MAX_JOBS</span><span class="o">=</span><span class="m">6</span><span class="w"> </span><span class="nv">VLLM_USE_PRECOMPILED</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="w"> </span>-v
@@ -417,7 +418,7 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/vllm-
 
 <div class="admonition admonition-tip" markdown="0">
 <p class="admonition-title">Tip</p>
-<p>Once the next vLLM release ships with this merge, you can simply <code>pip install -U vllm</code> and skip the source build. Watch the <a href="https://github.com/vllm-project/vllm/releases">vLLM Releases page</a> for updates.</p>
+<p>Once a vLLM release containing #43213 is published, you can simply <code>pip install -U vllm</code> and skip the source build. Watch the <a href="https://github.com/vllm-project/vllm/releases">vLLM Releases page</a> for updates.</p>
 </div>
 
 <p>For video inference, install the video module:</p>

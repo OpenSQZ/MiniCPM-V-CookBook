@@ -67,6 +67,5 @@ ollama run openbmb/minicpm4.1
 - 🤗 [Model collection on HuggingFace](https://huggingface.co/collections/openbmb/minicpm-4-6841ab29d180257e940baa9b)
 - 📖 [Technical report (arXiv 2506.07900)](https://arxiv.org/abs/2506.07900)
 - 🛠️ [Main repository (OpenBMB/MiniCPM)](https://github.com/OpenBMB/MiniCPM)
-- 🚀 [CPM.cu — edge-device CUDA inference framework](https://github.com/OpenBMB/CPM.cu)
 
-> Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, CPM.cu, MLX, quantization, fine-tuning, applications) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.
+> Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, MLX, quantization, fine-tuning) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.

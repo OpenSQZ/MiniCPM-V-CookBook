@@ -85,4 +85,4 @@ tokenizer.save_pretrained(output_path)
 
 - AWQ Group Size `128`、W-bit `4`、ZP 启用 —— 与官方发布对齐的配置。
 - 在 Ampere/Ada/Hopper 上单 token 延迟敏感的部署中，AWQ + Marlin kernel 在质量接近 FP16 的同时吞吐约为 FP16 的 2 倍。
-- 0.5B 模型没有 AWQ 版本。受限端侧请使用 BitCPM4 或 GGUF Q4。
+- 0.5B 模型没有 AWQ 版本。受限端侧请通过 `llama.cpp` 使用 GGUF Q4。

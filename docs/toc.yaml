@@ -236,9 +236,46 @@ versions:
             src:   demo/web_demo/gradio/README_o45.md
             url:   demos/gradio
 
+  - id: minicpm5
+    label: { en: "MiniCPM 5", zh: "MiniCPM 5" }
+    badge: "latest-llm"
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/minicpm5/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Chat (Hybrid Reasoning)", zh: "Chat（混合思考）" }
+            src:   inference/minicpm5_chat.md
+            url:   inference/chat
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "vLLM", zh: "vLLM" }
+            src:   deployment/vllm/minicpm5_vllm.md
+            url:   deployment/vllm
+          - title: { en: "SGLang (recommended for tool calling)", zh: "SGLang（推荐用于工具调用）" }
+            src:   deployment/sglang/minicpm5_sglang.md
+            url:   deployment/sglang
+          - title: { en: "llama.cpp", zh: "llama.cpp" }
+            src:   deployment/llama.cpp/minicpm5_llamacpp.md
+            url:   deployment/llamacpp
+          - title: { en: "Ollama", zh: "Ollama" }
+            src:   deployment/ollama/minicpm5_ollama.md
+            url:   deployment/ollama
+          - title: { en: "MLX (Apple Silicon)", zh: "MLX（Apple Silicon）" }
+            src:   deployment/mlx/minicpm5_mlx.md
+            url:   deployment/mlx
+
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
+            src:   finetune/llamafactory_minicpm5.md
+            url:   finetune/llamafactory
+
   - id: minicpm4_1
     label: { en: "MiniCPM 4.1", zh: "MiniCPM 4.1" }
-    badge: "latest-llm"
     nav:
       - title: { en: "Overview", zh: "概览" }
         src:   docs/pages/minicpm4_1/overview.md
@@ -267,9 +304,6 @@ versions:
           - title: { en: "MLX (Apple Silicon)", zh: "MLX（Apple Silicon）" }
             src:   deployment/mlx/minicpm4_1_mlx.md
             url:   deployment/mlx
-          - title: { en: "CPM.cu (on-device CUDA)", zh: "CPM.cu（端侧 CUDA）" }
-            src:   deployment/cpm.cu/minicpm4_1_cpmcu.md
-            url:   deployment/cpmcu
 
       - group: { en: "Quantization", zh: "量化" }
         items:
@@ -285,15 +319,6 @@ versions:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
             src:   finetune/llamafactory_minicpm4.md
             url:   finetune/llamafactory
-
-      - group: { en: "Apps", zh: "应用" }
-        items:
-          - title: { en: "MiniCPM4-MCP (tool agent)", zh: "MiniCPM4-MCP（工具 agent）" }
-            src:   demo/minicpm_demo/mcp/README.md
-            url:   apps/mcp
-          - title: { en: "MiniCPM4-Survey (survey generation)", zh: "MiniCPM4-Survey（综述生成）" }
-            src:   demo/minicpm_demo/survey/README.md
-            url:   apps/survey
 
   - id: minicpm4
     label: { en: "MiniCPM 4", zh: "MiniCPM 4" }
@@ -323,26 +348,11 @@ versions:
             src:   deployment/ollama/minicpm4_ollama.md
             url:   deployment/ollama
 
-      - group: { en: "Quantization", zh: "量化" }
-        items:
-          - title: { en: "BitCPM4 (3-bit)", zh: "BitCPM4（3-bit）" }
-            src:   quantization/bitcpm/minicpm4_bitcpm.md
-            url:   quantization/bitcpm
-
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
             src:   finetune/llamafactory_minicpm4.md
             url:   finetune/llamafactory
-
-      - group: { en: "Apps", zh: "应用" }
-        items:
-          - title: { en: "MiniCPM4-MCP (tool agent)", zh: "MiniCPM4-MCP（工具 agent）" }
-            src:   demo/minicpm_demo/mcp/README.md
-            url:   apps/mcp
-          - title: { en: "MiniCPM4-Survey (survey generation)", zh: "MiniCPM4-Survey（综述生成）" }
-            src:   demo/minicpm_demo/survey/README.md
-            url:   apps/survey
 
   - id: minicpm-sala
     label: { en: "MiniCPM-SALA", zh: "MiniCPM-SALA" }

@@ -1,6 +1,6 @@
 # MiniCPM 4 — Overview
 
-> The previous-generation MiniCPM LLM release. MiniCPM 4 introduced InfLLM-V2 sparse attention and the BitCPM4 3-bit quantization stack, and remains supported alongside [MiniCPM 4.1](../minicpm4_1/overview.html).
+> The previous-generation MiniCPM LLM release. MiniCPM 4 introduced InfLLM-V2 sparse attention and remains supported alongside [MiniCPM 4.1](../minicpm4_1/overview.html).
 
 ## Checkpoints
 
@@ -12,14 +12,11 @@
 | Eagle FRSpec + QAT | [`openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT) | [mirror](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-Eagle-FRSpec-QAT) |
 | Eagle for vLLM | [`openbmb/MiniCPM4-8B-Eagle-vLLM`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-vLLM) | [mirror](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-Eagle-vLLM) |
 | Marlin INT4 + Eagle for vLLM | [`openbmb/MiniCPM4-8B-marlin-Eagle-vLLM`](https://huggingface.co/openbmb/MiniCPM4-8B-marlin-Eagle-vLLM) | [mirror](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-marlin-Eagle-vLLM) |
-| BitCPM4 (3-bit, 1B) | [`openbmb/BitCPM4-1B`](https://huggingface.co/openbmb/BitCPM4-1B) | [mirror](https://www.modelscope.cn/models/OpenBMB/BitCPM4-1B) |
-| BitCPM4 (3-bit, 0.5B) | [`openbmb/BitCPM4-0.5B`](https://huggingface.co/openbmb/BitCPM4-0.5B) | [mirror](https://www.modelscope.cn/models/OpenBMB/BitCPM4-0.5B) |
 | MiniCPM4-0.5B QAT (Int4) | [`openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format`](https://huggingface.co/openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format) | [mirror](https://modelscope.cn/models/OpenBMB/MiniCPM4-0.5B-QAT-Int4-GPTQ-format) |
 
 ## Highlights
 
 - **InfLLM-V2 sparse attention** — long-context inference with under 5% of full-attention compute on a 128K window.
-- **BitCPM4 ternary quantization** — official 3-bit weights that compress the model to roughly 10% of the original size while preserving most of the quality.
 - **Eagle / FRSpec speculative decoding** — official draft checkpoints (including a QAT-friendly variant) for accelerated generation on the 8B model.
 - **0.5B / 8B size points** — choose 0.5B for tightly constrained edge deployments, 8B for full reasoning capability.
 
@@ -60,4 +57,4 @@ vllm serve openbmb/MiniCPM4-8B --trust-remote-code --max-model-len 32768
 - 🛠️ [Main repository (OpenBMB/MiniCPM)](https://github.com/OpenBMB/MiniCPM)
 - ➡️ For new projects we recommend [MiniCPM 4.1](../minicpm4_1/overview.html), which adds hybrid reasoning and EAGLE3 on top of this release.
 
-> Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, CPM.cu, quantization, fine-tuning, applications) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.
+> Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, fine-tuning) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.

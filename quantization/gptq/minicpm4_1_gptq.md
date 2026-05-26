@@ -71,10 +71,8 @@ model = AutoModelForCausalLM.from_pretrained(
 ).eval().cuda()
 ```
 
-A matching speculative-decoding draft is available as [`openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT) for use with [CPM.cu](https://github.com/OpenBMB/CPM.cu).
-
 ## Notes
 
 - GPTQ in vLLM uses the GPTQ-Marlin kernel by default on capable GPUs; no extra flags needed.
 - For MiniCPM 4 (non-4.1), the official GPTQ release is [`openbmb/MiniCPM4-8B-GPTQ`](https://huggingface.co/openbmb/MiniCPM4-8B-GPTQ) — same flow.
-- For very memory-constrained deployments, prefer BitCPM4 (3-bit ternary) over GPTQ INT4.
+- For very memory-constrained deployments, prefer GGUF Q4 / Q3 via `llama.cpp` over GPTQ INT4.

@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="../minicpm4_1/overview.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../minicpm4_1/overview.html">MiniCPM 4.1</option>
     <option value="overview.html" selected>MiniCPM 4</option>
     <option value="../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,10 +356,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="deployment/ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="quantization/bitcpm.html">BitCPM4（3-bit）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">应用</div><ul class="nav-group-children"><li><a class="" href="apps/mcp.html">MiniCPM4-MCP（工具 agent）</a></li>
-<li><a class="" href="apps/survey.html">MiniCPM4-Survey（综述生成）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -372,7 +370,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <main class="content" id="content">
   <article><h1 id="minicpm-4-概览">MiniCPM 4 — 概览</h1>
 <blockquote>
-<p>MiniCPM 上一代 LLM 系列模型。MiniCPM 4 引入了 InfLLM-V2 稀疏注意力与 BitCPM4 3-bit 量化方案，与 <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a> 同时维护。</p>
+<p>MiniCPM 上一代 LLM 系列模型。MiniCPM 4 引入了 InfLLM-V2 稀疏注意力，与 <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a> 同时维护。</p>
 </blockquote>
 <h2 id="模型清单">模型清单</h2>
 <table>
@@ -415,16 +413,6 @@ footer.page-footer a:hover { color: var(--primary); }
 <td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-marlin-Eagle-vLLM">镜像</a></td>
 </tr>
 <tr>
-<td style="text-align: left;">BitCPM4（3-bit，1B）</td>
-<td style="text-align: left;"><a href="https://huggingface.co/openbmb/BitCPM4-1B"><code>openbmb/BitCPM4-1B</code></a></td>
-<td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/BitCPM4-1B">镜像</a></td>
-</tr>
-<tr>
-<td style="text-align: left;">BitCPM4（3-bit，0.5B）</td>
-<td style="text-align: left;"><a href="https://huggingface.co/openbmb/BitCPM4-0.5B"><code>openbmb/BitCPM4-0.5B</code></a></td>
-<td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/BitCPM4-0.5B">镜像</a></td>
-</tr>
-<tr>
 <td style="text-align: left;">MiniCPM4-0.5B QAT（Int4）</td>
 <td style="text-align: left;"><a href="https://huggingface.co/openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format"><code>openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format</code></a></td>
 <td style="text-align: left;"><a href="https://modelscope.cn/models/OpenBMB/MiniCPM4-0.5B-QAT-Int4-GPTQ-format">镜像</a></td>
@@ -434,7 +422,6 @@ footer.page-footer a:hover { color: var(--primary); }
 <h2 id="亮点">亮点</h2>
 <ul>
 <li><strong>InfLLM-V2 稀疏注意力</strong> — 128K 上下文场景下，计算量不到全注意力的 5%。</li>
-<li><strong>BitCPM4 三元量化</strong> — 官方 3-bit 权重，模型体积压缩到约 10%，保留绝大部分能力。</li>
 <li><strong>Eagle / FRSpec 投机解码</strong> — 8B 模型配套的 draft 模型（含 QAT 友好变体），用于加速生成。</li>
 <li><strong>0.5B / 8B 双尺寸</strong> — 0.5B 用于资源受限的端侧场景，8B 用于完整的推理能力。</li>
 </ul>
@@ -471,7 +458,7 @@ vllm<span class="w"> </span>serve<span class="w"> </span>openbmb/MiniCPM4-8B<spa
 <li>➡️ 新项目推荐使用 <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a>，在本版本基础上加入了混合思考与 EAGLE3。</li>
 </ul>
 <blockquote>
-<p>各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、CPM.cu、量化、微调、应用）正在陆续加入本节。请通过左侧侧栏的版本切换查看。</p>
+<p>各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、微调）正在陆续加入本节。请通过左侧侧栏的版本切换查看。</p>
 </blockquote></article>
 
   <footer class="page-footer">

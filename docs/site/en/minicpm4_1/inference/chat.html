@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="chat.html" selected>MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/inference/chat.html">MiniCPM 5 [latest-llm]</option>
+    <option value="chat.html" selected>MiniCPM 4.1</option>
     <option value="../../minicpm4/inference/chat.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/inference/chat.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,13 +356,10 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX (Apple Silicon)</a></li>
-<li><a class="" href="../deployment/cpmcu.html">CPM.cu (on-device CUDA)</a></li></ul></li>
+<li><a class="" href="../deployment/mlx.html">MLX (Apple Silicon)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/awq.html">AWQ</a></li>
 <li><a class="" href="../quantization/gptq.html">GPTQ (+ QAT)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Apps</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP (tool agent)</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey (survey generation)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -473,7 +471,7 @@ The train arrives at 11:30.
 </code></pre></div>
 
 <h2 id="long-context-inference">Long-context inference</h2>
-<p>MiniCPM 4.1 supports up to <strong>128K</strong> context via <a href="https://arxiv.org/abs/2509.24663">InfLLM-V2</a> sparse attention. For inputs longer than ~32K, switch on <code>flash_attention_2</code> and consider the optimised CPM.cu runtime for serving (see the deployment guides under this version).</p>
+<p>MiniCPM 4.1 supports up to <strong>128K</strong> context via <a href="https://arxiv.org/abs/2509.24663">InfLLM-V2</a> sparse attention. For inputs longer than ~32K, switch on <code>flash_attention_2</code> for memory savings.</p>
 <div class="code"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
     <span class="n">model_path</span><span class="p">,</span>
     <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>

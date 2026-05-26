@@ -71,10 +71,8 @@ model = AutoModelForCausalLM.from_pretrained(
 ).eval().cuda()
 ```
 
-配套的投机解码 draft 是 [`openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT)，配合 [CPM.cu](https://github.com/OpenBMB/CPM.cu) 使用。
-
 ## 注意事项
 
 - vLLM 中的 GPTQ 在支持的 GPU 上默认走 GPTQ-Marlin kernel，无需额外参数。
 - MiniCPM 4（非 4.1）的官方 GPTQ 是 [`openbmb/MiniCPM4-8B-GPTQ`](https://huggingface.co/openbmb/MiniCPM4-8B-GPTQ)，流程一致。
-- 内存极度紧张的部署，建议优先选 BitCPM4（3-bit 三元）而不是 GPTQ INT4。
+- 内存极度紧张的部署，建议优先通过 `llama.cpp` 使用 GGUF Q4 / Q3，而不是 GPTQ INT4。

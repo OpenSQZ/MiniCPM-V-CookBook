@@ -80,5 +80,5 @@ model = AutoModelForCausalLM.from_pretrained(
 ## 注意事项
 
 - 必须设置 `trust_remote_code=True` —— MiniCPM 4 建模代码托管在 Hub 上。
-- 0.5B 变体共用同一 chat template，可与 [BitCPM4](https://huggingface.co/openbmb/BitCPM4-0.5B) 搭配用于资源受限的端侧场景。
-- 想要加速生成请查看本版本下的 `Deployment` 章节（vLLM + EAGLE / Marlin、CPM.cu 端侧 CUDA 推理）。
+- 0.5B 变体共用同一 chat template，适合 8B 装不下的端侧场景。
+- 想要加速生成请查看本版本下的 `Deployment` 章节（vLLM + EAGLE / Marlin）。

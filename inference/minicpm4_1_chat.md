@@ -110,7 +110,7 @@ print(chat(messages, enable_thinking=True))
 
 ## Long-context inference
 
-MiniCPM 4.1 supports up to **128K** context via [InfLLM-V2](https://arxiv.org/abs/2509.24663) sparse attention. For inputs longer than ~32K, switch on `flash_attention_2` and consider the optimised CPM.cu runtime for serving (see the deployment guides under this version).
+MiniCPM 4.1 supports up to **128K** context via [InfLLM-V2](https://arxiv.org/abs/2509.24663) sparse attention. For inputs longer than ~32K, switch on `flash_attention_2` for memory savings.
 
 ```python
 model = AutoModelForCausalLM.from_pretrained(

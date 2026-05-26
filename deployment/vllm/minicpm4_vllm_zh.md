@@ -90,4 +90,4 @@ print(outputs[0].outputs[0].text)
 
 - MiniCPM 4 **不支持** `enable_thinking` 开关。需要混合思考请使用 [MiniCPM 4.1](../minicpm4_1/deployment/vllm.html)。
 - `--trust-remote-code` 必须开启。
-- 名称带 `*-Eagle-FRSpec*` 的 Eagle draft 是为 [CPM.cu](https://github.com/OpenBMB/CPM.cu) 调优的，**不要**用于 vLLM；vLLM 请使用 `MiniCPM4-8B-Eagle-vLLM`。
+- vLLM 投机解码请使用 `MiniCPM4-8B-Eagle-vLLM`；`*-Eagle-FRSpec*` 是为另一种运行时调优的，**不**兼容 vLLM。

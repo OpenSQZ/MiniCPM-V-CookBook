@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="sglang.html" selected>MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/deployment/sglang.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/sglang.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/deployment/sglang.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/deployment/sglang.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/deployment/sglang.html">MiniCPM 4.1</option>
     <option value="../../minicpm4/deployment/sglang.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/deployment/sglang.html">MiniCPM-SALA [research]</option>
   </select>
@@ -379,7 +380,7 @@ footer.page-footer a:hover { color: var(--primary); }
   <article><h1 id="minicpm-v-4-6-sglang">MiniCPM-V 4.6 - SGLang</h1>
 <div class="admonition admonition-note" markdown="0">
 <p class="admonition-title">说明</p>
-<p>MiniCPM-V 4.6 已合并至官方 SGLang <code>main</code> 分支（<a href="https://github.com/sgl-project/sglang/pull/24855">PR #24855</a>，2026-05-10 merged；配套文档 / fixes 也已合入 main）。<strong>无需使用 fork</strong>，直接从官方仓库安装即可。</p>
+<p>MiniCPM-V 4.6 自 <a href="https://github.com/sgl-project/sglang/pull/24998">PR #24998</a>（2026-05-12 merged）起在官方 SGLang <code>main</code> 分支上完整可用。<strong>无需使用 fork</strong>，直接从官方仓库安装即可，确保检出的 commit ≥ 该 PR 的 merge 时间。</p>
 <p>MiniCPM-V 4.6 在 <code>transformers&gt;=5.7.0</code> 中以独立架构 <code>MiniCPMV4_6ForConditionalGeneration</code> 注册，SGLang 的适配也基于这一布局。</p>
 </div>
 
@@ -390,7 +391,7 @@ footer.page-footer a:hover { color: var(--primary); }
 </ul>
 <h2 id="1-sglang-安装">1. SGLang 安装</h2>
 <h3 id="从官方-main-源码安装">从官方 main 源码安装</h3>
-<p>包含此合并的正式 release 出来前，推荐从官方 <code>main</code> 安装（请关注 <a href="https://github.com/sgl-project/sglang/releases">SGLang Releases</a>；正式版发布后可直接 <code>pip install -U "sglang[all]"</code>）：</p>
+<p>包含 #24998 的正式 release 出来前，推荐从官方 <code>main</code> 安装（请关注 <a href="https://github.com/sgl-project/sglang/releases">SGLang Releases</a>；正式版发布后可直接 <code>pip install -U "sglang[all]"</code>）：</p>
 <div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sgl-project/sglang.git
 <span class="nb">cd</span><span class="w"> </span>sglang
 

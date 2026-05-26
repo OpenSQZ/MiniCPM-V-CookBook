@@ -90,4 +90,4 @@ print(outputs[0].outputs[0].text)
 
 - MiniCPM 4 does **not** support the `enable_thinking` toggle; for hybrid reasoning use [MiniCPM 4.1](../minicpm4_1/deployment/vllm.html).
 - `--trust-remote-code` is required.
-- Eagle drafts in the form `*-Eagle-FRSpec*` are tuned for [CPM.cu](https://github.com/OpenBMB/CPM.cu) and are **not** the right pick for vLLM — use `MiniCPM4-8B-Eagle-vLLM` for vLLM.
+- For vLLM speculative decoding pick the `MiniCPM4-8B-Eagle-vLLM` draft (the `*-Eagle-FRSpec*` variants are tuned for a different runtime and are **not** vLLM-compatible).

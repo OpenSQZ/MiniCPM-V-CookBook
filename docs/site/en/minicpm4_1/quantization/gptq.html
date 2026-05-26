@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/quantization/gptq.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="gptq.html" selected>MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="gptq.html" selected>MiniCPM 4.1</option>
     <option value="../../minicpm4/overview.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,13 +356,10 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX (Apple Silicon)</a></li>
-<li><a class="" href="../deployment/cpmcu.html">CPM.cu (on-device CUDA)</a></li></ul></li>
+<li><a class="" href="../deployment/mlx.html">MLX (Apple Silicon)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="awq.html">AWQ</a></li>
 <li><a class="active" href="gptq.html">GPTQ (+ QAT)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Apps</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP (tool agent)</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey (survey generation)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -435,12 +433,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
 </code></pre></div>
 
-<p>A matching speculative-decoding draft is available as <a href="https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT"><code>openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT</code></a> for use with <a href="https://github.com/OpenBMB/CPM.cu">CPM.cu</a>.</p>
 <h2 id="notes">Notes</h2>
 <ul>
 <li>GPTQ in vLLM uses the GPTQ-Marlin kernel by default on capable GPUs; no extra flags needed.</li>
 <li>For MiniCPM 4 (non-4.1), the official GPTQ release is <a href="https://huggingface.co/openbmb/MiniCPM4-8B-GPTQ"><code>openbmb/MiniCPM4-8B-GPTQ</code></a> — same flow.</li>
-<li>For very memory-constrained deployments, prefer BitCPM4 (3-bit ternary) over GPTQ INT4.</li>
+<li>For very memory-constrained deployments, prefer GGUF Q4 / Q3 via <code>llama.cpp</code> over GPTQ INT4.</li>
 </ul></article>
 
   <footer class="page-footer">

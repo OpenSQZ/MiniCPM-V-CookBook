@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/deployment/vllm.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/deployment/vllm.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/vllm.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/deployment/vllm.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/deployment/vllm.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/deployment/vllm.html">MiniCPM 4.1</option>
     <option value="vllm.html" selected>MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,10 +356,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="sglang.html">SGLang</a></li>
 <li><a class="" href="llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/bitcpm.html">BitCPM4 (3-bit)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Apps</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP (tool agent)</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey (survey generation)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -447,7 +445,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <ul>
 <li>MiniCPM 4 does <strong>not</strong> support the <code>enable_thinking</code> toggle; for hybrid reasoning use <a href="../minicpm4_1/deployment/vllm.html">MiniCPM 4.1</a>.</li>
 <li><code>--trust-remote-code</code> is required.</li>
-<li>Eagle drafts in the form <code>*-Eagle-FRSpec*</code> are tuned for <a href="https://github.com/OpenBMB/CPM.cu">CPM.cu</a> and are <strong>not</strong> the right pick for vLLM — use <code>MiniCPM4-8B-Eagle-vLLM</code> for vLLM.</li>
+<li>For vLLM speculative decoding pick the <code>MiniCPM4-8B-Eagle-vLLM</code> draft (the <code>*-Eagle-FRSpec*</code> variants are tuned for a different runtime and are <strong>not</strong> vLLM-compatible).</li>
 </ul></article>
 
   <footer class="page-footer">

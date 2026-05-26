@@ -57,7 +57,7 @@ This cookbook tracks all currently supported MiniCPM releases:
 | Version | Status | Modality | Size | Highlights | Context |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **4.1** *(latest)* | Recommended | Text | 8B | Hybrid reasoning, EAGLE3, InfLLM-V2 | 128K |
-| 4 | Stable | Text | 0.5B / 8B | InfLLM-V2, BitCPM4 3-bit, FRSpec | 128K |
+| 4 | Stable | Text | 0.5B / 8B | InfLLM-V2, FRSpec speculative decoding | 128K |
 | SALA | Research | Text | 8B | Sparse + linear hybrid attention | 1M+ |
 
 Use the **version switcher** in the sidebar to jump between releases.

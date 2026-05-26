@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/inference/chat.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/inference/chat.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/inference/chat.html">MiniCPM 4.1</option>
     <option value="chat.html" selected>MiniCPM 4</option>
     <option value="../../minicpm-sala/inference/chat.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,10 +356,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="../quantization/bitcpm.html">BitCPM4 (3-bit)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Apps</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP (tool agent)</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey (survey generation)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -441,8 +439,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <h2 id="notes">Notes</h2>
 <ul>
 <li><code>trust_remote_code=True</code> is required — MiniCPM 4 ships its modelling code on the Hub.</li>
-<li>The 0.5B variant shares the same chat template; pair with <a href="https://huggingface.co/openbmb/BitCPM4-0.5B">BitCPM4</a> for tightly constrained edge deployments.</li>
-<li>For accelerated generation, see the <code>Deployment</code> section under this version (vLLM with EAGLE / Marlin, CPM.cu for on-device CUDA inference).</li>
+<li>The 0.5B variant shares the same chat template — recommended for tightly constrained edge deployments where the 8B doesn't fit.</li>
+<li>For accelerated generation, see the <code>Deployment</code> section under this version (vLLM with EAGLE / Marlin).</li>
 </ul></article>
 
   <footer class="page-footer">

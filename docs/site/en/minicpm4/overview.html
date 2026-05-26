@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="../minicpm4_1/overview.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../minicpm4_1/overview.html">MiniCPM 4.1</option>
     <option value="overview.html" selected>MiniCPM 4</option>
     <option value="../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,10 +356,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="deployment/ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="quantization/bitcpm.html">BitCPM4 (3-bit)</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Apps</div><ul class="nav-group-children"><li><a class="" href="apps/mcp.html">MiniCPM4-MCP (tool agent)</a></li>
-<li><a class="" href="apps/survey.html">MiniCPM4-Survey (survey generation)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -372,7 +370,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <main class="content" id="content">
   <article><h1 id="minicpm-4-overview">MiniCPM 4 — Overview</h1>
 <blockquote>
-<p>The previous-generation MiniCPM LLM release. MiniCPM 4 introduced InfLLM-V2 sparse attention and the BitCPM4 3-bit quantization stack, and remains supported alongside <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a>.</p>
+<p>The previous-generation MiniCPM LLM release. MiniCPM 4 introduced InfLLM-V2 sparse attention and remains supported alongside <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a>.</p>
 </blockquote>
 <h2 id="checkpoints">Checkpoints</h2>
 <table>
@@ -415,16 +413,6 @@ footer.page-footer a:hover { color: var(--primary); }
 <td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-marlin-Eagle-vLLM">mirror</a></td>
 </tr>
 <tr>
-<td style="text-align: left;">BitCPM4 (3-bit, 1B)</td>
-<td style="text-align: left;"><a href="https://huggingface.co/openbmb/BitCPM4-1B"><code>openbmb/BitCPM4-1B</code></a></td>
-<td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/BitCPM4-1B">mirror</a></td>
-</tr>
-<tr>
-<td style="text-align: left;">BitCPM4 (3-bit, 0.5B)</td>
-<td style="text-align: left;"><a href="https://huggingface.co/openbmb/BitCPM4-0.5B"><code>openbmb/BitCPM4-0.5B</code></a></td>
-<td style="text-align: left;"><a href="https://www.modelscope.cn/models/OpenBMB/BitCPM4-0.5B">mirror</a></td>
-</tr>
-<tr>
 <td style="text-align: left;">MiniCPM4-0.5B QAT (Int4)</td>
 <td style="text-align: left;"><a href="https://huggingface.co/openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format"><code>openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format</code></a></td>
 <td style="text-align: left;"><a href="https://modelscope.cn/models/OpenBMB/MiniCPM4-0.5B-QAT-Int4-GPTQ-format">mirror</a></td>
@@ -434,7 +422,6 @@ footer.page-footer a:hover { color: var(--primary); }
 <h2 id="highlights">Highlights</h2>
 <ul>
 <li><strong>InfLLM-V2 sparse attention</strong> — long-context inference with under 5% of full-attention compute on a 128K window.</li>
-<li><strong>BitCPM4 ternary quantization</strong> — official 3-bit weights that compress the model to roughly 10% of the original size while preserving most of the quality.</li>
 <li><strong>Eagle / FRSpec speculative decoding</strong> — official draft checkpoints (including a QAT-friendly variant) for accelerated generation on the 8B model.</li>
 <li><strong>0.5B / 8B size points</strong> — choose 0.5B for tightly constrained edge deployments, 8B for full reasoning capability.</li>
 </ul>
@@ -471,7 +458,7 @@ vllm<span class="w"> </span>serve<span class="w"> </span>openbmb/MiniCPM4-8B<spa
 <li>➡️ For new projects we recommend <a href="../minicpm4_1/overview.html">MiniCPM 4.1</a>, which adds hybrid reasoning and EAGLE3 on top of this release.</li>
 </ul>
 <blockquote>
-<p>Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, CPM.cu, quantization, fine-tuning, applications) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.</p>
+<p>Per-feature guides (vLLM, SGLang, llama.cpp, Ollama, fine-tuning) are being added to this cookbook section. Use the version sidebar on the left to navigate as they land.</p>
 </blockquote></article>
 
   <footer class="page-footer">

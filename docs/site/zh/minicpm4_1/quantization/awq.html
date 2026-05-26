@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/quantization/awq.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/quantization/awq.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="awq.html" selected>MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="awq.html" selected>MiniCPM 4.1</option>
     <option value="../../minicpm4/overview.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,13 +356,10 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li>
-<li><a class="" href="../deployment/cpmcu.html">CPM.cu（端侧 CUDA）</a></li></ul></li>
+<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="active" href="awq.html">AWQ</a></li>
 <li><a class="" href="gptq.html">GPTQ（含 QAT）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">应用</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP（工具 agent）</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey（综述生成）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -447,7 +445,7 @@ vllm<span class="w"> </span>serve<span class="w"> </span>openbmb/MiniCPM4.1-8B-A
 <ul>
 <li>AWQ Group Size <code>128</code>、W-bit <code>4</code>、ZP 启用 —— 与官方发布对齐的配置。</li>
 <li>在 Ampere/Ada/Hopper 上单 token 延迟敏感的部署中，AWQ + Marlin kernel 在质量接近 FP16 的同时吞吐约为 FP16 的 2 倍。</li>
-<li>0.5B 模型没有 AWQ 版本。受限端侧请使用 BitCPM4 或 GGUF Q4。</li>
+<li>0.5B 模型没有 AWQ 版本。受限端侧请通过 <code>llama.cpp</code> 使用 GGUF Q4。</li>
 </ul></article>
 
   <footer class="page-footer">

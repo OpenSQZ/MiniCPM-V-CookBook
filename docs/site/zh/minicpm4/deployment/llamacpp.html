@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/deployment/llamacpp.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/deployment/llamacpp.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/llamacpp.html">MiniCPM-o 4.5</option>
-    <option value="../../minicpm4_1/deployment/llamacpp.html">MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/deployment/llamacpp.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/deployment/llamacpp.html">MiniCPM 4.1</option>
     <option value="llamacpp.html" selected>MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,10 +356,7 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="sglang.html">SGLang</a></li>
 <li><a class="active" href="llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="../quantization/bitcpm.html">BitCPM4（3-bit）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">应用</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP（工具 agent）</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey（综述生成）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -400,7 +398,7 @@ cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"
 </code></pre></div>
 
 <h3 id="0-5b-端侧友好">0.5B（端侧友好）</h3>
-<p>0.5B 变体可以在普通笔记本或低配端侧设备运行。配合 <a href="https://huggingface.co/openbmb/BitCPM4-0.5B">BitCPM4</a> 3-bit 权重可以极大节省内存。</p>
+<p>0.5B 变体可以在普通笔记本或低配端侧设备运行。要进一步压低内存占用，可选 <code>Q4_K_M</code> GGUF，质量损失可控。</p>
 <h2 id="3-从-pytorch-转换-可选">3. 从 PyTorch 转换（可选）</h2>
 <div class="code"><pre><span></span><code>python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/path/to/MiniCPM4-8B<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--outfile<span class="w"> </span>/path/to/MiniCPM4-8B-F16.gguf<span class="w"> </span>--outtype<span class="w"> </span>f16

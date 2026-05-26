@@ -110,7 +110,7 @@ print(chat(messages, enable_thinking=True))
 
 ## 长上下文推理
 
-MiniCPM 4.1 通过 [InfLLM-V2](https://arxiv.org/abs/2509.24663) 稀疏注意力支持最长 **128K** 上下文。输入超过约 32K 时建议启用 `flash_attention_2`，更进一步的服务化部署可参考本版本下的 CPM.cu 部署指南。
+MiniCPM 4.1 通过 [InfLLM-V2](https://arxiv.org/abs/2509.24663) 稀疏注意力支持最长 **128K** 上下文。输入超过约 32K 时建议启用 `flash_attention_2` 以节省显存。
 
 ```python
 model = AutoModelForCausalLM.from_pretrained(

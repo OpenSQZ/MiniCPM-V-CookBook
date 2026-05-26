@@ -1,6 +1,6 @@
 # MiniCPM 4 — 概览
 
-> MiniCPM 上一代 LLM 系列模型。MiniCPM 4 引入了 InfLLM-V2 稀疏注意力与 BitCPM4 3-bit 量化方案，与 [MiniCPM 4.1](../minicpm4_1/overview.html) 同时维护。
+> MiniCPM 上一代 LLM 系列模型。MiniCPM 4 引入了 InfLLM-V2 稀疏注意力，与 [MiniCPM 4.1](../minicpm4_1/overview.html) 同时维护。
 
 ## 模型清单
 
@@ -12,14 +12,11 @@
 | Eagle FRSpec + QAT | [`openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT) | [镜像](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-Eagle-FRSpec-QAT) |
 | Eagle for vLLM | [`openbmb/MiniCPM4-8B-Eagle-vLLM`](https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-vLLM) | [镜像](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-Eagle-vLLM) |
 | Marlin INT4 + Eagle for vLLM | [`openbmb/MiniCPM4-8B-marlin-Eagle-vLLM`](https://huggingface.co/openbmb/MiniCPM4-8B-marlin-Eagle-vLLM) | [镜像](https://www.modelscope.cn/models/OpenBMB/MiniCPM4-8B-marlin-Eagle-vLLM) |
-| BitCPM4（3-bit，1B） | [`openbmb/BitCPM4-1B`](https://huggingface.co/openbmb/BitCPM4-1B) | [镜像](https://www.modelscope.cn/models/OpenBMB/BitCPM4-1B) |
-| BitCPM4（3-bit，0.5B） | [`openbmb/BitCPM4-0.5B`](https://huggingface.co/openbmb/BitCPM4-0.5B) | [镜像](https://www.modelscope.cn/models/OpenBMB/BitCPM4-0.5B) |
 | MiniCPM4-0.5B QAT（Int4） | [`openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format`](https://huggingface.co/openbmb/MiniCPM4-0.5B-QAT-Int4-GPTQ-format) | [镜像](https://modelscope.cn/models/OpenBMB/MiniCPM4-0.5B-QAT-Int4-GPTQ-format) |
 
 ## 亮点
 
 - **InfLLM-V2 稀疏注意力** — 128K 上下文场景下，计算量不到全注意力的 5%。
-- **BitCPM4 三元量化** — 官方 3-bit 权重，模型体积压缩到约 10%，保留绝大部分能力。
 - **Eagle / FRSpec 投机解码** — 8B 模型配套的 draft 模型（含 QAT 友好变体），用于加速生成。
 - **0.5B / 8B 双尺寸** — 0.5B 用于资源受限的端侧场景，8B 用于完整的推理能力。
 
@@ -60,4 +57,4 @@ vllm serve openbmb/MiniCPM4-8B --trust-remote-code --max-model-len 32768
 - 🛠️ [主仓库 OpenBMB/MiniCPM](https://github.com/OpenBMB/MiniCPM)
 - ➡️ 新项目推荐使用 [MiniCPM 4.1](../minicpm4_1/overview.html)，在本版本基础上加入了混合思考与 EAGLE3。
 
-> 各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、CPM.cu、量化、微调、应用）正在陆续加入本节。请通过左侧侧栏的版本切换查看。
+> 各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、微调）正在陆续加入本节。请通过左侧侧栏的版本切换查看。

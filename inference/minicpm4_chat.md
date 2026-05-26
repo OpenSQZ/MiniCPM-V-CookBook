@@ -80,5 +80,5 @@ model = AutoModelForCausalLM.from_pretrained(
 ## Notes
 
 - `trust_remote_code=True` is required — MiniCPM 4 ships its modelling code on the Hub.
-- The 0.5B variant shares the same chat template; pair with [BitCPM4](https://huggingface.co/openbmb/BitCPM4-0.5B) for tightly constrained edge deployments.
-- For accelerated generation, see the `Deployment` section under this version (vLLM with EAGLE / Marlin, CPM.cu for on-device CUDA inference).
+- The 0.5B variant shares the same chat template — recommended for tightly constrained edge deployments where the 8B doesn't fit.
+- For accelerated generation, see the `Deployment` section under this version (vLLM with EAGLE / Marlin).

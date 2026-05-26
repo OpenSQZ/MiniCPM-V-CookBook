@@ -67,6 +67,5 @@ ollama run openbmb/minicpm4.1
 - 🤗 [HuggingFace 模型合集](https://huggingface.co/collections/openbmb/minicpm-4-6841ab29d180257e940baa9b)
 - 📖 [技术报告（arXiv 2506.07900）](https://arxiv.org/abs/2506.07900)
 - 🛠️ [主仓库 OpenBMB/MiniCPM](https://github.com/OpenBMB/MiniCPM)
-- 🚀 [CPM.cu — 端侧 CUDA 推理框架](https://github.com/OpenBMB/CPM.cu)
 
-> 各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、CPM.cu、MLX、量化、微调、应用）正在陆续加入本节。请通过左侧侧栏的版本切换查看。
+> 各功能的详细指南（vLLM、SGLang、llama.cpp、Ollama、MLX、量化、微调）正在陆续加入本节。请通过左侧侧栏的版本切换查看。

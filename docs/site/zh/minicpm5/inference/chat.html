@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-transitions">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Chat（混合思考） — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
+<title>Chat（混合思考） — MiniCPM-V & o Cookbook</title>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
+<link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-dark-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" media="not all">
+<style>
+:root {
+  --primary: #3680ff;
+  --accent:  #1AC8DB;
+  --sidebar-w: 280px;
+  --bg: #fff;
+  --bg-elevated: #fff;
+  --bg-side: #fafbfc;
+  --bg-code: #f6f8fa;
+  --bg-stripe: #fafbfc;
+  --bg-hover: #ebeff3;
+  --c1: #24292f;
+  --c2: #57606a;
+  --c3: #8b949e;
+  --border: #d0d7de;
+  --border-soft: #eaecef;
+  --nav-active-bg: rgba(54, 128, 255, .08);
+  --nav-active-fg: var(--primary);
+  --link: var(--primary);
+  --warn-bg: #fff8c5;
+  --warn-bd: #d4a72c;
+  --note-bg: #ddf4ff;
+  --note-bd: #54aeff;
+  --tip-bg:  #dafbe1;
+  --tip-bd:  #1f883d;
+  --important-bg: #fbefff;
+  --important-bd: #8250df;
+  --logo-filter: none;
+  color-scheme: light;
+}
+
+/* Dark theme: applied when JS sets data-effective-theme="dark" on <html>.
+   The bootstrap script in <head> resolves the user's saved preference
+   ("auto" | "light" | "dark") and the system `prefers-color-scheme` into
+   that attribute before first paint, so the page never flashes white. */
+:root[data-effective-theme="dark"] {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-side: #161b22;
+  --bg-code: #161b22;
+  --bg-stripe: #11161d;
+  --bg-hover: #21262d;
+  --c1: #e6edf3;
+  --c2: #9aa4ae;
+  --c3: #6e7681;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --nav-active-bg: rgba(88, 166, 255, .15);
+  --nav-active-fg: #58a6ff;
+  --link: #58a6ff;
+  --warn-bg: rgba(187, 128, 9, .15);
+  --warn-bd: #9e6a03;
+  --note-bg: rgba(56, 139, 253, .15);
+  --note-bd: #1f6feb;
+  --tip-bg: rgba(46, 160, 67, .15);
+  --tip-bd: #238636;
+  --important-bg: rgba(163, 113, 247, .15);
+  --important-bd: #8250df;
+  --logo-filter: brightness(.95);
+  color-scheme: dark;
+}
+
+/* Smooth crossfade when toggling. `html.no-transitions` is set briefly by JS
+   while applying the saved theme on first load, so the initial paint never
+   animates. */
+body, .topbar, .sidebar, .topbar-search input, .version-switcher select,
+article pre, article code, article th, article tr, article blockquote,
+article .admonition, .topbar-action-btn {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+html.no-transitions, html.no-transitions * { transition: none !important; }
+
+/* Pagefind UI overrides — its built-in dark mode keys off prefers-color-scheme,
+   which doesn't honor our explicit toggle. Force its variables to match
+   whatever our effective theme is. */
+:root[data-effective-theme="light"] .pagefind-ui {
+  --pagefind-ui-primary: #3680ff;
+  --pagefind-ui-text: #24292f;
+  --pagefind-ui-background: #ffffff;
+  --pagefind-ui-border: #d0d7de;
+  --pagefind-ui-tag: #f6f8fa;
+}
+:root[data-effective-theme="dark"] .pagefind-ui {
+  --pagefind-ui-primary: #58a6ff;
+  --pagefind-ui-text: #e6edf3;
+  --pagefind-ui-background: #0d1117;
+  --pagefind-ui-border: #30363d;
+  --pagefind-ui-tag: #161b22;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+               "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  color: var(--c1);
+  line-height: 1.65;
+  background: var(--bg);
+  font-size: 15px;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 18px;
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar-brand img { height: 30px; filter: var(--logo-filter); }
+.topbar-brand .brand-text { font-weight: 600; font-size: 15px; color: var(--c1); white-space: nowrap; }
+.topbar-search { flex: 1; max-width: 480px; position: relative; }
+.topbar-search input {
+  width: 100%; padding: 8px 12px 8px 34px; font-size: 14px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-side);
+  outline: none; transition: border-color .15s;
+}
+.topbar-search input:focus { border-color: var(--primary); }
+.topbar-search::before {
+  content: "🔍"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  font-size: 13px; opacity: .5;
+}
+.topbar-actions { display: flex; align-items: center; gap: 14px; font-size: 14px; }
+.topbar-actions a { color: var(--c2); }
+.topbar-actions a:hover { color: var(--primary); }
+.topbar-toggle {
+  display: none; background: none; border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 10px; font-size: 16px; cursor: pointer; color: var(--c1);
+}
+
+/* Theme toggle button: cycles auto → light → dark and persists to localStorage. */
+.topbar-action-btn {
+  background: none; border: 1px solid transparent;
+  color: var(--c2); font: inherit; font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.topbar-action-btn:hover { color: var(--primary); background: var(--bg-hover); border-color: var(--border); }
+.theme-toggle-icon { font-size: 16px; line-height: 1; }
+.theme-toggle-label { font-size: 12px; color: var(--c2); }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
+}
+
+/* ---------- sidebar ---------- */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  overflow-y: auto; background: var(--bg-side); border-right: 1px solid var(--border);
+  padding: 16px 0 32px;
+  transition: transform .25s;
+}
+.sidebar-header { padding: 4px 18px 14px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.sidebar-lang-switch {
+  display: inline-block; font-size: 12px; color: var(--primary);
+  text-decoration: none; padding: 3px 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  transition: background .15s, border-color .15s;
+}
+.sidebar-lang-switch:hover { background: var(--nav-active-bg); border-color: var(--primary); text-decoration: none; }
+.sidebar-lang-switch::before { content: "🌐 "; opacity: .8; margin-right: 2px; }
+
+.version-switcher { padding: 0 18px 12px; }
+.version-switcher select {
+  width: 100%; padding: 7px 10px; font-size: 14px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--c1);
+  cursor: pointer; outline: none;
+}
+.version-switcher .badge {
+  display: inline-block; margin-left: 6px; padding: 1px 7px; font-size: 11px;
+  border-radius: 999px; background: var(--accent); color: #fff;
+  vertical-align: middle; font-weight: 600;
+}
+.nav-list { list-style: none; padding: 4px 12px; }
+.nav-list a { display: block; padding: 6px 12px; color: var(--c2); border-radius: 6px;
+              font-size: 14px; transition: background .15s, color .15s; }
+.nav-list a:hover { background: var(--bg-hover); color: var(--c1); text-decoration: none; }
+.nav-list a.active { background: var(--nav-active-bg); color: var(--nav-active-fg); font-weight: 600; }
+.nav-group { margin-top: 8px; }
+.nav-group-header {
+  padding: 6px 12px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--c1); cursor: pointer;
+  user-select: none; display: flex; align-items: center; gap: 6px;
+  border-radius: 6px; transition: background .15s;
+}
+.nav-group-header:hover { background: var(--bg-hover); }
+.nav-group-header::before {
+  content: ""; width: 0; height: 0;
+  border-left: 5px solid var(--c2); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+  transition: transform .2s; transform: rotate(90deg);
+}
+.nav-group.collapsed .nav-group-header::before { transform: rotate(0); }
+.nav-group-children { list-style: none; margin: 2px 0 4px 22px; padding-left: 12px;
+                       border-left: 2px solid var(--border-soft);
+                       max-height: 800px; overflow: hidden;
+                       transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
+                       opacity: 1; }
+.nav-group.collapsed .nav-group-children { max-height: 0; opacity: 0; }
+.nav-group-children a { font-size: 13px; padding: 4px 10px; }
+
+.sidebar-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--c3); padding: 14px 18px 4px;
+}
+
+/* ---------- content ---------- */
+.content {
+  margin-left: var(--sidebar-w); margin-top: 56px;
+  max-width: 920px; padding: 36px 56px 80px;
+}
+article h1, article h2, article h3, article h4, article h5 {
+  font-weight: 600; color: var(--c1); margin: 32px 0 12px; line-height: 1.35;
+}
+article h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-top: 0; }
+article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
+article h3 { font-size: 18px; }
+article h4 { font-size: 15px; }
+article p, article ul, article ol, article blockquote { margin-bottom: 14px; }
+article ul, article ol { padding-left: 24px; }
+article li { margin-bottom: 4px; }
+article code { background: var(--bg-code); padding: 2px 6px; border-radius: 4px;
+                font-size: 13px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+article pre {
+  background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; margin-bottom: 16px;
+  font-size: 13.5px; line-height: 1.55;
+}
+article pre code { background: none; padding: 0; }
+article table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
+article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+article th { background: var(--bg-code); font-weight: 600; }
+article tr:nth-child(even) { background: var(--bg-stripe); }
+article hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+article blockquote {
+  border-left: 4px solid var(--primary); padding: 6px 16px; color: var(--c2);
+  background: var(--bg-side); border-radius: 0 6px 6px 0;
+}
+
+article .admonition {
+  border-radius: 8px; padding: 12px 18px; margin: 16px 0;
+  border-left: 4px solid var(--note-bd); background: var(--note-bg);
+}
+article .admonition .admonition-title {
+  font-weight: 700; margin: 0 0 4px; font-size: 13px; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--c1);
+}
+article .admonition-warning  { border-left-color: var(--warn-bd); background: var(--warn-bg); }
+article .admonition-caution  { border-left-color: var(--warn-bd); background: var(--warn-bg); }
+article .admonition-tip      { border-left-color: var(--tip-bd);  background: var(--tip-bg); }
+article .admonition-important{ border-left-color: var(--important-bd); background: var(--important-bg); }
+
+article .mermaid { margin: 16px auto; text-align: center; }
+article .toc { background: var(--bg-side); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 16px 0; }
+article .toc > ul { padding-left: 20px; margin: 0; }
+
+article a.headerlink { margin-left: 6px; opacity: 0; }
+article :hover > a.headerlink { opacity: .5; }
+
+footer.page-footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border);
+                     color: var(--c2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+footer.page-footer a { color: var(--c2); }
+footer.page-footer a:hover { color: var(--primary); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .topbar-toggle { display: inline-block; }
+  .topbar-search { display: none; }
+  .sidebar { transform: translateX(-100%); box-shadow: 2px 0 12px rgba(0,0,0,.08); }
+  .sidebar.open { transform: translateX(0); }
+  .content { margin-left: 0; padding: 28px 22px 60px; }
+}
+</style>
+<script>
+  // Theme bootstrap — runs before <body> so the page never flashes the wrong
+  // colour. Resolves the saved choice ("auto" | "light" | "dark") against the
+  // OS-level `prefers-color-scheme` and writes both values onto <html>:
+  //   data-theme           → what the user chose (drives the toggle UI)
+  //   data-effective-theme → what we actually rendered (drives CSS + hljs)
+  (function() {
+    try {
+      var saved = localStorage.getItem('cookbook-theme');
+      if (saved !== 'light' && saved !== 'dark' && saved !== 'auto') saved = 'auto';
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var effective = saved === 'auto' ? (prefersDark ? 'dark' : 'light') : saved;
+      var html = document.documentElement;
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      var l = document.getElementById('hljs-light-css');
+      var d = document.getElementById('hljs-dark-css');
+      if (l) l.media = effective === 'dark' ? 'not all' : 'all';
+      if (d) d.media = effective === 'dark' ? 'all' : 'not all';
+    } catch (e) { /* localStorage may be blocked (private mode, etc.) — leave defaults */ }
+  })();
+</script>
+</head>
+<body data-version="minicpm5" data-lang="zh" data-slug="minicpm5/inference/chat">
+
+<header class="topbar">
+  <button class="topbar-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">☰</button>
+  <a class="topbar-brand" href="../../index.html">
+    <img src="../../../assets/logos/minicpmv.png" alt="MiniCPM-V">
+    <span class="brand-text">MiniCPM-V & o Cookbook</span>
+  </a>
+  <div class="topbar-search">
+    <input type="search" placeholder="搜索文档…" id="pagefind-search">
+  </div>
+  <nav class="topbar-actions">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="切换主题（自动 / 浅色 / 深色）" title="切换主题（自动 / 浅色 / 深色）">
+      <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
+      <span class="theme-toggle-label">自动</span>
+    </button>
+    <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://huggingface.co/openbmb" target="_blank" rel="noopener">HuggingFace</a>
+    <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">魔搭社区</a>
+    <a href="https://discord.gg/rftuRMbqzf" target="_blank" rel="noopener">Discord</a>
+    <a href="https://huggingface.co/papers/2509.18154" target="_blank" rel="noopener">技术报告</a>
+  </nav>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-lang-switch" href="../../../en/minicpm5/inference/chat.html" rel="alternate" hreflang="en">English</a>
+  </div>
+  <ul class="nav-list">
+  <li><a class="" href="../../index.html">首页</a></li>
+</ul>
+<div class="sidebar-section-title">版本</div>
+<div class="version-switcher">
+  <select id="version-switcher-select">
+    <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
+    <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
+    <option value="chat.html" selected>MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/inference/chat.html">MiniCPM 4.1</option>
+    <option value="../../minicpm4/inference/chat.html">MiniCPM 4</option>
+    <option value="../../minicpm-sala/inference/chat.html">MiniCPM-SALA [research]</option>
+  </select>
+</div>
+<ul class="nav-list">
+<li><a class="" href="../overview.html">概览</a></li>
+<li class="nav-group"><div class="nav-group-header">推理</div><ul class="nav-group-children"><li><a class="active" href="chat.html">Chat（混合思考）</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">部署</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
+<li><a class="" href="../deployment/sglang.html">SGLang（推荐用于工具调用）</a></li>
+<li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
+<li><a class="" href="../deployment/ollama.html">Ollama</a></li>
+<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
+</ul>
+<div class="sidebar-section-title">跨版本</div>
+<ul class="nav-list">
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../../shared/finetune/official.html">官方脚本微调</a></li>
+<li><a class="" href="../../shared/finetune/llamafactory.html">LLaMA-Factory</a></li>
+<li><a class="" href="../../shared/finetune/swift.html">SWIFT</a></li>
+<li><a class="" href="../../shared/finetune/align-anything.html">Align-anything</a></li></ul></li>
+</ul>
+</aside>
+
+<main class="content" id="content">
+  <article><h1 id="chat-minicpm-5">Chat（MiniCPM 5）</h1>
+<blockquote>
+<p>MiniCPM 5 是纯文本 LLM，HuggingFace 模型卡为 <a href="https://huggingface.co/openbmb/MiniCPM5-1B"><code>openbmb/MiniCPM5-1B</code></a>。它使用<strong>标准 <code>LlamaForCausalLM</code> 架构</strong> —— 无需 <code>trust_remote_code</code>、无需自定义 kernel —— 并支持<strong>混合思考模式</strong>：同一权重既可以直接给出答案，也可以先输出 <code>&lt;think&gt;</code> 思维链再给答案，由请求参数控制。</p>
+</blockquote>
+<h2 id="初始化模型">初始化模型</h2>
+<div class="code"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoModelForCausalLM</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+
+<span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM5-1B&quot;</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>      <span class="c1"># 现代 GPU / Apple Silicon 上为 bfloat16</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</code></pre></div>
+
+<div class="admonition admonition-tip" markdown="0">
+<p class="admonition-title">提示</p>
+<p>MiniCPM5-1B 使用 transformers 上游的 <code>LlamaForCausalLM</code>，<strong>不需要 <code>trust_remote_code=True</code></strong>。请确保 <code>transformers&gt;=5.6</code>（CUDA 12.x 驱动主机可回退使用 <code>transformers==4.57.3</code>）。</p>
+</div>
+
+<h2 id="直接回答-关闭思考">直接回答（关闭思考）</h2>
+<p>快速模式直接返回最终答案，不包含 <code>&lt;think&gt;</code> 块 —— 适合常规对话、摘要、检索增强问答等场景。</p>
+<div class="code"><pre><span></span><code><span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;你是谁？请简要介绍一下你自己。&quot;</span><span class="p">}]</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
+    <span class="n">messages</span><span class="p">,</span>
+    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+    <span class="o">**</span><span class="n">inputs</span><span class="p">,</span>
+    <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="n">do_sample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="混合思考-开启思考">混合思考（开启思考）</h2>
+<p>将 <code>enable_thinking=True</code> 后，MiniCPM 5 会先输出 <code>&lt;think&gt;...&lt;/think&gt;</code> 思维链，再给出最终答案。适合数学、代码、多步规划等需要显式推理的任务。</p>
+<div class="code"><pre><span></span><code><span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;鸡兔同笼，头共 10 个，脚共 28 只，问鸡和兔各几只？&quot;</span><span class="p">}]</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
+    <span class="n">messages</span><span class="p">,</span>
+    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+    <span class="o">**</span><span class="n">inputs</span><span class="p">,</span>
+    <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">do_sample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+    <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+
+<p>典型输出形如：</p>
+<div class="code"><pre><span></span><code>&lt;think&gt;
+设鸡的数量为 x，兔的数量为 y。则：x + y = 10，2x + 4y = 28。
+由 x = 10 - y 代入：2(10 - y) + 4y = 28 → y = 4，x = 6。
+&lt;/think&gt;
+鸡有 6 只，兔有 4 只。
+</code></pre></div>
+
+<div class="admonition admonition-tip" markdown="0">
+<p class="admonition-title">提示</p>
+<p>采样超参对推理质量影响较大。OpenBMB 官方推荐：开启思考时 <code>temperature=0.9, top_p=0.95</code>；关闭思考时 <code>temperature=0.7, top_p=0.95</code>。模型自带的 <code>generation_config.json</code> 默认按 <strong>Think</strong> 模式调优。</p>
+</div>
+
+<h2 id="多轮对话">多轮对话</h2>
+<p><code>apply_chat_template</code> 本身无状态 —— 自行维护 <code>messages</code> 列表，每轮传入完整历史。思考开关是<strong>逐请求生效</strong>的，同一对话不同轮可以混用。</p>
+<div class="code"><pre><span></span><code><span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;请为第一次来北京的游客规划 3 天行程。&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
+        <span class="n">messages</span><span class="p">,</span>
+        <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">enable_thinking</span><span class="o">=</span><span class="n">enable_thinking</span><span class="p">,</span>
+        <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+        <span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+        <span class="n">do_sample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">reply</span> <span class="o">=</span> <span class="n">chat</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">reply</span><span class="p">)</span>
+
+<span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">reply</span><span class="p">})</span>
+<span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;估算一下人均预算。&quot;</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">chat</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>    <span class="c1"># 预算估算开启思考</span>
+</code></pre></div>
+
+<h2 id="cpu-推理">CPU 推理</h2>
+<p>模型 1.08B 参数，fp32 &lt; 4.5 GB、bf16 约 2.2 GB，可纯 CPU 运行 —— 笔记本、CI、无 GPU 环境都没问题：</p>
+<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoModelForCausalLM</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+
+<span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM5-1B&quot;</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>    <span class="c1"># 支持 AVX-512 BF16 / AMX 的主机也可用 bf16</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;用一句话解释什么是 GQA。&quot;</span><span class="p">}]</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
+    <span class="n">messages</span><span class="p">,</span>
+    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>        <span class="c1"># CPU 延迟敏感，推荐 No-Think</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">do_sample</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="工具调用-tool-calling">工具调用（Tool calling）</h2>
+<p>MiniCPM 5 在 assistant 输出中以 XML 风格发出 tool call。要得到 OpenAI 兼容的 <code>tool_calls</code> JSON，<strong>推荐使用 SGLang 后端</strong> —— SGLang 内置 <code>minicpm5</code> parser 可原生转换。完整示例参见 <a href="../deployment/sglang.html">SGLang 部署文档</a>。</p>
+<p>如需在原生 <code>transformers</code> 中驱动工具调用，把 <code>tools</code> 列表传给 <code>apply_chat_template</code>，模型输出后自行解析 XML 块即可。chat template 会按 MiniCPM 5 约定注入工具定义与说明。</p>
+<div class="code"><pre><span></span><code><span class="n">tools</span> <span class="o">=</span> <span class="p">[{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;function&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;get_weather&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Get current weather for a city&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;city&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}]</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
+    <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;北京今天天气怎么样？&quot;</span><span class="p">}],</span>
+    <span class="n">tools</span><span class="o">=</span><span class="n">tools</span><span class="p">,</span>
+    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">enable_thinking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">do_sample</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="长上下文推理">长上下文推理</h2>
+<p>MiniCPM 5 原生支持 <strong>131,072 token</strong> 上下文。输入超过约 32K 时建议启用 Flash Attention 2 以节省显存：</p>
+<div class="code"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="s2">&quot;openbmb/MiniCPM5-1B&quot;</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s2">&quot;bfloat16&quot;</span><span class="p">,</span>
+    <span class="n">attn_implementation</span><span class="o">=</span><span class="s2">&quot;flash_attention_2&quot;</span><span class="p">,</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="推荐采样参数">推荐采样参数</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模式</th>
+<th style="text-align: center;"><code>enable_thinking</code></th>
+<th style="text-align: center;"><code>temperature</code></th>
+<th style="text-align: center;"><code>top_p</code></th>
+<th style="text-align: left;">适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Think</strong></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;">0.9</td>
+<td style="text-align: center;">0.95</td>
+<td style="text-align: left;">推理、数学、代码、多步规划</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>No-Think</strong></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;">0.7</td>
+<td style="text-align: center;">0.95</td>
+<td style="text-align: left;">快速对话、延迟敏感场景</td>
+</tr>
+</tbody>
+</table>
+<h2 id="注意事项">注意事项</h2>
+<ul>
+<li><strong>不需要</strong> <code>trust_remote_code=True</code> —— MiniCPM 5 是标准 <code>LlamaForCausalLM</code>，可直接通过 <code>AutoModelForCausalLM</code> 加载。</li>
+<li><code>enable_thinking</code> 是 chat template 变量；如果你自己拼 prompt，开启思考时给 assistant 段前缀加上 <code>&lt;think&gt;\n</code>，关闭时留空即可。</li>
+<li>服务化与工具调用更详细的方案参见本版本下的部署指南：vLLM、SGLang（含 <code>minicpm5</code> parser）、llama.cpp、Ollama、MLX。</li>
+</ul></article>
+
+  <footer class="page-footer">
+    <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
+    <span>由 <code>build_docs.py</code> 自动生成</span>
+  </footer>
+</main>
+
+<script>
+  // ----- core UI behaviour (must run even if external CDNs are blocked) -----
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  document.querySelectorAll('.nav-group-header').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+  });
+
+  // Close sidebar when clicking a link on mobile.
+  document.querySelectorAll('.sidebar a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    });
+  });
+
+  // Version switcher dropdown.
+  const verSel = document.getElementById('version-switcher-select');
+  if (verSel) {
+    verSel.addEventListener('change', e => {
+      const target = e.target.value;
+      if (target) window.location.href = target;
+    });
+  }
+
+  // ----- theme toggle (auto → light → dark, persisted in localStorage) -----
+  (function() {
+    var html = document.documentElement;
+    var lang = (document.body.dataset.lang === 'zh') ? 'zh' : 'en';
+    var labels = lang === 'zh'
+      ? { auto: '主题：自动（跟随系统）', light: '主题：浅色', dark: '主题：深色' }
+      : { auto: 'Theme: Auto (follow system)', light: 'Theme: Light', dark: 'Theme: Dark' };
+    var shortLabels = lang === 'zh' ? { auto: '自动', light: '浅色', dark: '深色' }
+                                    : { auto: 'Auto', light: 'Light', dark: 'Dark' };
+    var icons = { auto: '🌓', light: '☀️', dark: '🌙' };
+    var btn = document.getElementById('theme-toggle');
+    var iconEl = btn ? btn.querySelector('.theme-toggle-icon') : null;
+    var labelEl = btn ? btn.querySelector('.theme-toggle-label') : null;
+    var hljsLight = document.getElementById('hljs-light-css');
+    var hljsDark  = document.getElementById('hljs-dark-css');
+    // Stash the original mermaid source so we can re-render after a theme
+    // change (otherwise the diagrams stay in their original colours).
+    document.querySelectorAll('.mermaid').forEach(function(n) {
+      n.setAttribute('data-mermaid-src', n.textContent);
+    });
+    function rerenderMermaid(effective) {
+      if (typeof window.mermaid === 'undefined') return;
+      var nodes = document.querySelectorAll('.mermaid');
+      if (!nodes.length) return;
+      nodes.forEach(function(n) {
+        var src = n.getAttribute('data-mermaid-src');
+        if (src !== null) {
+          n.removeAttribute('data-processed');
+          n.textContent = src;
+        }
+      });
+      try {
+        window.mermaid.initialize({ startOnLoad: false, theme: effective === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+        window.mermaid.run({ querySelector: '.mermaid' });
+      } catch (e) { console.warn('mermaid re-run failed:', e); }
+    }
+    function compute(saved) {
+      if (saved === 'light' || saved === 'dark') return saved;
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    function apply(saved, persist) {
+      if (['auto', 'light', 'dark'].indexOf(saved) < 0) saved = 'auto';
+      var effective = compute(saved);
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      if (hljsLight) hljsLight.media = effective === 'dark' ? 'not all' : 'all';
+      if (hljsDark)  hljsDark.media  = effective === 'dark' ? 'all' : 'not all';
+      if (btn) {
+        btn.setAttribute('aria-label', labels[saved]);
+        btn.setAttribute('title', labels[saved]);
+        if (iconEl)  iconEl.textContent  = icons[saved];
+        if (labelEl) labelEl.textContent = shortLabels[saved];
+      }
+      rerenderMermaid(effective);
+      if (persist) {
+        try { localStorage.setItem('cookbook-theme', saved); } catch (e) {}
+      }
+    }
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var current = html.getAttribute('data-theme') || 'auto';
+        var next = current === 'auto' ? 'light' : (current === 'light' ? 'dark' : 'auto');
+        apply(next, true);
+      });
+    }
+    // While the user is in 'auto' mode, follow the OS scheme as it changes.
+    if (window.matchMedia) {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function() {
+        if ((html.getAttribute('data-theme') || 'auto') === 'auto') apply('auto', false);
+      };
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    }
+    // Seed the button label/icon to match whatever the bootstrap picked.
+    apply(html.getAttribute('data-theme') || 'auto', false);
+    // Enable CSS transitions only after the first paint, so the initial render
+    // doesn't visibly animate from the wrong colour.
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { html.classList.remove('no-transitions'); });
+    });
+  })();
+</script>
+
+<!-- Optional enhancements below. Wrapped so a CDN hiccup never breaks the
+     interactive sidebar / version switcher above. -->
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/core.min.js" onerror="window.__hljsBlocked=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/common.min.js" onerror="window.__hljsBlocked=true"></script>
+<script>
+  try { if (typeof hljs !== 'undefined') hljs.highlightAll(); } catch (e) { console.warn('hljs failed:', e); }
+</script>
+<script type="module">
+  try {
+    const m = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+    window.mermaid = m.default;
+    var initialTheme = document.documentElement.getAttribute('data-effective-theme') === 'dark' ? 'dark' : 'default';
+    m.default.initialize({ startOnLoad: true, theme: initialTheme, securityLevel: 'loose' });
+  } catch (e) { console.warn('mermaid failed:', e); }
+</script>
+<link href="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/css/ui.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/npm/index.js"></script>
+<script>
+  // Pagefind is loaded from a relative path emitted at build time.
+  const inp = document.getElementById("pagefind-search");
+  if (inp) {
+    inp.addEventListener("focus", function once() {
+      inp.removeEventListener("focus", once);
+      const root = inp.parentElement;
+      const div = document.createElement("div"); div.id = "search"; root.appendChild(div);
+      new PagefindUI({ element: "#search", showSubResults: true });
+    });
+  }
+</script>
+
+</body>
+</html>

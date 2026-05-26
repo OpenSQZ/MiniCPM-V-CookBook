@@ -35,7 +35,7 @@ cmake --build build --config Release
 
 ### 0.5B（端侧友好）
 
-0.5B 变体可以在普通笔记本或低配端侧设备运行。配合 [BitCPM4](https://huggingface.co/openbmb/BitCPM4-0.5B) 3-bit 权重可以极大节省内存。
+0.5B 变体可以在普通笔记本或低配端侧设备运行。要进一步压低内存占用，可选 `Q4_K_M` GGUF，质量损失可控。
 
 ## 3. 从 PyTorch 转换（可选）
 

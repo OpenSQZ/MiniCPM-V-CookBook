@@ -35,7 +35,7 @@ cmake --build build --config Release
 
 ### 0.5B (edge-friendly)
 
-The 0.5B variant runs comfortably on a laptop or a low-end edge device. Pair with the [BitCPM4](https://huggingface.co/openbmb/BitCPM4-0.5B) 3-bit checkpoint for extreme memory savings.
+The 0.5B variant runs comfortably on a laptop or a low-end edge device. Use a `Q4_K_M` GGUF for the most aggressive memory savings while keeping output quality acceptable.
 
 ## 3. Convert from PyTorch (optional)
 

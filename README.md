@@ -59,10 +59,9 @@ Explore real-world examples of MiniCPM-V deployed on edge devices using our cura
 | 🎤 [Speech-to-Text](./inference/speech2text.md)                 | Multilingual speech recognition                    |
 | 🗣️ [Text-to-Speech](./inference/text2speech.md)                | Instruction-following speech synthesis             |
 | 🎭 [Voice Cloning](./inference/voice_clone.md)                  | Realistic voice cloning and role-play              |
-| **Text Capabilities** (MiniCPM LLM 4 / 4.1)                     |                                                    |
-| 💬 [Chat & Hybrid Reasoning](./inference/minicpm4_1_chat.md)    | LLM chat with optional step-by-step reasoning      |
-| 🛠️ [MCP Tool Agent](./demo/minicpm_demo/mcp/README.md)          | Tool-use agent built on Model Context Protocol     |
-| 📑 [Survey Generation](./demo/minicpm_demo/survey/README.md)    | Long-form survey / report generation with citations |
+| **Text Capabilities** (MiniCPM LLM 5 / 4.1 / 4)                 |                                                    |
+| 💬 [Chat & Hybrid Reasoning (MiniCPM 5)](./inference/minicpm5_chat.md) | Compact 1B LLM with Think / No-Think modes & tool calling |
+| 💬 [Chat & Hybrid Reasoning (MiniCPM 4.1)](./inference/minicpm4_1_chat.md)    | 8B LLM chat with optional step-by-step reasoning      |
 
 
 ## 🏋️ Fine-tuning Recipes
@@ -94,11 +93,10 @@ We provide training methods serving different needs as following:
 | Framework | Description                                                                                                                                  |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | [vLLM](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/vllm.html)              | High-throughput GPU inference                                                                                |
-| [SGLang](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/sglang.html)          | High-throughput GPU inference *(LLM series via [`tc-mb/sglang`](https://github.com/tc-mb/sglang) fork)*       |
+| [SGLang](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/sglang.html)          | High-throughput GPU inference *(MiniCPM 5 on upstream `>=0.5.12` with native `minicpm5` tool-call parser; older LLM series via [`tc-mb/sglang`](https://github.com/tc-mb/sglang) fork)* |
 | [llama.cpp](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/llamacpp.html)     | Fast CPU / GGUF inference on PC, iPhone and iPad                                                              |
 | [Ollama](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/ollama.html)          | User-friendly one-line local run                                                                              |
-| [MLX](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm4_1/deployment/mlx.html)          | Apple Silicon inference                                                                                       |
-| [CPM.cu](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm4_1/deployment/cpmcu.html)     | On-device CUDA inference                                                                                      |
+| [MLX](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm5/deployment/mlx.html)            | Apple Silicon inference                                                                                       |
 | [OpenWebUI](./demo/web_demo/openwebui)                                                          | Interactive Web demo with Open WebUI                                                                          |
 | [Gradio](./demo/web_demo/gradio/README.md)                                                      | Interactive Web demo with Gradio                                                                              |
 | [FastAPI](./demo/README.md)                                                                     | Interactive Omni Streaming demo with FastAPI                                                                  |
@@ -116,7 +114,6 @@ We provide training methods serving different needs as following:
 | [BNB](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/bnb.html)                   | Simple and easy-to-use quantization method                        |
 | [AWQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/awq.html)                   | High-performance INT4 quantization for efficient inference        |
 | [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.5/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging (also supports QAT) |
-| [BitCPM4](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm4/quantization/bitcpm.html)        | Ternary 3-bit quantization — ~10% of original size                |
 
 
 ## Awesome Works using MiniCPM-V & o

@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/quantization/gptq.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="gptq.html" selected>MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="gptq.html" selected>MiniCPM 4.1</option>
     <option value="../../minicpm4/overview.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,13 +356,10 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li>
-<li><a class="" href="../deployment/cpmcu.html">CPM.cu（端侧 CUDA）</a></li></ul></li>
+<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="awq.html">AWQ</a></li>
 <li><a class="active" href="gptq.html">GPTQ（含 QAT）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">应用</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP（工具 agent）</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey（综述生成）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -435,12 +433,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
 </code></pre></div>
 
-<p>配套的投机解码 draft 是 <a href="https://huggingface.co/openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT"><code>openbmb/MiniCPM4-8B-Eagle-FRSpec-QAT</code></a>，配合 <a href="https://github.com/OpenBMB/CPM.cu">CPM.cu</a> 使用。</p>
 <h2 id="注意事项">注意事项</h2>
 <ul>
 <li>vLLM 中的 GPTQ 在支持的 GPU 上默认走 GPTQ-Marlin kernel，无需额外参数。</li>
 <li>MiniCPM 4（非 4.1）的官方 GPTQ 是 <a href="https://huggingface.co/openbmb/MiniCPM4-8B-GPTQ"><code>openbmb/MiniCPM4-8B-GPTQ</code></a>，流程一致。</li>
-<li>内存极度紧张的部署，建议优先选 BitCPM4（3-bit 三元）而不是 GPTQ INT4。</li>
+<li>内存极度紧张的部署，建议优先通过 <code>llama.cpp</code> 使用 GGUF Q4 / Q3，而不是 GPTQ INT4。</li>
 </ul></article>
 
   <footer class="page-footer">

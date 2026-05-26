@@ -343,7 +343,8 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html">MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
-    <option value="chat.html" selected>MiniCPM 4.1 [latest-llm]</option>
+    <option value="../../minicpm5/inference/chat.html">MiniCPM 5 [latest-llm]</option>
+    <option value="chat.html" selected>MiniCPM 4.1</option>
     <option value="../../minicpm4/inference/chat.html">MiniCPM 4</option>
     <option value="../../minicpm-sala/inference/chat.html">MiniCPM-SALA [research]</option>
   </select>
@@ -355,13 +356,10 @@ footer.page-footer a:hover { color: var(--primary); }
 <li><a class="" href="../deployment/sglang.html">SGLang</a></li>
 <li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
 <li><a class="" href="../deployment/ollama.html">Ollama</a></li>
-<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li>
-<li><a class="" href="../deployment/cpmcu.html">CPM.cu（端侧 CUDA）</a></li></ul></li>
+<li><a class="" href="../deployment/mlx.html">MLX（Apple Silicon）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="../quantization/awq.html">AWQ</a></li>
 <li><a class="" href="../quantization/gptq.html">GPTQ（含 QAT）</a></li></ul></li>
 <li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../finetune/llamafactory.html">LLaMA-Factory</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">应用</div><ul class="nav-group-children"><li><a class="" href="../apps/mcp.html">MiniCPM4-MCP（工具 agent）</a></li>
-<li><a class="" href="../apps/survey.html">MiniCPM4-Survey（综述生成）</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">跨版本</div>
 <ul class="nav-list">
@@ -473,7 +471,7 @@ footer.page-footer a:hover { color: var(--primary); }
 </code></pre></div>
 
 <h2 id="长上下文推理">长上下文推理</h2>
-<p>MiniCPM 4.1 通过 <a href="https://arxiv.org/abs/2509.24663">InfLLM-V2</a> 稀疏注意力支持最长 <strong>128K</strong> 上下文。输入超过约 32K 时建议启用 <code>flash_attention_2</code>，更进一步的服务化部署可参考本版本下的 CPM.cu 部署指南。</p>
+<p>MiniCPM 4.1 通过 <a href="https://arxiv.org/abs/2509.24663">InfLLM-V2</a> 稀疏注意力支持最长 <strong>128K</strong> 上下文。输入超过约 32K 时建议启用 <code>flash_attention_2</code> 以节省显存。</p>
 <div class="code"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
     <span class="n">model_path</span><span class="p">,</span>
     <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>
