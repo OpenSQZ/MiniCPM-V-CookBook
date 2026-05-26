@@ -1,7 +1,22 @@
 # MiniCPM 5 - Ollama
 
 > [!NOTE]
-> [Ollama](https://ollama.com) 是在笔记本 / 桌面上运行 MiniCPM 5 最简单的 CLI / 守护进程方案 —— 单个二进制、无 Python、无 CUDA toolkit。它直接消费我们为 `llama.cpp` 提供的 GGUF 文件。模型上线后会出现在 [OpenBMB 官方 Ollama registry](https://ollama.com/openbmb)。
+> [Ollama](https://ollama.com) 是在笔记本 / 桌面上运行 MiniCPM 5 最简单的 CLI / 守护进程方案 —— 单个二进制、无 Python、无 CUDA toolkit。它直接消费我们为 `llama.cpp` 提供的 GGUF 文件。模型已发布在 [OpenBMB 官方 Ollama registry](https://ollama.com/openbmb/minicpm5)。
+
+> [!IMPORTANT]
+> **MiniCPM 5 的 tokenizer 上游支持还在路上**（[llama.cpp PR #23384](https://github.com/ggml-org/llama.cpp/pull/23384)）。稳定版 Ollama（基于当前上游 `llama.cpp` 编译）实际上能产出正确结果，因为它的 `llama-bpe` 预分词器对 MiniCPM 5 的两阶段正则在常见输入下功能等价。
+>
+> 如果你想走 forward-compatible 路径 —— 即正确识别未来标注 `tokenizer.ggml.pre = "minicpm5"` 的 GGUF、并走 Ollama 新 Go engine —— 请在上游合入前临时使用我们的 fork：
+>
+> ```bash
+> git clone -b MiniCPM5 https://github.com/tc-mb/ollama.git
+> cd ollama
+> go build -o ollama .          # macOS Apple Silicon：内置 Metal
+> ./ollama serve &
+> ./ollama run openbmb/minicpm5
+> ```
+>
+> 补丁全部在 `model/models/llama/model.go` 一个 Go 文件里，与上游 PR 完全一致。MiniCPM 5 不需要 vendored `llama.cpp` 改动。
 
 ## 1. 安装 Ollama
 
@@ -45,17 +60,18 @@ QUANT=Q4_K_M
 cat > Modelfile <<EOF
 FROM ./MiniCPM5-1B-${QUANT}.gguf
 
-# MiniCPM 5 chat template（ChatML 风格）
-TEMPLATE """{{- if .Messages -}}
-{{- range .Messages -}}
-<|im_start|>{{ .Role }}
+# MiniCPM 5 chat template（ChatML 风格）。
+# 前缀的 <s> 是 **必须** 的——官方 GGUF 设置了 add_bos_token=False，
+# 不显式加 BOS 模型会输出乱码（\`\`\`<think> ... 循环重复）。
+TEMPLATE """<s>{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ range .Messages }}<|im_start|>{{ .Role }}
 {{ .Content }}<|im_end|>
-{{ end -}}
-<|im_start|>assistant
-{{ end -}}"""
+{{ end }}<|im_start|>assistant
+"""
 
 PARAMETER stop "<|im_end|>"
-PARAMETER stop "</s>"
+PARAMETER stop "<|endoftext|>"
 
 # 默认按 No-Think 模式调优
 PARAMETER temperature 0.7

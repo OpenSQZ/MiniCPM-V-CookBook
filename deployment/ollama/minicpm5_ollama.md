@@ -1,7 +1,22 @@
 # MiniCPM 5 - Ollama
 
 > [!NOTE]
-> [Ollama](https://ollama.com) is the easiest CLI / daemon path to run MiniCPM 5 on a laptop or desktop — one binary, no Python, no CUDA toolkit. It consumes the same GGUF files we ship for `llama.cpp`. Once published, MiniCPM 5 will appear on the [official OpenBMB Ollama registry](https://ollama.com/openbmb).
+> [Ollama](https://ollama.com) is the easiest CLI / daemon path to run MiniCPM 5 on a laptop or desktop — one binary, no Python, no CUDA toolkit. It consumes the same GGUF files we ship for `llama.cpp`. MiniCPM 5 is published on the [official OpenBMB Ollama registry](https://ollama.com/openbmb/minicpm5).
+
+> [!IMPORTANT]
+> **Upstream tokenizer support for MiniCPM 5 is still in flight** ([llama.cpp PR #23384](https://github.com/ggml-org/llama.cpp/pull/23384)). Stable Ollama (built against current upstream `llama.cpp`) produces correct output anyway because its `llama-bpe` pre-tokenizer is functionally equivalent to MiniCPM 5's two-stage regex for typical inputs.
+>
+> If you want the forward-compatible path — i.e. correctly handling future GGUFs that label `tokenizer.ggml.pre = "minicpm5"` and routing through Ollama's new Go engine — build from our fork until upstream merges:
+>
+> ```bash
+> git clone -b MiniCPM5 https://github.com/tc-mb/ollama.git
+> cd ollama
+> go build -o ollama .          # macOS Apple Silicon: Metal is built-in
+> ./ollama serve &
+> ./ollama run openbmb/minicpm5
+> ```
+>
+> The patch lives entirely in `model/models/llama/model.go` — single Go-side tokenizer case that is identical to the upstream PR. No vendored `llama.cpp` surgery is required for MiniCPM 5.
 
 ## 1. Install Ollama
 
@@ -45,17 +60,18 @@ QUANT=Q4_K_M
 cat > Modelfile <<EOF
 FROM ./MiniCPM5-1B-${QUANT}.gguf
 
-# MiniCPM 5 chat template (ChatML-style)
-TEMPLATE """{{- if .Messages -}}
-{{- range .Messages -}}
-<|im_start|>{{ .Role }}
+# MiniCPM 5 chat template (ChatML-style).
+# The leading <s> is REQUIRED — the official GGUF sets add_bos_token=False,
+# so without an explicit BOS the model emits garbage (\`\`\`<think> ... loops).
+TEMPLATE """<s>{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ range .Messages }}<|im_start|>{{ .Role }}
 {{ .Content }}<|im_end|>
-{{ end -}}
-<|im_start|>assistant
-{{ end -}}"""
+{{ end }}<|im_start|>assistant
+"""
 
 PARAMETER stop "<|im_end|>"
-PARAMETER stop "</s>"
+PARAMETER stop "<|endoftext|>"
 
 # Defaults are tuned for No-Think mode
 PARAMETER temperature 0.7
