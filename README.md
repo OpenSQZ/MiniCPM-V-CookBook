@@ -21,7 +21,7 @@ We support a wide range of users, from individuals to enterprises and researcher
 
 - **Individuals**: Enjoy effortless inference using [Ollama](./deployment/ollama/minicpm-v4_6_ollama.md) and [Llama.cpp](./deployment/llama.cpp/minicpm-v4_6_llamacpp.md) with minimal setup.
 - **Enterprises**: Achieve high-throughput, scalable performance with [vLLM](./deployment/vllm/minicpm-v4_6_vllm.md) and [SGLang](./deployment/sglang/minicpm-v4_6_sglang.md).
-- **Researchers**: Leverage advanced frameworks including [Transformers](./finetune/official/finetune_full.md) , [LLaMA-Factory](./finetune/llama-factory/finetune_llamafactory.md), [SWIFT](./finetune/swift/swift.md), and [Align-anything](./finetune/align-anything/align_anything.md) to enable flexible model development and cutting-edge experimentation.
+- **Researchers**: Leverage advanced frameworks including [Transformers](./finetune/official/finetune_full.md) , [LLaMA-Factory](./finetune/llamafactory/finetune_llamafactory.md), [SWIFT](./finetune/swift/swift.md), and [Align-anything](./finetune/align-anything/align_anything.md) to enable flexible model development and cutting-edge experimentation.
 
 ### Versatile Deployment Scenarios
 
@@ -80,7 +80,7 @@ We provide training methods serving different needs as following:
 | Framework                                            | Description                                        |
 | ---------------------------------------------------- | -------------------------------------------------- |
 | [Transformers](./finetune/official/finetune_full.md)          | Most flexible for customization                    |
-| [LLaMA-Factory](./finetune/llama-factory/finetune_llamafactory.md) | Modular fine-tuning toolkit                        |
+| [LLaMA-Factory](./finetune/llamafactory/finetune_llamafactory.md) | Modular fine-tuning toolkit                        |
 | [SWIFT](./finetune/swift/swift.md)                         | Lightweight and fast parameter-efficient tuning    |
 | [Align-anything](./finetune/align-anything/align_anything.md)       | Visual instruction alignment for multimodal models |
 

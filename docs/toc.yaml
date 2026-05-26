@@ -111,7 +111,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory (Counting example)", zh: "LLaMA-Factory（Counting 示例）" }
-            src:   finetune/llama-factory/llamafactory_minicpmv46.md
+            src:   finetune/llamafactory/llamafactory_minicpmv46.md
             url:   finetune/llamafactory
           - title: { en: "ms-swift (Counting example)",      zh: "ms-swift（Counting 示例）" }
             src:   finetune/swift/swift_minicpmv46.md
@@ -283,7 +283,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llama-factory/llamafactory_minicpm5.md
+            src:   finetune/llamafactory/llamafactory_minicpm5.md
             url:   finetune/llamafactory
 
   - id: minicpm4_1
@@ -329,7 +329,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llama-factory/llamafactory_minicpm4.md
+            src:   finetune/llamafactory/llamafactory_minicpm4.md
             url:   finetune/llamafactory
 
   - id: minicpm4
@@ -363,7 +363,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llama-factory/llamafactory_minicpm4.md
+            src:   finetune/llamafactory/llamafactory_minicpm4.md
             url:   finetune/llamafactory
 
   - id: minicpm-sala
@@ -389,7 +389,7 @@ versions:
       - group: { en: "Fine-tuning", zh: "微调" }
         items:
           - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
-            src:   finetune/llama-factory/llamafactory_minicpm-sala.md
+            src:   finetune/llamafactory/llamafactory_minicpm-sala.md
             url:   finetune/llamafactory
 
 # Cross-version pages (under /shared/...)
@@ -401,7 +401,7 @@ shared:
         src_zh: finetune/official/official_scripts_zh.md
         url:   finetune/official
       - title: { en: "LLaMA-Factory",      zh: "LLaMA-Factory" }
-        src:   finetune/llama-factory/finetune_llamafactory.md
+        src:   finetune/llamafactory/finetune_llamafactory.md
         url:   finetune/llamafactory
       - title: { en: "SWIFT",              zh: "SWIFT" }
         src:   finetune/swift/swift.md
