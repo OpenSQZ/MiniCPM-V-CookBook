@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="no-transitions">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="AWQ — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
 <title>AWQ — MiniCPM-V & o Cookbook</title>
+<meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-dark-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" media="not all">
 <style>
 :root {
   --primary: #3680ff;
   --accent:  #1AC8DB;
   --sidebar-w: 280px;
   --bg: #fff;
+  --bg-elevated: #fff;
   --bg-side: #fafbfc;
   --bg-code: #f6f8fa;
+  --bg-stripe: #fafbfc;
+  --bg-hover: #ebeff3;
   --c1: #24292f;
   --c2: #57606a;
   --c3: #8b949e;
   --border: #d0d7de;
+  --border-soft: #eaecef;
   --nav-active-bg: rgba(54, 128, 255, .08);
   --nav-active-fg: var(--primary);
   --link: var(--primary);
@@ -30,6 +36,67 @@
   --tip-bd:  #1f883d;
   --important-bg: #fbefff;
   --important-bd: #8250df;
+  --logo-filter: none;
+  color-scheme: light;
+}
+
+/* Dark theme: applied when JS sets data-effective-theme="dark" on <html>.
+   The bootstrap script in <head> resolves the user's saved preference
+   ("auto" | "light" | "dark") and the system `prefers-color-scheme` into
+   that attribute before first paint, so the page never flashes white. */
+:root[data-effective-theme="dark"] {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-side: #161b22;
+  --bg-code: #161b22;
+  --bg-stripe: #11161d;
+  --bg-hover: #21262d;
+  --c1: #e6edf3;
+  --c2: #9aa4ae;
+  --c3: #6e7681;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --nav-active-bg: rgba(88, 166, 255, .15);
+  --nav-active-fg: #58a6ff;
+  --link: #58a6ff;
+  --warn-bg: rgba(187, 128, 9, .15);
+  --warn-bd: #9e6a03;
+  --note-bg: rgba(56, 139, 253, .15);
+  --note-bd: #1f6feb;
+  --tip-bg: rgba(46, 160, 67, .15);
+  --tip-bd: #238636;
+  --important-bg: rgba(163, 113, 247, .15);
+  --important-bd: #8250df;
+  --logo-filter: brightness(.95);
+  color-scheme: dark;
+}
+
+/* Smooth crossfade when toggling. `html.no-transitions` is set briefly by JS
+   while applying the saved theme on first load, so the initial paint never
+   animates. */
+body, .topbar, .sidebar, .topbar-search input, .version-switcher select,
+article pre, article code, article th, article tr, article blockquote,
+article .admonition, .topbar-action-btn {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+html.no-transitions, html.no-transitions * { transition: none !important; }
+
+/* Pagefind UI overrides — its built-in dark mode keys off prefers-color-scheme,
+   which doesn't honor our explicit toggle. Force its variables to match
+   whatever our effective theme is. */
+:root[data-effective-theme="light"] .pagefind-ui {
+  --pagefind-ui-primary: #3680ff;
+  --pagefind-ui-text: #24292f;
+  --pagefind-ui-background: #ffffff;
+  --pagefind-ui-border: #d0d7de;
+  --pagefind-ui-tag: #f6f8fa;
+}
+:root[data-effective-theme="dark"] .pagefind-ui {
+  --pagefind-ui-primary: #58a6ff;
+  --pagefind-ui-text: #e6edf3;
+  --pagefind-ui-background: #0d1117;
+  --pagefind-ui-border: #30363d;
+  --pagefind-ui-tag: #161b22;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -48,12 +115,12 @@ img { max-width: 100%; }
 /* ---------- top bar ---------- */
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
-  background: #fff;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 20px; gap: 18px;
 }
 .topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topbar-brand img { height: 30px; }
+.topbar-brand img { height: 30px; filter: var(--logo-filter); }
 .topbar-brand .brand-text { font-weight: 600; font-size: 15px; color: var(--c1); white-space: nowrap; }
 .topbar-search { flex: 1; max-width: 480px; position: relative; }
 .topbar-search input {
@@ -71,7 +138,21 @@ img { max-width: 100%; }
 .topbar-actions a:hover { color: var(--primary); }
 .topbar-toggle {
   display: none; background: none; border: 1px solid var(--border); border-radius: 6px;
-  padding: 4px 10px; font-size: 16px; cursor: pointer;
+  padding: 4px 10px; font-size: 16px; cursor: pointer; color: var(--c1);
+}
+
+/* Theme toggle button: cycles auto → light → dark and persists to localStorage. */
+.topbar-action-btn {
+  background: none; border: 1px solid transparent;
+  color: var(--c2); font: inherit; font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.topbar-action-btn:hover { color: var(--primary); background: var(--bg-hover); border-color: var(--border); }
+.theme-toggle-icon { font-size: 16px; line-height: 1; }
+.theme-toggle-label { font-size: 12px; color: var(--c2); }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
 }
 
 /* ---------- sidebar ---------- */
@@ -94,7 +175,8 @@ img { max-width: 100%; }
 .version-switcher { padding: 0 18px 12px; }
 .version-switcher select {
   width: 100%; padding: 7px 10px; font-size: 14px;
-  border: 1px solid var(--border); border-radius: 6px; background: #fff;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--c1);
   cursor: pointer; outline: none;
 }
 .version-switcher .badge {
@@ -105,7 +187,7 @@ img { max-width: 100%; }
 .nav-list { list-style: none; padding: 4px 12px; }
 .nav-list a { display: block; padding: 6px 12px; color: var(--c2); border-radius: 6px;
               font-size: 14px; transition: background .15s, color .15s; }
-.nav-list a:hover { background: #ebeff3; color: var(--c1); text-decoration: none; }
+.nav-list a:hover { background: var(--bg-hover); color: var(--c1); text-decoration: none; }
 .nav-list a.active { background: var(--nav-active-bg); color: var(--nav-active-fg); font-weight: 600; }
 .nav-group { margin-top: 8px; }
 .nav-group-header {
@@ -114,7 +196,7 @@ img { max-width: 100%; }
   user-select: none; display: flex; align-items: center; gap: 6px;
   border-radius: 6px; transition: background .15s;
 }
-.nav-group-header:hover { background: #ebeff3; }
+.nav-group-header:hover { background: var(--bg-hover); }
 .nav-group-header::before {
   content: ""; width: 0; height: 0;
   border-left: 5px solid var(--c2); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
@@ -122,7 +204,7 @@ img { max-width: 100%; }
 }
 .nav-group.collapsed .nav-group-header::before { transform: rotate(0); }
 .nav-group-children { list-style: none; margin: 2px 0 4px 22px; padding-left: 12px;
-                       border-left: 2px solid #e3e7ed;
+                       border-left: 2px solid var(--border-soft);
                        max-height: 800px; overflow: hidden;
                        transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
                        opacity: 1; }
@@ -143,7 +225,7 @@ article h1, article h2, article h3, article h4, article h5 {
   font-weight: 600; color: var(--c1); margin: 32px 0 12px; line-height: 1.35;
 }
 article h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-top: 0; }
-article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; }
+article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
 article h3 { font-size: 18px; }
 article h4 { font-size: 15px; }
 article p, article ul, article ol, article blockquote { margin-bottom: 14px; }
@@ -160,7 +242,7 @@ article pre code { background: none; padding: 0; }
 article table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
 article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
 article th { background: var(--bg-code); font-weight: 600; }
-article tr:nth-child(even) { background: #fafbfc; }
+article tr:nth-child(even) { background: var(--bg-stripe); }
 article hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
 article blockquote {
   border-left: 4px solid var(--primary); padding: 6px 16px; color: var(--c2);
@@ -201,6 +283,28 @@ footer.page-footer a:hover { color: var(--primary); }
   .content { margin-left: 0; padding: 28px 22px 60px; }
 }
 </style>
+<script>
+  // Theme bootstrap — runs before <body> so the page never flashes the wrong
+  // colour. Resolves the saved choice ("auto" | "light" | "dark") against the
+  // OS-level `prefers-color-scheme` and writes both values onto <html>:
+  //   data-theme           → what the user chose (drives the toggle UI)
+  //   data-effective-theme → what we actually rendered (drives CSS + hljs)
+  (function() {
+    try {
+      var saved = localStorage.getItem('cookbook-theme');
+      if (saved !== 'light' && saved !== 'dark' && saved !== 'auto') saved = 'auto';
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var effective = saved === 'auto' ? (prefersDark ? 'dark' : 'light') : saved;
+      var html = document.documentElement;
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      var l = document.getElementById('hljs-light-css');
+      var d = document.getElementById('hljs-dark-css');
+      if (l) l.media = effective === 'dark' ? 'not all' : 'all';
+      if (d) d.media = effective === 'dark' ? 'all' : 'not all';
+    } catch (e) { /* localStorage may be blocked (private mode, etc.) — leave defaults */ }
+  })();
+</script>
 </head>
 <body data-version="v4.5" data-lang="zh" data-slug="v4.5/quantization/awq">
 
@@ -214,6 +318,10 @@ footer.page-footer a:hover { color: var(--primary); }
     <input type="search" placeholder="搜索文档…" id="pagefind-search">
   </div>
   <nav class="topbar-actions">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="切换主题（自动 / 浅色 / 深色）" title="切换主题（自动 / 浅色 / 深色）">
+      <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
+      <span class="theme-toggle-label">自动</span>
+    </button>
     <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook" target="_blank" rel="noopener">GitHub</a>
     <a href="https://huggingface.co/openbmb" target="_blank" rel="noopener">HuggingFace</a>
     <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">魔搭社区</a>
@@ -234,7 +342,11 @@ footer.page-footer a:hover { color: var(--primary); }
   <select id="version-switcher-select">
     <option value="../../v4.6/quantization/awq.html">MiniCPM-V 4.6 [latest]</option>
     <option value="awq.html" selected>MiniCPM-V 4.5</option>
-    <option value="../../o4.5/quantization/awq.html">MiniCPM-o 4.5</option>
+    <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/quantization/awq.html">MiniCPM 4.1</option>
+    <option value="../../minicpm4/overview.html">MiniCPM 4</option>
+    <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
 </div>
 <ul class="nav-list">
@@ -279,75 +391,75 @@ https://huggingface.co/openbmb/MiniCPM-V-4_5-AWQ
  -->
 
 <p>从 <a href="https://huggingface.co/openbmb/MiniCPM-V-4_5-AWQ">HuggingFace</a> 下载 AutoAWQ 量化的 4-bit MiniCPM-V-4_5 模型。</p>
-<pre class="code"><code class="language-Bash">git clone https://huggingface.co/openbmb/MiniCPM-V-4_5-AWQ
-</code></pre>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://huggingface.co/openbmb/MiniCPM-V-4_5-AWQ
+</code></pre></div>
 
 <h3 id="2-用-vllm-运行">2. 用 vLLM 运行</h3>
-<pre class="code"><code class="language-python">import os
-from PIL import Image
-from transformers import AutoTokenizer
-from vllm import LLM, SamplingParams
+<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTokenizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vllm</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLM</span><span class="p">,</span> <span class="n">SamplingParams</span>
 
 
-# 量化模型名称或本地路径
-MODEL_NAME = &quot;openbmb/MiniCPM-V-4_5-AWQ&quot;
+<span class="c1"># 量化模型名称或本地路径</span>
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4_5-AWQ&quot;</span>
 
-# 图片文件列表
-IMAGES = [
-    &quot;image.png&quot;,
-]
+<span class="c1"># 图片文件列表</span>
+<span class="n">IMAGES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;image.png&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
-# 加载并转换图片
-image = Image.open(IMAGES[0]).convert(&quot;RGB&quot;)
+<span class="c1"># 加载并转换图片</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">IMAGES</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
 
-# 初始化 tokenizer
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+<span class="c1"># 初始化 tokenizer</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">MODEL_NAME</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-# 初始化 LLM
-llm = LLM(
-    model=MODEL_NAME, 
-    # gpu_memory_utilization=0.9,
-    max_model_len=2048,
-    trust_remote_code=True,
-    # disable_mm_preprocessor_cache=True,
-    # limit_mm_per_prompt={&quot;image&quot;: 5}
-)
+<span class="c1"># 初始化 LLM</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">LLM</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">MODEL_NAME</span><span class="p">,</span> 
+    <span class="c1"># gpu_memory_utilization=0.9,</span>
+    <span class="n">max_model_len</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+    <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="c1"># disable_mm_preprocessor_cache=True,</span>
+    <span class="c1"># limit_mm_per_prompt={&quot;image&quot;: 5}</span>
+<span class="p">)</span>
 
-# 构建消息
-messages = [{
-    &quot;role&quot;: &quot;user&quot;,
-    &quot;content&quot;: &quot;(&lt;image&gt;./&lt;/image&gt;)\n请描述这张图片的内容&quot;,
-    # &quot;content&quot;: &quot;(&lt;image&gt;./&lt;/image&gt;)\nPlease describe the content of this image&quot;,
-}]
+<span class="c1"># 构建消息</span>
+<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span>
+    <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;(&lt;image&gt;./&lt;/image&gt;)</span><span class="se">\n</span><span class="s2">请描述这张图片的内容&quot;</span><span class="p">,</span>
+    <span class="c1"># &quot;content&quot;: &quot;(&lt;image&gt;./&lt;/image&gt;)\nPlease describe the content of this image&quot;,</span>
+<span class="p">}]</span>
 
-# 应用 chat template
-prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+<span class="c1"># 应用 chat template</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">tokenize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-# 设置 stop token IDs
-stop_tokens = ['&lt;|im_end|&gt;', '&lt;/s&gt;']
-stop_token_ids = [tokenizer.convert_tokens_to_ids(i) for i in stop_tokens]
+<span class="c1"># 设置 stop token IDs</span>
+<span class="n">stop_tokens</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&lt;|im_end|&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;/s&gt;&#39;</span><span class="p">]</span>
+<span class="n">stop_token_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">convert_tokens_to_ids</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stop_tokens</span><span class="p">]</span>
 
-# 采样参数
-sampling_params = SamplingParams(
-    stop_token_ids=stop_token_ids,
-    temperature=0.7,
-    # detokenize=True,
-    top_p=0.8,
-    # top_k=100,
-    # seed=3472,
-    max_tokens=1024,
-    # min_tokens=150,
-)
+<span class="c1"># 采样参数</span>
+<span class="n">sampling_params</span> <span class="o">=</span> <span class="n">SamplingParams</span><span class="p">(</span>
+    <span class="n">stop_token_ids</span><span class="o">=</span><span class="n">stop_token_ids</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="c1"># detokenize=True,</span>
+    <span class="n">top_p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="c1"># top_k=100,</span>
+    <span class="c1"># seed=3472,</span>
+    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="c1"># min_tokens=150,</span>
+<span class="p">)</span>
 
-# 推理
-outputs = llm.generate({
-    &quot;prompt&quot;: prompt,
-    &quot;multi_modal_data&quot;: {
-        &quot;image&quot;: image
-    }
-}, sampling_params=sampling_params)
-print(outputs[0].outputs[0].text)
-</code></pre>
+<span class="c1"># 推理</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">generate</span><span class="p">({</span>
+    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">,</span>
+    <span class="s2">&quot;multi_modal_data&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span>
+    <span class="p">}</span>
+<span class="p">},</span> <span class="n">sampling_params</span><span class="o">=</span><span class="n">sampling_params</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div>
 
 <h2 id="方法-2-直接用-awq-量化模型推理">方法 2（直接用 AWQ 量化模型推理）</h2>
 <h3 id="1-下载模型_1">1. 下载模型</h3>
@@ -356,47 +468,47 @@ https://huggingface.co/openbmb/MiniCPM-V-4_5
  -->
 
 <p>从 <a href="https://huggingface.co/openbmb/MiniCPM-V-4_5">HuggingFace</a> 下载 MiniCPM-V 4.5 模型。</p>
-<pre class="code"><code class="language-Bash">git clone https://huggingface.co/openbmb/MiniCPM-V-4_5
-</code></pre>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://huggingface.co/openbmb/MiniCPM-V-4_5
+</code></pre></div>
 
 <h3 id="2-从源码安装-autoawq">2. 从源码安装 AutoAWQ</h3>
 <p>官方 AutoAWQ 仓库已不再维护，请下载并从源码安装我们的 fork。</p>
-<pre class="code"><code class="language-Bash">git clone https://github.com/tc-mb/AutoAWQ.git
-cd AutoAWQ
-pip install -e .
-</code></pre>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tc-mb/AutoAWQ.git
+<span class="nb">cd</span><span class="w"> </span>AutoAWQ
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
 
 <h3 id="3-推理脚本">3. 推理脚本</h3>
 <p>直接使用 AWQ 量化模型推理：</p>
-<pre class="code"><code class="language-python">import os
-from PIL import Image
-from transformers import AutoTokenizer, TextStreamer
-from awq import AutoAWQForCausalLM
-import torch
+<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">TextStreamer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">awq</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoAWQForCausalLM</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-# 量化模型名称或本地路径
-model_path = &quot;openbmb/MiniCPM-V-4_5-AWQ&quot;
-device = 'cuda'
-# 图片文件路径
-image_path = './assets/airplane.jpeg'
+<span class="c1"># 量化模型名称或本地路径</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4_5-AWQ&quot;</span>
+<span class="n">device</span> <span class="o">=</span> <span class="s1">&#39;cuda&#39;</span>
+<span class="c1"># 图片文件路径</span>
+<span class="n">image_path</span> <span class="o">=</span> <span class="s1">&#39;./assets/airplane.jpeg&#39;</span>
 
-model = AutoAWQForCausalLM.from_quantized(model_path, trust_remote_code=True).to('cuda')
-tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoAWQForCausalLM</span><span class="o">.</span><span class="n">from_quantized</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">)</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-gpu_usage = GPUtil.getGPUs()[0].memoryUsed  
-response = model.chat(
-    image=Image.open(image_path).convert(&quot;RGB&quot;),
-    msgs=[
-        {
-            &quot;role&quot;: &quot;user&quot;,
-            &quot;content&quot;: &quot;图中是什么？&quot;
-        }
-    ],
-    tokenizer=tokenizer
-) # 模型推理
+<span class="n">gpu_usage</span> <span class="o">=</span> <span class="n">GPUtil</span><span class="o">.</span><span class="n">getGPUs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">memoryUsed</span>  
+<span class="n">response</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">),</span>
+    <span class="n">msgs</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;图中是什么？&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="n">tokenizer</span><span class="o">=</span><span class="n">tokenizer</span>
+<span class="p">)</span> <span class="c1"># 模型推理</span>
 
-print('输出:', response)
-</code></pre>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;输出:&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+</code></pre></div>
 
 <h2 id="方法-3-自己进行-awq-量化">方法 3（自己进行 AWQ 量化）</h2>
 <h3 id="1-下载模型_2">1. 下载模型</h3>
@@ -405,121 +517,121 @@ https://huggingface.co/openbmb/MiniCPM-V-4_5
  -->
 
 <p>从 <a href="https://huggingface.co/openbmb/MiniCPM-V-4_5">HuggingFace</a> 下载 MiniCPM-V 4.5 模型。</p>
-<pre class="code"><code class="language-Bash">git clone https://huggingface.co/openbmb/MiniCPM-V-4_5
-</code></pre>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://huggingface.co/openbmb/MiniCPM-V-4_5
+</code></pre></div>
 
 <h3 id="2-从源码安装-autoawq_1">2. 从源码安装 AutoAWQ</h3>
 <p>官方 AutoAWQ 仓库已不再维护，请下载并从源码安装我们的 fork。</p>
-<pre class="code"><code class="language-Bash">git clone https://github.com/tc-mb/AutoAWQ.git
-cd AutoAWQ
-pip install -e .
-</code></pre>
+<div class="code"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tc-mb/AutoAWQ.git
+<span class="nb">cd</span><span class="w"> </span>AutoAWQ
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
 
 <h3 id="3-量化脚本">3. 量化脚本</h3>
 <p>执行下方量化脚本（按需替换 <code>model_path</code> 和 <code>quant_path</code> 为原始模型与量化模型保存路径）：</p>
-<pre class="code"><code class="language-python">import os
-from datasets import load_dataset, load_from_disk
-from awq import AutoAWQForCausalLM
-import torch
-from transformers import AutoTokenizer
-import shutil
+<div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dataset</span><span class="p">,</span> <span class="n">load_from_disk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">awq</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoAWQForCausalLM</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoTokenizer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 
-# 原始模型路径（可以是本地路径或 HF 模型 ID）
-model_path = '/openbmb/MiniCPM-V-4_5'
+<span class="c1"># 原始模型路径（可以是本地路径或 HF 模型 ID）</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="s1">&#39;/openbmb/MiniCPM-V-4_5&#39;</span>
 
-# 量化模型保存路径
-quant_path = '/model_quantized/minicpmv4_5_awq'
+<span class="c1"># 量化模型保存路径</span>
+<span class="n">quant_path</span> <span class="o">=</span> <span class="s1">&#39;/model_quantized/minicpmv4_5_awq&#39;</span>
 
-# 量化配置：4-bit 权重，group size 128，GEMM 后端
-quant_config = { &quot;zero_point&quot;: True, &quot;q_group_size&quot;: 128, &quot;w_bit&quot;: 4, &quot;version&quot;: &quot;GEMM&quot; } # &quot;w_bit&quot;:4 or 8  
-
-
-# 加载原始模型与 tokenizer
-model = AutoAWQForCausalLM.from_pretrained(model_path, trust_remote_code=True, torch_dtype=torch.bfloat16)
-tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-
-# 把 model_path 中存在但 quant_path 中没有的文件复制过去（跳过权重文件）
-def copy_files_not_in_B(A_path, B_path):
-    &quot;&quot;&quot;
-    如果文件在 A 中存在但 B 中不存在，则从 A 拷贝到 B。
-
-    :param A_path: 源目录 (A)
-    :param B_path: 目标目录 (B)
-    &quot;&quot;&quot;
-    # 确保源目录存在
-    if not os.path.exists(A_path):
-        raise FileNotFoundError(f&quot;The directory {A_path} does not exist.&quot;)
-    if not os.path.exists(B_path):
-        os.makedirs(B_path)
-
-    # 列出 A 中所有文件，排除权重文件 (.bin / safetensors)
-    files_in_A = os.listdir(A_path)
-    files_in_A = set([file for file in files_in_A if not (&quot;.bin&quot; in file or &quot;safetensors&quot; in file )])
-    # 列出 B 中所有文件
-    files_in_B = set(os.listdir(B_path))
-
-    # 计算需要复制的文件
-    files_to_copy = files_in_A - files_in_B
-
-    # 逐个复制
-    for file in files_to_copy:
-        src_file = os.path.join(A_path, file)
-        dst_file = os.path.join(B_path, file)
-        if os.path.isfile(src_file):
-            shutil.copy2(src_file, dst_file)
-
-# 数据加载方法
-# 加载 Alpaca 数据集
-def load_alpaca():
-    data = load_dataset(&quot;tatsu-lab/alpaca&quot;, split=&quot;train&quot;)
-
-    # 把每条样本转换成 chat 风格的 prompt
-    def concatenate_data(x):
-        if x['input'] and x['instruction']:
-            msgs = [
-                    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: x['instruction']},
-                    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: x['input']},
-                    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: x['output']},
-            ]
-        elif x['input']:
-            msgs = [
-                {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a helpful assistant.&quot;},
-                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: x['input']},
-                {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: x['output']}
-            ]
-        else:
-            msgs = [
-                {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a helpful assistant.&quot;},
-                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: x['instruction']},
-                {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: x['output']}
-            ]
-
-        data = tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
-        return {&quot;text&quot;: data}
-
-    concatenated = data.map(concatenate_data)
-    return [text for text in concatenated[&quot;text&quot;]][:1024]
-
-# 加载 Wikitext 数据集
-def load_wikitext():
-    data = load_dataset('wikitext', 'wikitext-2-raw-v1', split=&quot;train&quot;)
-    return [text for text in data[&quot;text&quot;] if text.strip() != '' and len(text.split(' ')) &gt; 20]
+<span class="c1"># 量化配置：4-bit 权重，group size 128，GEMM 后端</span>
+<span class="n">quant_config</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;zero_point&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;q_group_size&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span> <span class="s2">&quot;w_bit&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;GEMM&quot;</span> <span class="p">}</span> <span class="c1"># &quot;w_bit&quot;:4 or 8  </span>
 
 
-# 加载校准数据
-calib_data = load_alpaca()
-# 量化
-model.quantize(tokenizer, quant_config=quant_config, calib_data=calib_data)
+<span class="c1"># 加载原始模型与 tokenizer</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoAWQForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-# shutil.rmtree(quant_path, ignore_errors=True)
+<span class="c1"># 把 model_path 中存在但 quant_path 中没有的文件复制过去（跳过权重文件）</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_files_not_in_B</span><span class="p">(</span><span class="n">A_path</span><span class="p">,</span> <span class="n">B_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    如果文件在 A 中存在但 B 中不存在，则从 A 拷贝到 B。</span>
 
-# 保存量化模型
-model.save_quantized(quant_path)
-tokenizer.save_pretrained(quant_path)
+<span class="sd">    :param A_path: 源目录 (A)</span>
+<span class="sd">    :param B_path: 目标目录 (B)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 确保源目录存在</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">A_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The directory </span><span class="si">{</span><span class="n">A_path</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">B_path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">B_path</span><span class="p">)</span>
 
-copy_files_not_in_B(model_path, quant_path)
-print(f'Model is quantized and saved at &quot;{quant_path}&quot;')
-</code></pre></article>
+    <span class="c1"># 列出 A 中所有文件，排除权重文件 (.bin / safetensors)</span>
+    <span class="n">files_in_A</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">A_path</span><span class="p">)</span>
+    <span class="n">files_in_A</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">file</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_in_A</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;.bin&quot;</span> <span class="ow">in</span> <span class="n">file</span> <span class="ow">or</span> <span class="s2">&quot;safetensors&quot;</span> <span class="ow">in</span> <span class="n">file</span> <span class="p">)])</span>
+    <span class="c1"># 列出 B 中所有文件</span>
+    <span class="n">files_in_B</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">B_path</span><span class="p">))</span>
+
+    <span class="c1"># 计算需要复制的文件</span>
+    <span class="n">files_to_copy</span> <span class="o">=</span> <span class="n">files_in_A</span> <span class="o">-</span> <span class="n">files_in_B</span>
+
+    <span class="c1"># 逐个复制</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_to_copy</span><span class="p">:</span>
+        <span class="n">src_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">A_path</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="n">dst_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">B_path</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src_file</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">dst_file</span><span class="p">)</span>
+
+<span class="c1"># 数据加载方法</span>
+<span class="c1"># 加载 Alpaca 数据集</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_alpaca</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;tatsu-lab/alpaca&quot;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 把每条样本转换成 chat 风格的 prompt</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">concatenate_data</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;instruction&#39;</span><span class="p">]:</span>
+            <span class="n">msgs</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;instruction&#39;</span><span class="p">]},</span>
+                    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]},</span>
+                    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]},</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]:</span>
+            <span class="n">msgs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are a helpful assistant.&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">]},</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]}</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msgs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are a helpful assistant.&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;instruction&#39;</span><span class="p">]},</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]}</span>
+            <span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span><span class="n">msgs</span><span class="p">,</span> <span class="n">tokenize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">}</span>
+
+    <span class="n">concatenated</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">concatenate_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">text</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">concatenated</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]][:</span><span class="mi">1024</span><span class="p">]</span>
+
+<span class="c1"># 加载 Wikitext 数据集</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_wikitext</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s1">&#39;wikitext&#39;</span><span class="p">,</span> <span class="s1">&#39;wikitext-2-raw-v1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">text</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">]</span>
+
+
+<span class="c1"># 加载校准数据</span>
+<span class="n">calib_data</span> <span class="o">=</span> <span class="n">load_alpaca</span><span class="p">()</span>
+<span class="c1"># 量化</span>
+<span class="n">model</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">tokenizer</span><span class="p">,</span> <span class="n">quant_config</span><span class="o">=</span><span class="n">quant_config</span><span class="p">,</span> <span class="n">calib_data</span><span class="o">=</span><span class="n">calib_data</span><span class="p">)</span>
+
+<span class="c1"># shutil.rmtree(quant_path, ignore_errors=True)</span>
+
+<span class="c1"># 保存量化模型</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save_quantized</span><span class="p">(</span><span class="n">quant_path</span><span class="p">)</span>
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">save_pretrained</span><span class="p">(</span><span class="n">quant_path</span><span class="p">)</span>
+
+<span class="n">copy_files_not_in_B</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">quant_path</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Model is quantized and saved at &quot;</span><span class="si">{</span><span class="n">quant_path</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+</code></pre></div></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
@@ -554,6 +666,89 @@ print(f'Model is quantized and saved at &quot;{quant_path}&quot;')
       if (target) window.location.href = target;
     });
   }
+
+  // ----- theme toggle (auto → light → dark, persisted in localStorage) -----
+  (function() {
+    var html = document.documentElement;
+    var lang = (document.body.dataset.lang === 'zh') ? 'zh' : 'en';
+    var labels = lang === 'zh'
+      ? { auto: '主题：自动（跟随系统）', light: '主题：浅色', dark: '主题：深色' }
+      : { auto: 'Theme: Auto (follow system)', light: 'Theme: Light', dark: 'Theme: Dark' };
+    var shortLabels = lang === 'zh' ? { auto: '自动', light: '浅色', dark: '深色' }
+                                    : { auto: 'Auto', light: 'Light', dark: 'Dark' };
+    var icons = { auto: '🌓', light: '☀️', dark: '🌙' };
+    var btn = document.getElementById('theme-toggle');
+    var iconEl = btn ? btn.querySelector('.theme-toggle-icon') : null;
+    var labelEl = btn ? btn.querySelector('.theme-toggle-label') : null;
+    var hljsLight = document.getElementById('hljs-light-css');
+    var hljsDark  = document.getElementById('hljs-dark-css');
+    // Stash the original mermaid source so we can re-render after a theme
+    // change (otherwise the diagrams stay in their original colours).
+    document.querySelectorAll('.mermaid').forEach(function(n) {
+      n.setAttribute('data-mermaid-src', n.textContent);
+    });
+    function rerenderMermaid(effective) {
+      if (typeof window.mermaid === 'undefined') return;
+      var nodes = document.querySelectorAll('.mermaid');
+      if (!nodes.length) return;
+      nodes.forEach(function(n) {
+        var src = n.getAttribute('data-mermaid-src');
+        if (src !== null) {
+          n.removeAttribute('data-processed');
+          n.textContent = src;
+        }
+      });
+      try {
+        window.mermaid.initialize({ startOnLoad: false, theme: effective === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+        window.mermaid.run({ querySelector: '.mermaid' });
+      } catch (e) { console.warn('mermaid re-run failed:', e); }
+    }
+    function compute(saved) {
+      if (saved === 'light' || saved === 'dark') return saved;
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    function apply(saved, persist) {
+      if (['auto', 'light', 'dark'].indexOf(saved) < 0) saved = 'auto';
+      var effective = compute(saved);
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      if (hljsLight) hljsLight.media = effective === 'dark' ? 'not all' : 'all';
+      if (hljsDark)  hljsDark.media  = effective === 'dark' ? 'all' : 'not all';
+      if (btn) {
+        btn.setAttribute('aria-label', labels[saved]);
+        btn.setAttribute('title', labels[saved]);
+        if (iconEl)  iconEl.textContent  = icons[saved];
+        if (labelEl) labelEl.textContent = shortLabels[saved];
+      }
+      rerenderMermaid(effective);
+      if (persist) {
+        try { localStorage.setItem('cookbook-theme', saved); } catch (e) {}
+      }
+    }
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var current = html.getAttribute('data-theme') || 'auto';
+        var next = current === 'auto' ? 'light' : (current === 'light' ? 'dark' : 'auto');
+        apply(next, true);
+      });
+    }
+    // While the user is in 'auto' mode, follow the OS scheme as it changes.
+    if (window.matchMedia) {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function() {
+        if ((html.getAttribute('data-theme') || 'auto') === 'auto') apply('auto', false);
+      };
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    }
+    // Seed the button label/icon to match whatever the bootstrap picked.
+    apply(html.getAttribute('data-theme') || 'auto', false);
+    // Enable CSS transitions only after the first paint, so the initial render
+    // doesn't visibly animate from the wrong colour.
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { html.classList.remove('no-transitions'); });
+    });
+  })();
 </script>
 
 <!-- Optional enhancements below. Wrapped so a CDN hiccup never breaks the
@@ -566,7 +761,9 @@ print(f'Model is quantized and saved at &quot;{quant_path}&quot;')
 <script type="module">
   try {
     const m = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
-    m.default.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+    window.mermaid = m.default;
+    var initialTheme = document.documentElement.getAttribute('data-effective-theme') === 'dark' ? 'dark' : 'default';
+    m.default.initialize({ startOnLoad: true, theme: initialTheme, securityLevel: 'loose' });
   } catch (e) { console.warn('mermaid failed:', e); }
 </script>
 <link href="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/css/ui.css" rel="stylesheet">

@@ -8,7 +8,7 @@
   - [`openbmb/MiniCPM-V-4.6`](https://huggingface.co/openbmb/MiniCPM-V-4.6) — Instruct
   - [`openbmb/MiniCPM-V-4.6-Thinking`](https://huggingface.co/openbmb/MiniCPM-V-4.6-Thinking) — Thinking
 - **Qwen3.5 hybrid backbone.** Mixed linear / full-attention layers, with up to **256K** context window.
-- **NaViT-style vision tower.** Replaces the resampler with a more efficient merger structure — simpler GGUF conversion, fewer surgery scripts.
+- **LLaVA-UHD v4 vision tower.** Replaces the Perceiver resampler with slice-based encoding plus intra-ViT early compression (mixed 4×/16× token compression) — simpler GGUF conversion, fewer surgery scripts. See [LLaVA-UHD v4 paper](https://arxiv.org/abs/2605.08985).
 - **Standalone transformers architecture.** Registered as `MiniCPMV4_6ForConditionalGeneration` in `transformers >= 5.7.0`. Standard `AutoProcessor` + `AutoModelForImageTextToText` flow works out of the box.
 
 ## Quick start
@@ -82,7 +82,7 @@ See the [llama.cpp guide](deployment/llamacpp.html) for full details.
 | Thinking mode | One model, switch via `enable_thinking` | **Two separate checkpoints** (`Instruct`, `Thinking`) |
 | LM backbone | Qwen3 | **Qwen3.5 hybrid** (linear + full attention) |
 | Max context | 32K | **256K** |
-| Vision tower | Perceiver resampler | **NaViT-style merger** |
+| Vision tower | Perceiver resampler | **LLaVA-UHD v4** (slice-based + intra-ViT compression) |
 | GGUF conversion | `minicpmv-surgery.py` + image encoder script | **Standard `convert_hf_to_gguf.py`** |
 | Stop tokens (vLLM) | `[1, 151645]` | `[248044, 248046]` |
 | Audio support | — (vision only) | — (vision only) |

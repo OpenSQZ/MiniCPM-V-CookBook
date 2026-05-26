@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="no-transitions">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="LLaMA-Factory — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
 <title>LLaMA-Factory — MiniCPM-V & o Cookbook</title>
+<meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-dark-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" media="not all">
 <style>
 :root {
   --primary: #3680ff;
   --accent:  #1AC8DB;
   --sidebar-w: 280px;
   --bg: #fff;
+  --bg-elevated: #fff;
   --bg-side: #fafbfc;
   --bg-code: #f6f8fa;
+  --bg-stripe: #fafbfc;
+  --bg-hover: #ebeff3;
   --c1: #24292f;
   --c2: #57606a;
   --c3: #8b949e;
   --border: #d0d7de;
+  --border-soft: #eaecef;
   --nav-active-bg: rgba(54, 128, 255, .08);
   --nav-active-fg: var(--primary);
   --link: var(--primary);
@@ -30,6 +36,67 @@
   --tip-bd:  #1f883d;
   --important-bg: #fbefff;
   --important-bd: #8250df;
+  --logo-filter: none;
+  color-scheme: light;
+}
+
+/* Dark theme: applied when JS sets data-effective-theme="dark" on <html>.
+   The bootstrap script in <head> resolves the user's saved preference
+   ("auto" | "light" | "dark") and the system `prefers-color-scheme` into
+   that attribute before first paint, so the page never flashes white. */
+:root[data-effective-theme="dark"] {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-side: #161b22;
+  --bg-code: #161b22;
+  --bg-stripe: #11161d;
+  --bg-hover: #21262d;
+  --c1: #e6edf3;
+  --c2: #9aa4ae;
+  --c3: #6e7681;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --nav-active-bg: rgba(88, 166, 255, .15);
+  --nav-active-fg: #58a6ff;
+  --link: #58a6ff;
+  --warn-bg: rgba(187, 128, 9, .15);
+  --warn-bd: #9e6a03;
+  --note-bg: rgba(56, 139, 253, .15);
+  --note-bd: #1f6feb;
+  --tip-bg: rgba(46, 160, 67, .15);
+  --tip-bd: #238636;
+  --important-bg: rgba(163, 113, 247, .15);
+  --important-bd: #8250df;
+  --logo-filter: brightness(.95);
+  color-scheme: dark;
+}
+
+/* Smooth crossfade when toggling. `html.no-transitions` is set briefly by JS
+   while applying the saved theme on first load, so the initial paint never
+   animates. */
+body, .topbar, .sidebar, .topbar-search input, .version-switcher select,
+article pre, article code, article th, article tr, article blockquote,
+article .admonition, .topbar-action-btn {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+html.no-transitions, html.no-transitions * { transition: none !important; }
+
+/* Pagefind UI overrides — its built-in dark mode keys off prefers-color-scheme,
+   which doesn't honor our explicit toggle. Force its variables to match
+   whatever our effective theme is. */
+:root[data-effective-theme="light"] .pagefind-ui {
+  --pagefind-ui-primary: #3680ff;
+  --pagefind-ui-text: #24292f;
+  --pagefind-ui-background: #ffffff;
+  --pagefind-ui-border: #d0d7de;
+  --pagefind-ui-tag: #f6f8fa;
+}
+:root[data-effective-theme="dark"] .pagefind-ui {
+  --pagefind-ui-primary: #58a6ff;
+  --pagefind-ui-text: #e6edf3;
+  --pagefind-ui-background: #0d1117;
+  --pagefind-ui-border: #30363d;
+  --pagefind-ui-tag: #161b22;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -48,12 +115,12 @@ img { max-width: 100%; }
 /* ---------- top bar ---------- */
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
-  background: #fff;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 20px; gap: 18px;
 }
 .topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topbar-brand img { height: 30px; }
+.topbar-brand img { height: 30px; filter: var(--logo-filter); }
 .topbar-brand .brand-text { font-weight: 600; font-size: 15px; color: var(--c1); white-space: nowrap; }
 .topbar-search { flex: 1; max-width: 480px; position: relative; }
 .topbar-search input {
@@ -71,7 +138,21 @@ img { max-width: 100%; }
 .topbar-actions a:hover { color: var(--primary); }
 .topbar-toggle {
   display: none; background: none; border: 1px solid var(--border); border-radius: 6px;
-  padding: 4px 10px; font-size: 16px; cursor: pointer;
+  padding: 4px 10px; font-size: 16px; cursor: pointer; color: var(--c1);
+}
+
+/* Theme toggle button: cycles auto → light → dark and persists to localStorage. */
+.topbar-action-btn {
+  background: none; border: 1px solid transparent;
+  color: var(--c2); font: inherit; font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.topbar-action-btn:hover { color: var(--primary); background: var(--bg-hover); border-color: var(--border); }
+.theme-toggle-icon { font-size: 16px; line-height: 1; }
+.theme-toggle-label { font-size: 12px; color: var(--c2); }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
 }
 
 /* ---------- sidebar ---------- */
@@ -94,7 +175,8 @@ img { max-width: 100%; }
 .version-switcher { padding: 0 18px 12px; }
 .version-switcher select {
   width: 100%; padding: 7px 10px; font-size: 14px;
-  border: 1px solid var(--border); border-radius: 6px; background: #fff;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--c1);
   cursor: pointer; outline: none;
 }
 .version-switcher .badge {
@@ -105,7 +187,7 @@ img { max-width: 100%; }
 .nav-list { list-style: none; padding: 4px 12px; }
 .nav-list a { display: block; padding: 6px 12px; color: var(--c2); border-radius: 6px;
               font-size: 14px; transition: background .15s, color .15s; }
-.nav-list a:hover { background: #ebeff3; color: var(--c1); text-decoration: none; }
+.nav-list a:hover { background: var(--bg-hover); color: var(--c1); text-decoration: none; }
 .nav-list a.active { background: var(--nav-active-bg); color: var(--nav-active-fg); font-weight: 600; }
 .nav-group { margin-top: 8px; }
 .nav-group-header {
@@ -114,7 +196,7 @@ img { max-width: 100%; }
   user-select: none; display: flex; align-items: center; gap: 6px;
   border-radius: 6px; transition: background .15s;
 }
-.nav-group-header:hover { background: #ebeff3; }
+.nav-group-header:hover { background: var(--bg-hover); }
 .nav-group-header::before {
   content: ""; width: 0; height: 0;
   border-left: 5px solid var(--c2); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
@@ -122,7 +204,7 @@ img { max-width: 100%; }
 }
 .nav-group.collapsed .nav-group-header::before { transform: rotate(0); }
 .nav-group-children { list-style: none; margin: 2px 0 4px 22px; padding-left: 12px;
-                       border-left: 2px solid #e3e7ed;
+                       border-left: 2px solid var(--border-soft);
                        max-height: 800px; overflow: hidden;
                        transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
                        opacity: 1; }
@@ -143,7 +225,7 @@ article h1, article h2, article h3, article h4, article h5 {
   font-weight: 600; color: var(--c1); margin: 32px 0 12px; line-height: 1.35;
 }
 article h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-top: 0; }
-article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; }
+article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
 article h3 { font-size: 18px; }
 article h4 { font-size: 15px; }
 article p, article ul, article ol, article blockquote { margin-bottom: 14px; }
@@ -160,7 +242,7 @@ article pre code { background: none; padding: 0; }
 article table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
 article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
 article th { background: var(--bg-code); font-weight: 600; }
-article tr:nth-child(even) { background: #fafbfc; }
+article tr:nth-child(even) { background: var(--bg-stripe); }
 article hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
 article blockquote {
   border-left: 4px solid var(--primary); padding: 6px 16px; color: var(--c2);
@@ -201,6 +283,28 @@ footer.page-footer a:hover { color: var(--primary); }
   .content { margin-left: 0; padding: 28px 22px 60px; }
 }
 </style>
+<script>
+  // Theme bootstrap — runs before <body> so the page never flashes the wrong
+  // colour. Resolves the saved choice ("auto" | "light" | "dark") against the
+  // OS-level `prefers-color-scheme` and writes both values onto <html>:
+  //   data-theme           → what the user chose (drives the toggle UI)
+  //   data-effective-theme → what we actually rendered (drives CSS + hljs)
+  (function() {
+    try {
+      var saved = localStorage.getItem('cookbook-theme');
+      if (saved !== 'light' && saved !== 'dark' && saved !== 'auto') saved = 'auto';
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var effective = saved === 'auto' ? (prefersDark ? 'dark' : 'light') : saved;
+      var html = document.documentElement;
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      var l = document.getElementById('hljs-light-css');
+      var d = document.getElementById('hljs-dark-css');
+      if (l) l.media = effective === 'dark' ? 'not all' : 'all';
+      if (d) d.media = effective === 'dark' ? 'all' : 'not all';
+    } catch (e) { /* localStorage may be blocked (private mode, etc.) — leave defaults */ }
+  })();
+</script>
 </head>
 <body data-version="shared" data-lang="zh" data-slug="shared/finetune/llamafactory">
 
@@ -214,6 +318,10 @@ footer.page-footer a:hover { color: var(--primary); }
     <input type="search" placeholder="搜索文档…" id="pagefind-search">
   </div>
   <nav class="topbar-actions">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="切换主题（自动 / 浅色 / 深色）" title="切换主题（自动 / 浅色 / 深色）">
+      <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
+      <span class="theme-toggle-label">自动</span>
+    </button>
     <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook" target="_blank" rel="noopener">GitHub</a>
     <a href="https://huggingface.co/openbmb" target="_blank" rel="noopener">HuggingFace</a>
     <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">魔搭社区</a>
@@ -235,6 +343,10 @@ footer.page-footer a:hover { color: var(--primary); }
     <option value="../../v4.6/overview.html" selected>MiniCPM-V 4.6 [latest]</option>
     <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/overview.html">MiniCPM 4.1</option>
+    <option value="../../minicpm4/overview.html">MiniCPM 4</option>
+    <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
   </select>
 </div>
 <ul class="nav-list">
@@ -270,115 +382,115 @@ footer.page-footer a:hover { color: var(--primary); }
 <ol>
 <li>获取LlamaFactory Github代码</li>
 </ol>
-<pre class="code"><code class="language-Python">git clone --depth 1 https://github.com/hiyouga/LLaMA-Factory.git
-</code></pre>
+<div class="code"><pre><span></span><code><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">hiyouga</span><span class="o">/</span><span class="n">LLaMA</span><span class="o">-</span><span class="n">Factory</span><span class="o">.</span><span class="n">git</span>
+</code></pre></div>
 
 <ol>
 <li>安装LlamaFactory的依赖</li>
 </ol>
-<pre class="code"><code class="language-Python">cd LLaMA-Factory
-pip install -e &quot;.[torch,metrics,deepspeed,minicpm_v]
-</code></pre>
+<div class="code"><pre><span></span><code><span class="n">cd</span> <span class="n">LLaMA</span><span class="o">-</span><span class="n">Factory</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[torch,metrics,deepspeed,minicpm_v]</span>
+</code></pre></div>
 
 <h2 id="构造数据">构造数据</h2>
 <h3 id="构建图片数据集">构建图片数据集</h3>
 <p>参照LLaMA-Factory/<a href="https://github.com/hiyouga/LLaMA-Factory/blob/main/data/dataset_info.json">data</a>下的<strong>mllm_demo.json</strong>数据集,按照相同格式构造数据，结构如下：</p>
 <p>如需在多轮对话中使用图片，请在每轮对话的user content中添加<code>&lt;image&gt;</code>标签，并在images中添加相应的图片路径。<code>&lt;image&gt;</code> 标签数量需要与 <code>images</code>中的值数量相匹配。</p>
-<pre class="code"><code class="language-JSON">[
-  {
-    &quot;messages&quot;: [
-      {
-        &quot;content&quot;: &quot;&lt;image&gt;Who are they?&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;They're Kane and Gretzka from Bayern Munich.&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      },
-      {
-        &quot;content&quot;: &quot;What are they doing?&lt;image&gt;&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;They are celebrating on the soccer field.&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      }
-    ],
-    &quot;images&quot;: [
-      &quot;mllm_demo_data/1.jpg&quot;,
-      &quot;mllm_demo_data/1.jpg&quot;
-    ]
-  },
-  {
-    &quot;messages&quot;: [
-      {
-        &quot;content&quot;: &quot;&lt;image&gt;Who is he?&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;He's Thomas Muller from Bayern Munich.&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      },
-      {
-        &quot;content&quot;: &quot;Why is he on the ground?&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;Because he's sliding on his knees to celebrate.&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      }
-    ],
-    &quot;images&quot;: [
-      &quot;mllm_demo_data/2.jpg&quot;
-    ]
-  }
-]
-</code></pre>
+<div class="code"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;image&gt;Who are they?&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;They&#39;re Kane and Gretzka from Bayern Munich.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;What are they doing?&lt;image&gt;&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;They are celebrating on the soccer field.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;images&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;mllm_demo_data/1.jpg&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;mllm_demo_data/1.jpg&quot;</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;image&gt;Who is he?&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;He&#39;s Thomas Muller from Bayern Munich.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Why is he on the ground?&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Because he&#39;s sliding on his knees to celebrate.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;images&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;mllm_demo_data/2.jpg&quot;</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
 
 <h3 id="构建视频数据集">构建视频数据集</h3>
 <p>参照LLaMA-Factory/<a href="https://github.com/hiyouga/LLaMA-Factory/blob/main/data/dataset_info.json">data</a>下的<strong>mllm_video_demo.json</strong>数据集,按照相同格式构造数据，结构如下：</p>
 <p>如需在多轮对话中使用图片，请在每轮对话的user content中添加<code>&lt;video&gt;</code>标签，并在images中添加相应的图片路径。<code>&lt;video&gt;</code> 标签数量需要与 <code>videos</code>中的值数量相匹配。</p>
-<pre class="code"><code class="language-JSON">[
-  {
-    &quot;messages&quot;: [
-      {
-        &quot;content&quot;: &quot;&lt;video&gt;Why is this video funny?&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;Because a baby is reading, and he is so cute!&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      }
-    ],
-    &quot;videos&quot;: [
-      &quot;mllm_demo_data/1.mp4&quot;
-    ]
-  }
-]
-</code></pre>
+<div class="code"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;video&gt;Why is this video funny?&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Because a baby is reading, and he is so cute!&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;videos&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;mllm_demo_data/1.mp4&quot;</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
 
 <h3 id="构建音频数据集">构建音频数据集</h3>
 <p><strong>注意：仅MiniCPM-o 2.6模型支持音频微调</strong></p>
 <p>参照LLaMA-Factory/<a href="https://github.com/hiyouga/LLaMA-Factory/blob/main/data/dataset_info.json">data</a>下的<strong>mllm_audio_demo.json</strong>数据集,按照相同格式构造数据，结构如下：</p>
 <p>如需在多轮对话中使用图片，请在每轮对话的user content中添加<code>&lt;audio&gt;</code>标签，并在images中添加相应的图片路径。<code>&lt;audio&gt;</code> 标签数量需要与 <code>audios</code>中的值数量相匹配。</p>
-<pre class="code"><code class="language-JSON">[
-  {
-    &quot;messages&quot;: [
-      {
-        &quot;content&quot;: &quot;&lt;audio&gt;What's that sound?&quot;,
-        &quot;role&quot;: &quot;user&quot;
-      },
-      {
-        &quot;content&quot;: &quot;It is the sound of glass shattering.&quot;,
-        &quot;role&quot;: &quot;assistant&quot;
-      }
-    ],
-    &quot;audios&quot;: [
-      &quot;mllm_demo_data/1.mp3&quot;
-    ]
-  }
-]
-</code></pre>
+<div class="code"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;audio&gt;What&#39;s that sound?&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;It is the sound of glass shattering.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;audios&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;mllm_demo_data/1.mp3&quot;</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
 
 <h3 id="注册数据集">注册数据集</h3>
 <ol>
@@ -407,7 +519,7 @@ pip install -e &quot;.[torch,metrics,deepspeed,minicpm_v]
 </li>
 </ol>
 <p>Example:</p>
-<pre class="code"><code>```JSON
+<div class="code"><pre><span></span><code>```JSON
   &quot;cpmv_img&quot;: {
       &quot;file_name&quot;: &quot;image_caption.json&quot;,
       &quot;formatting&quot;: &quot;sharegpt&quot;,
@@ -442,133 +554,133 @@ pip install -e &quot;.[torch,metrics,deepspeed,minicpm_v]
   }
 }
 ```
-</code></pre>
+</code></pre></div>
 
 <h2 id="创建训练的配置yaml文件">创建训练的配置yaml文件：</h2>
 <h3 id="lora微调">Lora微调</h3>
 <p>创建minicpmv4_5_lora_sft.yaml的配置文件，并且放入LLaMA-Factory/minicpm_config。</p>
-<pre class="code"><code class="language-YAML">### model
-model_name_or_path: openbmb/MiniCPM-V-4_5 # 可以是MiniCPM-V或者MiniCPM-o的本地模型
-trust_remote_code: true
+<div class="code"><pre><span></span><code><span class="c1">### model</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
+<span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
-### method
-stage: sft # sft训练
-do_train: true
-finetuning_type: lora # lora微调
-lora_target: q_proj,v_proj # lora层插入哪里
+<span class="c1">### method</span>
+<span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sft</span><span class="w"> </span><span class="c1"># sft训练</span>
+<span class="nt">do_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lora</span><span class="w"> </span><span class="c1"># lora微调</span>
+<span class="nt">lora_target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">q_proj,v_proj</span><span class="w"> </span><span class="c1"># lora层插入哪里</span>
 
-### dataset
-dataset: cpmv_img # 改成你上面data/data_info.json的文件下新增的键名
-template: minicpm_v # 不要改
-cutoff_len: 3072 # 包多模态在哪占用的模型token长度
-max_samples: 1000 #最多用多少条数据
-overwrite_cache: true
-preprocessing_num_workers: 16
+<span class="c1">### dataset</span>
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># 改成你上面data/data_info.json的文件下新增的键名</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span><span class="w"> </span><span class="c1"># 不要改</span>
+<span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span><span class="w"> </span><span class="c1"># 包多模态在哪占用的模型token长度</span>
+<span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w"> </span><span class="c1">#最多用多少条数据</span>
+<span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
-### output
-output_dir: saves/minicpmv4_5/lora/sft
-logging_steps: 1
-save_steps: 100 #多少步报错一次
-plot_loss: true # 是否绘制损失函数
-overwrite_output_dir: true #是否覆盖之前的保存
-save_total_limit: 10
+<span class="c1">### output</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/lora/sft</span>
+<span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span><span class="w"> </span><span class="c1">#多少步报错一次</span>
+<span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># 是否绘制损失函数</span>
+<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#是否覆盖之前的保存</span>
+<span class="nt">save_total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 
-### train
-per_device_train_batch_size: 2 #训练batch_size
-gradient_accumulation_steps: 1 #梯度累积次数
-learning_rate: 1.0e-5 # 学习率
-num_train_epochs: 20.0 #最多训练轮次
-lr_scheduler_type: cosine
-warmup_ratio: 0.1
-bf16: true
-ddp_timeout: 180000000
-save_only_model: true
+<span class="c1">### train</span>
+<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w"> </span><span class="c1">#训练batch_size</span>
+<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"> </span><span class="c1">#梯度累积次数</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-5</span><span class="w"> </span><span class="c1"># 学习率</span>
+<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span><span class="w"> </span><span class="c1">#最多训练轮次</span>
+<span class="nt">lr_scheduler_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
+<span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
+<span class="nt">bf16</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">ddp_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180000000</span>
+<span class="nt">save_only_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
-### eval
-do_eval: false
-</code></pre>
+<span class="c1">### eval</span>
+<span class="nt">do_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
 
 <h3 id="全量微调">全量微调</h3>
 <p>创建全量训练配置minicpmv4_5_full_sft.yaml文件，并且放入LLaMA-Factory/minicpm_config：</p>
-<pre class="code"><code class="language-YAML">### model
-model_name_or_path: openbmb/MiniCPM-V-4_5 # 可以是MiniCPM-V或者MiniCPM-o的本地模型
-trust_remote_code: true
-freeze_vision_tower: true #冻结图像模块
-print_param_status: true
-flash_attn: fa2 #使用flash attn2
+<div class="code"><pre><span></span><code><span class="c1">### model</span>
+<span class="nt">model_name_or_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openbmb/MiniCPM-V-4_5</span><span class="w"> </span><span class="c1"># 可以是MiniCPM-V或者MiniCPM-o的本地模型</span>
+<span class="nt">trust_remote_code</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">freeze_vision_tower</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#冻结图像模块</span>
+<span class="nt">print_param_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">flash_attn</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fa2</span><span class="w"> </span><span class="c1">#使用flash attn2</span>
 
-### method
-stage: sft
-do_train: true
-finetuning_type: full #全量微调
-deepspeed: configs/deepspeed/ds_z2_config.json # deepspeed使用zero2分布式训练
+<span class="c1">### method</span>
+<span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sft</span>
+<span class="nt">do_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">finetuning_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span><span class="w"> </span><span class="c1">#全量微调</span>
+<span class="nt">deepspeed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">configs/deepspeed/ds_z2_config.json</span><span class="w"> </span><span class="c1"># deepspeed使用zero2分布式训练</span>
 
-### dataset
-dataset: cpmv_img # 改成你上面data/data_info.json的文件下新增的键名
-template: minicpm_v #
-cutoff_len: 3072
-max_samples: 1000
-overwrite_cache: true
-preprocessing_num_workers: 16
+<span class="c1">### dataset</span>
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpmv_img</span><span class="w"> </span><span class="c1"># 改成你上面data/data_info.json的文件下新增的键名</span>
+<span class="nt">template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minicpm_v</span><span class="w"> </span><span class="c1">#</span>
+<span class="nt">cutoff_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3072</span>
+<span class="nt">max_samples</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="nt">overwrite_cache</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">preprocessing_num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
 
-### output
-output_dir: saves/minicpmv4_5/full/sft
-logging_steps: 1
-save_steps: 100
-plot_loss: true
-overwrite_output_dir: true
-save_total_limit: 10
+<span class="c1">### output</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">saves/minicpmv4_5/full/sft</span>
+<span class="nt">logging_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">save_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">plot_loss</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">overwrite_output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">save_total_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 
-### train
-per_device_train_batch_size: 2
-gradient_accumulation_steps: 1
-learning_rate: 1.0e-5
-num_train_epochs: 20.0
-lr_scheduler_type: cosine
-warmup_ratio: 0.1 # warmup(学习率上升)占训练数据的10%
-bf16: true #bf16精度
-ddp_timeout: 180000000
-save_only_model: true
+<span class="c1">### train</span>
+<span class="nt">per_device_train_batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="nt">gradient_accumulation_steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-5</span>
+<span class="nt">num_train_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+<span class="nt">lr_scheduler_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cosine</span>
+<span class="nt">warmup_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span><span class="w"> </span><span class="c1"># warmup(学习率上升)占训练数据的10%</span>
+<span class="nt">bf16</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#bf16精度</span>
+<span class="nt">ddp_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180000000</span>
+<span class="nt">save_only_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 
-### eval
-do_eval: false
-</code></pre>
+<span class="c1">### eval</span>
+<span class="nt">do_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
 
 <h2 id="模型训练">模型训练</h2>
 <h3 id="全量训练">全量训练</h3>
-<pre class="code"><code class="language-Bash">cd LLaMA-Factory
-llamafactory-cli train configs/minicpmv4_5_full_sft.yaml
-</code></pre>
+<div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>LLaMA-Factory
+llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_full_sft.yaml
+</code></pre></div>
 
 <h3 id="lora训练">Lora训练</h3>
 <ol>
 <li>开始训练</li>
 </ol>
-<pre class="code"><code class="language-Bash">llamafactory-cli train configs/minicpmv4_5_lora_sft.yaml
-</code></pre>
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span>train<span class="w"> </span>configs/minicpmv4_5_lora_sft.yaml
+</code></pre></div>
 
 <ol>
 <li>创建合并脚本merge.yaml</li>
 </ol>
-<pre class="code"><code class="language-Bash">### model
-model_name_or_path: openbmb/MiniCPM-V-4_5 # 这里可以填入原始模型地址，可以是本地模型
-adapter_name_or_path: saves/minicpm_v4_5/lora/sft # 这里填入保存的lora模型地址
-template: minicpm_v
-finetuning_type: lora
-trust_remote_code: true
+<div class="code"><pre><span></span><code><span class="c1">### model</span>
+model_name_or_path:<span class="w"> </span>openbmb/MiniCPM-V-4_5<span class="w"> </span><span class="c1"># 这里可以填入原始模型地址，可以是本地模型</span>
+adapter_name_or_path:<span class="w"> </span>saves/minicpm_v4_5/lora/sft<span class="w"> </span><span class="c1"># 这里填入保存的lora模型地址</span>
+template:<span class="w"> </span>minicpm_v
+finetuning_type:<span class="w"> </span>lora
+trust_remote_code:<span class="w"> </span><span class="nb">true</span>
 
-### export
-export_dir: models/minicpmv4_5_lora_sft
-export_size: 2
-export_device: cpu
-export_legacy_format: false
-</code></pre>
+<span class="c1">### export</span>
+export_dir:<span class="w"> </span>models/minicpmv4_5_lora_sft
+export_size:<span class="w"> </span><span class="m">2</span>
+export_device:<span class="w"> </span>cpu
+export_legacy_format:<span class="w"> </span><span class="nb">false</span>
+</code></pre></div>
 
 <ol>
 <li>合并模型</li>
 </ol>
-<pre class="code"><code class="language-Bash">llamafactory-cli export configs/minicpmv4_5_lora_export.yaml
-</code></pre></article>
+<div class="code"><pre><span></span><code>llamafactory-cli<span class="w"> </span><span class="nb">export</span><span class="w"> </span>configs/minicpmv4_5_lora_export.yaml
+</code></pre></div></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
@@ -603,6 +715,89 @@ export_legacy_format: false
       if (target) window.location.href = target;
     });
   }
+
+  // ----- theme toggle (auto → light → dark, persisted in localStorage) -----
+  (function() {
+    var html = document.documentElement;
+    var lang = (document.body.dataset.lang === 'zh') ? 'zh' : 'en';
+    var labels = lang === 'zh'
+      ? { auto: '主题：自动（跟随系统）', light: '主题：浅色', dark: '主题：深色' }
+      : { auto: 'Theme: Auto (follow system)', light: 'Theme: Light', dark: 'Theme: Dark' };
+    var shortLabels = lang === 'zh' ? { auto: '自动', light: '浅色', dark: '深色' }
+                                    : { auto: 'Auto', light: 'Light', dark: 'Dark' };
+    var icons = { auto: '🌓', light: '☀️', dark: '🌙' };
+    var btn = document.getElementById('theme-toggle');
+    var iconEl = btn ? btn.querySelector('.theme-toggle-icon') : null;
+    var labelEl = btn ? btn.querySelector('.theme-toggle-label') : null;
+    var hljsLight = document.getElementById('hljs-light-css');
+    var hljsDark  = document.getElementById('hljs-dark-css');
+    // Stash the original mermaid source so we can re-render after a theme
+    // change (otherwise the diagrams stay in their original colours).
+    document.querySelectorAll('.mermaid').forEach(function(n) {
+      n.setAttribute('data-mermaid-src', n.textContent);
+    });
+    function rerenderMermaid(effective) {
+      if (typeof window.mermaid === 'undefined') return;
+      var nodes = document.querySelectorAll('.mermaid');
+      if (!nodes.length) return;
+      nodes.forEach(function(n) {
+        var src = n.getAttribute('data-mermaid-src');
+        if (src !== null) {
+          n.removeAttribute('data-processed');
+          n.textContent = src;
+        }
+      });
+      try {
+        window.mermaid.initialize({ startOnLoad: false, theme: effective === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+        window.mermaid.run({ querySelector: '.mermaid' });
+      } catch (e) { console.warn('mermaid re-run failed:', e); }
+    }
+    function compute(saved) {
+      if (saved === 'light' || saved === 'dark') return saved;
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    function apply(saved, persist) {
+      if (['auto', 'light', 'dark'].indexOf(saved) < 0) saved = 'auto';
+      var effective = compute(saved);
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      if (hljsLight) hljsLight.media = effective === 'dark' ? 'not all' : 'all';
+      if (hljsDark)  hljsDark.media  = effective === 'dark' ? 'all' : 'not all';
+      if (btn) {
+        btn.setAttribute('aria-label', labels[saved]);
+        btn.setAttribute('title', labels[saved]);
+        if (iconEl)  iconEl.textContent  = icons[saved];
+        if (labelEl) labelEl.textContent = shortLabels[saved];
+      }
+      rerenderMermaid(effective);
+      if (persist) {
+        try { localStorage.setItem('cookbook-theme', saved); } catch (e) {}
+      }
+    }
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var current = html.getAttribute('data-theme') || 'auto';
+        var next = current === 'auto' ? 'light' : (current === 'light' ? 'dark' : 'auto');
+        apply(next, true);
+      });
+    }
+    // While the user is in 'auto' mode, follow the OS scheme as it changes.
+    if (window.matchMedia) {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function() {
+        if ((html.getAttribute('data-theme') || 'auto') === 'auto') apply('auto', false);
+      };
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    }
+    // Seed the button label/icon to match whatever the bootstrap picked.
+    apply(html.getAttribute('data-theme') || 'auto', false);
+    // Enable CSS transitions only after the first paint, so the initial render
+    // doesn't visibly animate from the wrong colour.
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { html.classList.remove('no-transitions'); });
+    });
+  })();
 </script>
 
 <!-- Optional enhancements below. Wrapped so a CDN hiccup never breaks the
@@ -615,7 +810,9 @@ export_legacy_format: false
 <script type="module">
   try {
     const m = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
-    m.default.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+    window.mermaid = m.default;
+    var initialTheme = document.documentElement.getAttribute('data-effective-theme') === 'dark' ? 'dark' : 'default';
+    m.default.initialize({ startOnLoad: true, theme: initialTheme, securityLevel: 'loose' });
   } catch (e) { console.warn('mermaid failed:', e); }
 </script>
 <link href="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/css/ui.css" rel="stylesheet">

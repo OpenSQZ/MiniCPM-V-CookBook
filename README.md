@@ -4,7 +4,7 @@
 
 [🏠 Main Repository](https://github.com/OpenBMB/MiniCPM-o) | [📚 Full Documentation](https://opensqz.github.io/MiniCPM-V-CookBook/)
 
-Cook up amazing multimodal AI applications effortlessly with MiniCPM-o, bringing vision, speech, and live-streaming capabilities right to your fingertips! For version-specific deployment instructions, see the files in the [deployment](./deployment/) directory.
+Cook up amazing AI applications effortlessly with MiniCPM-V, MiniCPM-o, and the MiniCPM LLM series — bringing text, vision, speech, and live-streaming capabilities right to your fingertips! For version-specific deployment instructions, see the files in the [deployment](./deployment/) directory.
 
 
 
@@ -59,6 +59,9 @@ Explore real-world examples of MiniCPM-V deployed on edge devices using our cura
 | 🎤 [Speech-to-Text](./inference/speech2text.md)                 | Multilingual speech recognition                    |
 | 🗣️ [Text-to-Speech](./inference/text2speech.md)                | Instruction-following speech synthesis             |
 | 🎭 [Voice Cloning](./inference/voice_clone.md)                  | Realistic voice cloning and role-play              |
+| **Text Capabilities** (MiniCPM LLM 5 / 4.1 / 4)                 |                                                    |
+| 💬 [Chat & Hybrid Reasoning (MiniCPM 5)](./inference/minicpm5_chat.md) | Compact 1B LLM with Think / No-Think modes & tool calling |
+| 💬 [Chat & Hybrid Reasoning (MiniCPM 4.1)](./inference/minicpm4_1_chat.md)    | 8B LLM chat with optional step-by-step reasoning      |
 
 
 ## 🏋️ Fine-tuning Recipes
@@ -84,60 +87,34 @@ We provide training methods serving different needs as following:
 
 ## 📦 Serving Recipes
 
-> *Deploy your model efficiently*
+> *Deploy your model efficiently. Pick a framework — the cookbook docs page lets you switch between V / o / LLM versions on the sidebar.*
 
 
-| Method                                                       | Description                                  |
-| ------------------------------------------------------------ | -------------------------------------------- |
-| [vLLM](./deployment/vllm/minicpm-v4_6_vllm.md)               | High-throughput GPU inference                |
-| [SGLang](./deployment/sglang/minicpm-v4_6_sglang.md)         | High-throughput GPU inference                |
-| [Llama.cpp](./deployment/llama.cpp/minicpm-v4_6_llamacpp.md) | Fast CPU inference on PC, iPhone and iPad    |
-| [Ollama](./deployment/ollama/minicpm-v4_6_ollama.md)         | User-friendly setup                          |
-| [OpenWebUI](./demo/web_demo/openwebui)                       | Interactive Web demo with Open WebUI         |
-| [Gradio](./demo/web_demo/gradio/README.md)                   | Interactive Web demo with Gradio             |
-| [FastAPI](./demo/README.md)                                  | Interactive Omni Streaming demo with FastAPI |
-| [iOS](./demo/ios_demo/ios.md)                                | **[MiniCPM-V-Apps](https://github.com/OpenBMB/MiniCPM-V-Apps)** — iOS quickstart (`llama.cpp`; Android/HarmonyOS in upstream README) |
+| Framework | Description                                                                                                                                  |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [vLLM](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/vllm.html)              | High-throughput GPU inference                                                                                |
+| [SGLang](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/sglang.html)          | High-throughput GPU inference *(MiniCPM 5 on upstream `>=0.5.12` with native `minicpm5` tool-call parser; older LLM series via [`tc-mb/sglang`](https://github.com/tc-mb/sglang) fork)* |
+| [llama.cpp](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/llamacpp.html)     | Fast CPU / GGUF inference on PC, iPhone and iPad                                                              |
+| [Ollama](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/ollama.html)          | User-friendly one-line local run                                                                              |
+| [MLX](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm5/deployment/mlx.html)            | Apple Silicon inference                                                                                       |
+| [OpenWebUI](./demo/web_demo/openwebui)                                                          | Interactive Web demo with Open WebUI                                                                          |
+| [Gradio](./demo/web_demo/gradio/README.md)                                                      | Interactive Web demo with Gradio                                                                              |
+| [FastAPI](./demo/README.md)                                                                     | Interactive Omni Streaming demo with FastAPI                                                                  |
+| [iOS](./demo/ios_demo/ios.md)                                                                   | **[MiniCPM-V-Apps](https://github.com/OpenBMB/MiniCPM-V-Apps)** — iOS quickstart (`llama.cpp`; Android / HarmonyOS in upstream) |
 
 
 ## 🥄 Quantization Recipes
 
-> *Compress your model to improve efficiency*
+> *Compress your model to improve efficiency. The cookbook docs page covers all supported series — use the sidebar version switcher to pick a release.*
 
 
-| Format                                                    | Key Feature                                                                    |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [GGUF](./quantization/gguf/minicpm-v4_6_gguf_quantize.md) | Simplest and most portable format                                              |
-| [BNB](./quantization/bnb/minicpm-v4_6_bnb_quantize.md)    | Simple and easy-to-use quantization method                                     |
-| [AWQ](./quantization/awq/minicpm-v4_6_awq_quantize.md)    | High-performance quantization for efficient inference                          |
-| [GPTQ](./quantization/gptq/minicpm-v4_5_gptq_quantize.md) | Weight-only INT4 with vLLM-compatible packaging *(v4.5 only — Qwen3 backbone)* |
+| Method                                                                                              | Key Feature                                                       |
+| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [GGUF](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/gguf.html)                 | Simplest and most portable format                                 |
+| [BNB](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/bnb.html)                   | Simple and easy-to-use quantization method                        |
+| [AWQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/awq.html)                   | High-performance INT4 quantization for efficient inference        |
+| [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.5/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging (also supports QAT) |
 
-
-## Framework Support Matrix
-
-> The latest release is **MiniCPM-V 4.6** (Instruct + Thinking). The matrix below tracks v4.6 first, with v4.5 / o4.5 rows kept for reference.
-
-
-| Model                        | Category                                                                                                            | Framework                                                                                                              | Cookbook Link                                                                                                          | Upstream PR                                                                                                                      | Supported since (branch)                                          | Supported since (release)                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| **MiniCPM-V 4.6** *(latest)* | Inference                                                                                                           | Transformers                                                                                                           | [Transformers Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/inference/minicpm-v4_6_single_image.md)     | [huggingface/transformers](https://github.com/huggingface/transformers/tree/v5.7.0/src/transformers/models/minicpmv4_6) (merged) | main                                                              | [v5.7.0](https://github.com/huggingface/transformers/releases/tag/v5.7.0) |
-| Edge (On-device)             | Llama.cpp                                                                                                           | [Llama.cpp Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/llama.cpp/minicpm-v4_6_llamacpp.md) | [#22529](https://github.com/ggml-org/llama.cpp/pull/22529) (2026-05-06)                                                | master (2026-05-06)                                                                                                              | [b9049](https://github.com/ggml-org/llama.cpp/releases/tag/b9049) |                                                                           |
-| Ollama                       | [Ollama Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/ollama/minicpm-v4_6_ollama.md)      | Merging                                                                                                                | Merging                                                                                                                | Waiting for official release                                                                                                     |                                                                   |                                                                           |
-| Serving (Cloud)              | vLLM                                                                                                                | [vLLM Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/vllm/minicpm-v4_6_vllm.md)               | [#41254](https://github.com/vllm-project/vllm/pull/41254) (2026-04-29)                                                 | Merging                                                                                                                          | Waiting for official release                                      |                                                                           |
-| SGLang                       | [SGLang Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/sglang/minicpm-v4_6_sglang.md)      | Merging                                                                                                                | Merging                                                                                                                | Waiting for official release                                                                                                     |                                                                   |                                                                           |
-| **MiniCPM-o 4.5**            | Edge (On-device)                                                                                                    | Llama.cpp                                                                                                              | [Llama.cpp Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/llama.cpp/minicpm-o4_5_llamacpp.md) | [#19211](https://github.com/ggml-org/llama.cpp/pull/19211)(2026-01-30)                                                           | master(2026-01-30)                                                | [b7895](https://github.com/ggml-org/llama.cpp/releases/tag/b7895)         |
-| Ollama                       | [Ollama Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/ollama/minicpm-o4_5_ollama.md)      | [#12078](https://github.com/ollama/ollama/pull/12078)(2025-08-26)                                                      | Merging                                                                                                                | Waiting for official release                                                                                                     |                                                                   |                                                                           |
-| Serving(Cloud)               | vLLM                                                                                                                | [vLLM Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/vllm/minicpm-o4_5_vllm.md)               | [#33431](https://github.com/vllm-project/vllm/pull/33431)(2026-01-30)                                                  | Merging                                                                                                                          | Waiting for official release                                      |                                                                           |
-| SGLang                       | [SGLang Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/deployment/sglang/minicpm-o4_5_sglang.md)      | [#9610](https://github.com/sgl-project/sglang/pull/9610)(2025-08-26)                                                   | Merging                                                                                                                | Waiting for official release                                                                                                     |                                                                   |                                                                           |
-| *Cross-version*              | Finetuning                                                                                                          | LLaMA-Factory                                                                                                          | [LLaMA-Factory Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/finetune/finetune_llamafactory.md)         | [#9022](https://github.com/hiyouga/LLaMA-Factory/pull/9022) (2025-08-26)                                                         | main (2025-08-26)                                                 | Waiting for official release                                              |
-| Quantization                 | GGUF                                                                                                                | [GGUF Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/quantization/gguf/minicpm-v4_6_gguf_quantize.md)    | —                                                                                                                      | —                                                                                                                                | —                                                                 |                                                                           |
-| BNB                          | [BNB Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/quantization/bnb/minicpm-v4_6_bnb_quantize.md)    | —                                                                                                                      | —                                                                                                                      | —                                                                                                                                |                                                                   |                                                                           |
-| AWQ                          | [AWQ Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/quantization/awq/minicpm-v4_6_awq_quantize.md)    | [tc-mb/AutoAWQ](https://github.com/tc-mb/AutoAWQ)                                                                      | —                                                                                                                      | —                                                                                                                                |                                                                   |                                                                           |
-| GPTQ                         | [GPTQ Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/quantization/gptq/minicpm-v4_5_gptq_quantize.md) | [openbmb/MiniCPM-V-4_5-GPTQ](https://huggingface.co/openbmb/MiniCPM-V-4_5-GPTQ)                                        | —                                                                                                                      | —                                                                                                                                |                                                                   |                                                                           |
-| Demos                        | Gradio Demo                                                                                                         | [Gradio Demo Doc](https://github.com/OpenSQZ/MiniCPM-V-CookBook/blob/main/demo/web_demo/gradio/README.md)              | —                                                                                                                      | —                                                                                                                                | —                                                                 |                                                                           |
-
-
-If you'd like us to prioritize support for another open-source framework, please let us know via this
-[short form](https://docs.google.com/forms/d/e/1FAIpQLSdyTUrOPBgWqPexs3ORrg47ZcZ1r4vFQaA4ve2iA7L9sMfMWw/viewform).
 
 ## Awesome Works using MiniCPM-V & o
 
@@ -193,6 +170,16 @@ If you find our model/code/paper helpful, please consider citing our papers 📝
   author={Yao, Yuan and Yu, Tianyu and Zhang, Ao and Wang, Chongyi and Cui, Junbo and Zhu, Hongji and Cai, Tianchi and Li, Haoyu and Zhao, Weilin and He, Zhihui and others},
   journal={Nat Commun 16, 5509 (2025)},
   year={2025}
+}
+
+@article{cui2026minicpmo45realtimefullduplex,
+      title={MiniCPM-o 4.5: Towards Real-Time Full-Duplex Omni-Modal Interaction},
+      author={Junbo Cui and Bokai Xu and Chongyi Wang and Tianyu Yu and Weiyue Sun and Yingjing Xu and Tianran Wang and Zhihui He and Wenshuo Ma and Tianchi Cai and Jiancheng Gui and Luoyuan Zhang and Xian Sun and Fuwei Huang and Moye Chen and Zhuo Lin and Hanyu Liu and Qingxin Gui and Qingzhe Han and Yuyang Wen and Huiping Liu and Rongkang Wang and Yaqi Zhang and Hongliang Wei and Chi Chen and You Li and Kechen Fang and Jie Zhou and Yuxuan Li and Guoyang Zeng and Chaojun Xiao and Yankai Lin and Xu Han and Maosong Sun and Zhiyuan Liu and Yuan Yao},
+      year={2026},
+      eprint={2604.27393},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2604.27393},
 }
 
 ```

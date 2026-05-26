@@ -387,12 +387,16 @@ CSS = r"""
   --accent:  __ACCENT__;
   --sidebar-w: 280px;
   --bg: #fff;
+  --bg-elevated: #fff;
   --bg-side: #fafbfc;
   --bg-code: #f6f8fa;
+  --bg-stripe: #fafbfc;
+  --bg-hover: #ebeff3;
   --c1: #24292f;
   --c2: #57606a;
   --c3: #8b949e;
   --border: #d0d7de;
+  --border-soft: #eaecef;
   --nav-active-bg: rgba(54, 128, 255, .08);
   --nav-active-fg: var(--primary);
   --link: var(--primary);
@@ -404,6 +408,67 @@ CSS = r"""
   --tip-bd:  #1f883d;
   --important-bg: #fbefff;
   --important-bd: #8250df;
+  --logo-filter: none;
+  color-scheme: light;
+}
+
+/* Dark theme: applied when JS sets data-effective-theme="dark" on <html>.
+   The bootstrap script in <head> resolves the user's saved preference
+   ("auto" | "light" | "dark") and the system `prefers-color-scheme` into
+   that attribute before first paint, so the page never flashes white. */
+:root[data-effective-theme="dark"] {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-side: #161b22;
+  --bg-code: #161b22;
+  --bg-stripe: #11161d;
+  --bg-hover: #21262d;
+  --c1: #e6edf3;
+  --c2: #9aa4ae;
+  --c3: #6e7681;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --nav-active-bg: rgba(88, 166, 255, .15);
+  --nav-active-fg: #58a6ff;
+  --link: #58a6ff;
+  --warn-bg: rgba(187, 128, 9, .15);
+  --warn-bd: #9e6a03;
+  --note-bg: rgba(56, 139, 253, .15);
+  --note-bd: #1f6feb;
+  --tip-bg: rgba(46, 160, 67, .15);
+  --tip-bd: #238636;
+  --important-bg: rgba(163, 113, 247, .15);
+  --important-bd: #8250df;
+  --logo-filter: brightness(.95);
+  color-scheme: dark;
+}
+
+/* Smooth crossfade when toggling. `html.no-transitions` is set briefly by JS
+   while applying the saved theme on first load, so the initial paint never
+   animates. */
+body, .topbar, .sidebar, .topbar-search input, .version-switcher select,
+article pre, article code, article th, article tr, article blockquote,
+article .admonition, .topbar-action-btn {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+html.no-transitions, html.no-transitions * { transition: none !important; }
+
+/* Pagefind UI overrides — its built-in dark mode keys off prefers-color-scheme,
+   which doesn't honor our explicit toggle. Force its variables to match
+   whatever our effective theme is. */
+:root[data-effective-theme="light"] .pagefind-ui {
+  --pagefind-ui-primary: __PRIMARY__;
+  --pagefind-ui-text: #24292f;
+  --pagefind-ui-background: #ffffff;
+  --pagefind-ui-border: #d0d7de;
+  --pagefind-ui-tag: #f6f8fa;
+}
+:root[data-effective-theme="dark"] .pagefind-ui {
+  --pagefind-ui-primary: #58a6ff;
+  --pagefind-ui-text: #e6edf3;
+  --pagefind-ui-background: #0d1117;
+  --pagefind-ui-border: #30363d;
+  --pagefind-ui-tag: #161b22;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -422,12 +487,12 @@ img { max-width: 100%; }
 /* ---------- top bar ---------- */
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
-  background: #fff;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; padding: 0 20px; gap: 18px;
 }
 .topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topbar-brand img { height: 30px; }
+.topbar-brand img { height: 30px; filter: var(--logo-filter); }
 .topbar-brand .brand-text { font-weight: 600; font-size: 15px; color: var(--c1); white-space: nowrap; }
 .topbar-search { flex: 1; max-width: 480px; position: relative; }
 .topbar-search input {
@@ -445,7 +510,21 @@ img { max-width: 100%; }
 .topbar-actions a:hover { color: var(--primary); }
 .topbar-toggle {
   display: none; background: none; border: 1px solid var(--border); border-radius: 6px;
-  padding: 4px 10px; font-size: 16px; cursor: pointer;
+  padding: 4px 10px; font-size: 16px; cursor: pointer; color: var(--c1);
+}
+
+/* Theme toggle button: cycles auto → light → dark and persists to localStorage. */
+.topbar-action-btn {
+  background: none; border: 1px solid transparent;
+  color: var(--c2); font: inherit; font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.topbar-action-btn:hover { color: var(--primary); background: var(--bg-hover); border-color: var(--border); }
+.theme-toggle-icon { font-size: 16px; line-height: 1; }
+.theme-toggle-label { font-size: 12px; color: var(--c2); }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
 }
 
 /* ---------- sidebar ---------- */
@@ -468,7 +547,8 @@ img { max-width: 100%; }
 .version-switcher { padding: 0 18px 12px; }
 .version-switcher select {
   width: 100%; padding: 7px 10px; font-size: 14px;
-  border: 1px solid var(--border); border-radius: 6px; background: #fff;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--c1);
   cursor: pointer; outline: none;
 }
 .version-switcher .badge {
@@ -479,7 +559,7 @@ img { max-width: 100%; }
 .nav-list { list-style: none; padding: 4px 12px; }
 .nav-list a { display: block; padding: 6px 12px; color: var(--c2); border-radius: 6px;
               font-size: 14px; transition: background .15s, color .15s; }
-.nav-list a:hover { background: #ebeff3; color: var(--c1); text-decoration: none; }
+.nav-list a:hover { background: var(--bg-hover); color: var(--c1); text-decoration: none; }
 .nav-list a.active { background: var(--nav-active-bg); color: var(--nav-active-fg); font-weight: 600; }
 .nav-group { margin-top: 8px; }
 .nav-group-header {
@@ -488,7 +568,7 @@ img { max-width: 100%; }
   user-select: none; display: flex; align-items: center; gap: 6px;
   border-radius: 6px; transition: background .15s;
 }
-.nav-group-header:hover { background: #ebeff3; }
+.nav-group-header:hover { background: var(--bg-hover); }
 .nav-group-header::before {
   content: ""; width: 0; height: 0;
   border-left: 5px solid var(--c2); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
@@ -496,7 +576,7 @@ img { max-width: 100%; }
 }
 .nav-group.collapsed .nav-group-header::before { transform: rotate(0); }
 .nav-group-children { list-style: none; margin: 2px 0 4px 22px; padding-left: 12px;
-                       border-left: 2px solid #e3e7ed;
+                       border-left: 2px solid var(--border-soft);
                        max-height: 800px; overflow: hidden;
                        transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
                        opacity: 1; }
@@ -517,7 +597,7 @@ article h1, article h2, article h3, article h4, article h5 {
   font-weight: 600; color: var(--c1); margin: 32px 0 12px; line-height: 1.35;
 }
 article h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-top: 0; }
-article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid #eaecef; }
+article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
 article h3 { font-size: 18px; }
 article h4 { font-size: 15px; }
 article p, article ul, article ol, article blockquote { margin-bottom: 14px; }
@@ -534,7 +614,7 @@ article pre code { background: none; padding: 0; }
 article table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
 article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
 article th { background: var(--bg-code); font-weight: 600; }
-article tr:nth-child(even) { background: #fafbfc; }
+article tr:nth-child(even) { background: var(--bg-stripe); }
 article hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
 article blockquote {
   border-left: 4px solid var(--primary); padding: 6px 16px; color: var(--c2);
@@ -577,15 +657,39 @@ footer.page-footer a:hover { color: var(--primary); }
 """
 
 PAGE_TEMPLATE = """<!DOCTYPE html>
-<html lang="{html_lang}">
+<html lang="{html_lang}" class="no-transitions">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{description}">
 <title>{title} — {site_title}</title>
+<meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="{logo_root}assets/logos/openbmb.png">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-dark-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" media="not all">
 <style>{css}</style>
+<script>
+  // Theme bootstrap — runs before <body> so the page never flashes the wrong
+  // colour. Resolves the saved choice ("auto" | "light" | "dark") against the
+  // OS-level `prefers-color-scheme` and writes both values onto <html>:
+  //   data-theme           → what the user chose (drives the toggle UI)
+  //   data-effective-theme → what we actually rendered (drives CSS + hljs)
+  (function() {{
+    try {{
+      var saved = localStorage.getItem('cookbook-theme');
+      if (saved !== 'light' && saved !== 'dark' && saved !== 'auto') saved = 'auto';
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var effective = saved === 'auto' ? (prefersDark ? 'dark' : 'light') : saved;
+      var html = document.documentElement;
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      var l = document.getElementById('hljs-light-css');
+      var d = document.getElementById('hljs-dark-css');
+      if (l) l.media = effective === 'dark' ? 'not all' : 'all';
+      if (d) d.media = effective === 'dark' ? 'all' : 'not all';
+    }} catch (e) {{ /* localStorage may be blocked (private mode, etc.) — leave defaults */ }}
+  }})();
+</script>
 </head>
 <body data-version="{version_id}" data-lang="{lang}" data-slug="{slug}">
 
@@ -599,6 +703,10 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     <input type="search" placeholder="{search_placeholder}" id="pagefind-search">
   </div>
   <nav class="topbar-actions">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="{theme_toggle_aria}" title="{theme_toggle_aria}">
+      <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
+      <span class="theme-toggle-label">{theme_toggle_label}</span>
+    </button>
     {action_links}
   </nav>
 </header>
@@ -646,6 +754,89 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
       if (target) window.location.href = target;
     }});
   }}
+
+  // ----- theme toggle (auto → light → dark, persisted in localStorage) -----
+  (function() {{
+    var html = document.documentElement;
+    var lang = (document.body.dataset.lang === 'zh') ? 'zh' : 'en';
+    var labels = lang === 'zh'
+      ? {{ auto: '主题：自动（跟随系统）', light: '主题：浅色', dark: '主题：深色' }}
+      : {{ auto: 'Theme: Auto (follow system)', light: 'Theme: Light', dark: 'Theme: Dark' }};
+    var shortLabels = lang === 'zh' ? {{ auto: '自动', light: '浅色', dark: '深色' }}
+                                    : {{ auto: 'Auto', light: 'Light', dark: 'Dark' }};
+    var icons = {{ auto: '🌓', light: '☀️', dark: '🌙' }};
+    var btn = document.getElementById('theme-toggle');
+    var iconEl = btn ? btn.querySelector('.theme-toggle-icon') : null;
+    var labelEl = btn ? btn.querySelector('.theme-toggle-label') : null;
+    var hljsLight = document.getElementById('hljs-light-css');
+    var hljsDark  = document.getElementById('hljs-dark-css');
+    // Stash the original mermaid source so we can re-render after a theme
+    // change (otherwise the diagrams stay in their original colours).
+    document.querySelectorAll('.mermaid').forEach(function(n) {{
+      n.setAttribute('data-mermaid-src', n.textContent);
+    }});
+    function rerenderMermaid(effective) {{
+      if (typeof window.mermaid === 'undefined') return;
+      var nodes = document.querySelectorAll('.mermaid');
+      if (!nodes.length) return;
+      nodes.forEach(function(n) {{
+        var src = n.getAttribute('data-mermaid-src');
+        if (src !== null) {{
+          n.removeAttribute('data-processed');
+          n.textContent = src;
+        }}
+      }});
+      try {{
+        window.mermaid.initialize({{ startOnLoad: false, theme: effective === 'dark' ? 'dark' : 'default', securityLevel: 'loose' }});
+        window.mermaid.run({{ querySelector: '.mermaid' }});
+      }} catch (e) {{ console.warn('mermaid re-run failed:', e); }}
+    }}
+    function compute(saved) {{
+      if (saved === 'light' || saved === 'dark') return saved;
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }}
+    function apply(saved, persist) {{
+      if (['auto', 'light', 'dark'].indexOf(saved) < 0) saved = 'auto';
+      var effective = compute(saved);
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      if (hljsLight) hljsLight.media = effective === 'dark' ? 'not all' : 'all';
+      if (hljsDark)  hljsDark.media  = effective === 'dark' ? 'all' : 'not all';
+      if (btn) {{
+        btn.setAttribute('aria-label', labels[saved]);
+        btn.setAttribute('title', labels[saved]);
+        if (iconEl)  iconEl.textContent  = icons[saved];
+        if (labelEl) labelEl.textContent = shortLabels[saved];
+      }}
+      rerenderMermaid(effective);
+      if (persist) {{
+        try {{ localStorage.setItem('cookbook-theme', saved); }} catch (e) {{}}
+      }}
+    }}
+    if (btn) {{
+      btn.addEventListener('click', function() {{
+        var current = html.getAttribute('data-theme') || 'auto';
+        var next = current === 'auto' ? 'light' : (current === 'light' ? 'dark' : 'auto');
+        apply(next, true);
+      }});
+    }}
+    // While the user is in 'auto' mode, follow the OS scheme as it changes.
+    if (window.matchMedia) {{
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function() {{
+        if ((html.getAttribute('data-theme') || 'auto') === 'auto') apply('auto', false);
+      }};
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    }}
+    // Seed the button label/icon to match whatever the bootstrap picked.
+    apply(html.getAttribute('data-theme') || 'auto', false);
+    // Enable CSS transitions only after the first paint, so the initial render
+    // doesn't visibly animate from the wrong colour.
+    requestAnimationFrame(function() {{
+      requestAnimationFrame(function() {{ html.classList.remove('no-transitions'); }});
+    }});
+  }})();
 </script>
 
 <!-- Optional enhancements below. Wrapped so a CDN hiccup never breaks the
@@ -658,7 +849,9 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <script type="module">
   try {{
     const m = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
-    m.default.initialize({{ startOnLoad: true, theme: 'default', securityLevel: 'loose' }});
+    window.mermaid = m.default;
+    var initialTheme = document.documentElement.getAttribute('data-effective-theme') === 'dark' ? 'dark' : 'default';
+    m.default.initialize({{ startOnLoad: true, theme: initialTheme, securityLevel: 'loose' }});
   }} catch (e) {{ console.warn('mermaid failed:', e); }}
 </script>
 {search_script}
@@ -679,6 +872,7 @@ def render_sidebar(
     shared: list[NavGroup],
     current: PageEntry,
     current_version: str | None,
+    registry: Registry,
 ) -> str:
     """Render the sidebar HTML for a given page."""
 
@@ -709,7 +903,7 @@ def render_sidebar(
     out.append('  <select id="version-switcher-select">')
     for v in versions:
         # determine target URL when switching to this version
-        target_slug = _equivalent_slug(current, v.id)
+        target_slug = _equivalent_slug(current, v.id, registry)
         target = _href_to_slug(current, target_slug, lang)
         selected = " selected" if v.id == nav_version_id else ""
         label = v.label.get(lang, v.label["en"])
@@ -792,8 +986,15 @@ def _href_to_slug(current: PageEntry, slug: str, lang: str) -> str:
     return _relpath_url(f"{lang}/{current.url}", f"{lang}/{slug}.html")
 
 
-def _equivalent_slug(current: PageEntry, target_version: str) -> str:
-    """When switching version, try to land on the same logical page."""
+def _equivalent_slug(current: PageEntry, target_version: str, registry: Registry) -> str:
+    """When switching version, try to land on the same logical page.
+
+    Different model series (V / o / LLM) don't share a uniform page layout —
+    e.g. ``inference/single-image`` only exists for V/o, while ``inference/chat``
+    only exists for the LLM series. If the naive same-path candidate doesn't
+    exist under ``target_version``, fall back to that version's ``overview``
+    page so the user never lands on a 404.
+    """
     if current.is_top_level or current.is_shared:
         # top-level pages are version-agnostic; just navigate to that version's overview
         return f"{target_version}/overview"
@@ -801,7 +1002,10 @@ def _equivalent_slug(current: PageEntry, target_version: str) -> str:
         return current.slug
     # strip version prefix and try same path under target version
     rest = current.slug.split("/", 1)[1] if "/" in current.slug else "overview"
-    return f"{target_version}/{rest}"
+    candidate = f"{target_version}/{rest}"
+    if candidate in registry.by_slug:
+        return candidate
+    return f"{target_version}/overview"
 
 
 # ---------------------------------------------------------------------------
@@ -894,6 +1098,7 @@ def build_page(ctx: BuildContext, page: PageEntry, lang: str) -> str | None:
         shared=ctx.shared,
         current=page,
         current_version=page.version_id,
+        registry=ctx.registry,
     )
 
     description = page.title.get(lang, page.title["en"])
@@ -932,6 +1137,9 @@ def build_page(ctx: BuildContext, page: PageEntry, lang: str) -> str | None:
         '</script>\n'
     )
 
+    theme_toggle_aria = "切换主题（自动 / 浅色 / 深色）" if lang == "zh" else "Toggle theme (auto / light / dark)"
+    theme_toggle_label = "自动" if lang == "zh" else "Auto"
+
     return PAGE_TEMPLATE.format(
         html_lang="zh-CN" if lang == "zh" else "en",
         title=title,
@@ -945,6 +1153,8 @@ def build_page(ctx: BuildContext, page: PageEntry, lang: str) -> str | None:
         home_href=home_href,
         search_placeholder="搜索文档…" if lang == "zh" else "Search docs…",
         action_links=action_links_html,
+        theme_toggle_aria=theme_toggle_aria,
+        theme_toggle_label=theme_toggle_label,
         other_lang=other_lang,
         other_lang_label=other_lang_label,
         lang_switch_href=lang_switch_href,
@@ -978,13 +1188,23 @@ def write_site(ctx: BuildContext, langs: tuple[str, ...] = DEFAULT_LANGS) -> dic
             out_path.write_text(html, encoding="utf-8")
             counts[lang] += 1
 
-    # Default-language redirect at site root
+    # Default-language redirect at site root. We give it dark-aware colours so
+    # the brief flash before the JS redirect fires matches the user's theme.
     default_lang = ctx.site_cfg.get("default_lang", "en")
     redirect = f'''<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <title>{ctx.site_cfg["title"]["en"]}</title>
+<meta name="color-scheme" content="light dark">
 <meta http-equiv="refresh" content="0; url=./{default_lang}/index.html">
+<style>
+  html, body {{ background: #fff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
+  @media (prefers-color-scheme: dark) {{
+    html, body {{ background: #0d1117; color: #e6edf3; }}
+    a {{ color: #58a6ff; }}
+  }}
+  body {{ padding: 24px; }}
+</style>
 <script>
   // Honor browser language preference (Accept-Language is not exposed to JS,
   // navigator.language is the closest thing).
@@ -1109,10 +1329,54 @@ def main() -> None:
         os.chdir(ctx.site_dir)
         with socketserver.TCPServer(("", args.port), http.server.SimpleHTTPRequestHandler) as httpd:
             print(f"\n[serve] http://localhost:{args.port}")
+            for ip in _lan_ips():
+                print(f"[serve] http://{ip}:{args.port}")
             try:
                 httpd.serve_forever()
             except KeyboardInterrupt:
                 pass
+
+
+def _lan_ips() -> list[str]:
+    """Best-effort enumeration of non-loopback IPv4 addresses for --serve.
+
+    Tries a UDP-connect trick (works without internet, just resolves the
+    routing table) and falls back to ``socket.gethostbyname_ex`` if that
+    fails. Filters out loopback and common container/overlay interfaces
+    (docker0 / flannel / cni) which aren't useful for sharing the URL.
+    """
+    import socket
+
+    out: list[str] = []
+    seen: set[str] = set()
+
+    def _add(ip: str) -> None:
+        if not ip or ip in seen:
+            return
+        if ip.startswith(("127.", "169.254.", "172.17.", "172.18.")):
+            return
+        # flannel/cni overlays usually live under 10.172/16 or similar; keep
+        # only the one whose /etc/hosts-ish hostname matches.
+        seen.add(ip)
+        out.append(ip)
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("10.255.255.255", 1))
+            _add(s.getsockname()[0])
+        finally:
+            s.close()
+    except OSError:
+        pass
+
+    try:
+        for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
+            _add(ip)
+    except (OSError, socket.gaierror):
+        pass
+
+    return out
 
 
 if __name__ == "__main__":

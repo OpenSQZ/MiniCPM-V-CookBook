@@ -1,6 +1,6 @@
 # MiniCPM-V & o Cookbook
 
-Cook up amazing multimodal AI applications effortlessly with **MiniCPM-V** and **MiniCPM-o**, bringing vision, speech, and live-streaming capabilities right to your fingertips.
+Cook up amazing AI applications effortlessly with **MiniCPM-V**, **MiniCPM-o**, and the **MiniCPM LLM** series — bringing text, vision, speech, and live-streaming capabilities right to your fingertips.
 
 ## What's new
 
@@ -37,13 +37,28 @@ Train / fine-tune / customize:
 
 ## Versions
 
-This cookbook tracks all currently supported MiniCPM-V & o releases:
+This cookbook tracks all currently supported MiniCPM releases:
 
-| Version | Status | Modalities | Backbone | Context |
-| :--- | :--- | :--- | :--- | :--- |
-| **MiniCPM-V 4.6** *(latest)* | Recommended | Image, Video | Qwen3.5 hybrid | 256K |
-| MiniCPM-V 4.5 | Stable | Image, Video | Qwen3 | 32K |
-| MiniCPM-o 4.5 | Stable | Image, Video, Audio | Qwen3 | 32K |
+### MiniCPM-V
+
+| Version | Status | Modality | Size | Highlights | Context |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **4.6** *(latest)* | Recommended | Image, Video | ~1.2B | Phone-ready edge MLLM, LLaVA-UHD v4 vision tower | 256K |
+| 4.5 | Stable | Image, Video | 9B | Image + video understanding, optional thinking mode | 32K |
+
+### MiniCPM-o
+
+| Version | Status | Modality | Size | Highlights | Context |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **4.5** *(latest)* | Recommended | Image, Video, Audio | 9B | End-to-end omnimodal (vision + speech + TTS), full-duplex streaming | 32K |
+
+### MiniCPM (LLM)
+
+| Version | Status | Modality | Size | Highlights | Context |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **4.1** *(latest)* | Recommended | Text | 8B | Hybrid reasoning, EAGLE3, InfLLM-V2 | 128K |
+| 4 | Stable | Text | 0.5B / 8B | InfLLM-V2, FRSpec speculative decoding | 128K |
+| SALA | Research | Text | 8B | Sparse + linear hybrid attention | 1M+ |
 
 Use the **version switcher** in the sidebar to jump between releases.
 

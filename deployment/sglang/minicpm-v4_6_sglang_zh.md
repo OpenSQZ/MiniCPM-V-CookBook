@@ -1,7 +1,7 @@
 # MiniCPM-V 4.6 - SGLang
 
 > [!NOTE]
-> MiniCPM-V 4.6 已合并至官方 SGLang `main` 分支（[PR #24855](https://github.com/sgl-project/sglang/pull/24855)，2026-05-10 merged；配套文档 / fixes 也已合入 main）。**无需使用 fork**，直接从官方仓库安装即可。
+> MiniCPM-V 4.6 自 [PR #24998](https://github.com/sgl-project/sglang/pull/24998)（2026-05-12 merged）起在官方 SGLang `main` 分支上完整可用。**无需使用 fork**，直接从官方仓库安装即可，确保检出的 commit ≥ 该 PR 的 merge 时间。
 >
 > MiniCPM-V 4.6 在 `transformers>=5.7.0` 中以独立架构 `MiniCPMV4_6ForConditionalGeneration` 注册，SGLang 的适配也基于这一布局。
 
@@ -14,7 +14,7 @@ MiniCPM-V 4.6 提供两个 checkpoint：
 
 ### 从官方 main 源码安装
 
-包含此合并的正式 release 出来前，推荐从官方 `main` 安装（请关注 [SGLang Releases](https://github.com/sgl-project/sglang/releases)；正式版发布后可直接 `pip install -U "sglang[all]"`）：
+包含 #24998 的正式 release 出来前，推荐从官方 `main` 安装（请关注 [SGLang Releases](https://github.com/sgl-project/sglang/releases)；正式版发布后可直接 `pip install -U "sglang[all]"`）：
 
 ```bash
 git clone https://github.com/sgl-project/sglang.git

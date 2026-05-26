@@ -100,9 +100,8 @@ git clone https://huggingface.co/openbmb/MiniCPM-V-4
 
 ### 2.Install AutoGPTQ
 
-Clone an AutoGPTQ source tree (for example `https://github.com/AutoGPTQ/AutoGPTQ`), then install from source:
-
 ```Bash
+git clone https://github.com/tc-mb/AutoGPTQ.git
 cd AutoGPTQ
 pip install -e .
 ```

@@ -1,9 +1,7 @@
 # MiniCPM-V 4.6 - Ollama
 
 > [!NOTE]
-> MiniCPM-V 4.6 GGUF support has been merged into the upstream `llama.cpp` ([release `b9049`](https://github.com/ggml-org/llama.cpp/releases/tag/b9049)). The matching Ollama support is being upstreamed; until it lands in an official Ollama release, you can either:
-> 1. use `llama.cpp` directly (see the [llama.cpp guide](../llama.cpp/minicpm-v4_6_llamacpp.md)), or
-> 2. build the OpenBMB Ollama fork as described below.
+> MiniCPM-V 4.6 is officially supported by Ollama starting from **v0.30**. Please make sure your Ollama version is **0.30 or newer**; older releases do not include the model and will fail to load it.
 
 ## 1. Install Ollama
 
@@ -12,37 +10,20 @@
 - **Linux**: `curl -fsSL https://ollama.com/install.sh | sh`, or follow the [Linux install guide](https://github.com/ollama/ollama/blob/main/docs/linux.md).
 - **Docker**: official [Ollama Docker image](https://hub.docker.com/r/ollama/ollama) `ollama/ollama` is on Docker Hub.
 
-### Build Ollama locally (recommended for v4.6 today)
-
-Requirements:
-
-- [go](https://go.dev/doc/install) ≥ 1.22
-- cmake ≥ 3.24
-- A C/C++ toolchain (Clang on macOS, [TDM-GCC](https://github.com/jmeubank/tdm-gcc/releases) / [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) on Windows, GCC/Clang on Linux)
-
-Clone the OpenBMB fork (branch supporting MiniCPM-V 4.6):
+Verify your version is at least 0.30:
 
 ```bash
-git clone https://github.com/tc-mb/ollama.git
-cd ollama
-git checkout MiniCPM-V
-```
-
-Build and run from the repo root:
-
-```bash
-go build .
-./ollama serve
+ollama --version
 ```
 
 ## 2. Quick Start
 
-Once the OpenBMB-published model lands on the Ollama registry, run:
+Pull and run the official OpenBMB model from the Ollama registry (<https://ollama.com/openbmb/minicpm-v4.6>):
 
 ```bash
-./ollama run openbmb/minicpm-v4.6
+ollama run openbmb/minicpm-v4.6
 # or, for the Thinking variant
-./ollama run openbmb/minicpm-v4.6-thinking
+ollama run openbmb/minicpm-v4.6-thinking
 ```
 
 ### Command line
@@ -61,7 +42,7 @@ import base64, requests
 with open(image_path, 'rb') as image_file:
     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     data = {
-        "model": "minicpm-v4.6",
+        "model": "openbmb/minicpm-v4.6",
         "prompt": query,
         "stream": False,
         "images": [encoded_string],  # the list can hold multiple base64-encoded images
@@ -72,7 +53,7 @@ with open(image_path, 'rb') as image_file:
 
 ## 3. Customize model
 
-**If the method above fails, please follow the steps below to load v4.6 GGUFs manually.**
+**If you'd like to load a local GGUF (e.g. a custom quantization), follow the steps below.**
 
 ### Download GGUF Model
 
@@ -110,7 +91,7 @@ PARAMETER temperature 0.7
 ### Create the Ollama model
 
 ```bash
-./ollama create minicpm-v4.6 -f minicpmv4.6.Modelfile
+ollama create minicpm-v4.6 -f minicpmv4.6.Modelfile
 ```
 
 ### Run
@@ -118,7 +99,7 @@ PARAMETER temperature 0.7
 In a new terminal:
 
 ```bash
-./ollama run minicpm-v4.6
+ollama run minicpm-v4.6
 ```
 
 ### Input prompt

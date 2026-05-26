@@ -1,7 +1,7 @@
 # MiniCPM-V 4.6 - SGLang Documentation
 
 > [!NOTE]
-> MiniCPM-V 4.6 has been merged into the official SGLang `main` branch ([PR #24855](https://github.com/sgl-project/sglang/pull/24855), merged on 2026-05-10; the accompanying docs / fix PRs are merged too). **No fork is required** — install directly from upstream.
+> MiniCPM-V 4.6 is supported on the official SGLang `main` branch since [PR #24998](https://github.com/sgl-project/sglang/pull/24998) (merged 2026-05-12). **No fork is required** — install directly from upstream, making sure your checkout is at or after that commit.
 >
 > MiniCPM-V 4.6 is registered in `transformers>=5.7.0` as a standalone architecture (`MiniCPMV4_6ForConditionalGeneration`); the SGLang adapter follows that layout.
 
@@ -14,7 +14,7 @@ MiniCPM-V 4.6 ships as two checkpoints:
 
 ### Install SGLang from upstream main
 
-Until the next SGLang release ships with this merge, install from upstream `main` (watch [SGLang Releases](https://github.com/sgl-project/sglang/releases); once a tagged release includes the merge, `pip install -U "sglang[all]"` is enough):
+Until a tagged SGLang release ships with #24998, install from upstream `main` (watch [SGLang Releases](https://github.com/sgl-project/sglang/releases); once a release includes that PR, `pip install -U "sglang[all]"` is enough):
 
 ```bash
 git clone https://github.com/sgl-project/sglang.git

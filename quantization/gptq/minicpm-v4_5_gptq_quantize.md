@@ -96,91 +96,13 @@ Download the MiniCPM-V 4.5 model from [HuggingFace](https://huggingface.co/openb
 git clone https://huggingface.co/openbmb/MiniCPM-V-4_5
 ```
 
-### 2.Install AutoGPTQ and patch Qwen3 (MiniCPM-V-4_5)
-
-Clone an AutoGPTQ source tree (for example `https://github.com/AutoGPTQ/AutoGPTQ`), apply the edits below, then install from source. The cookbook script sets `llm.config.model_type = "qwen3"` and uses `Qwen3GPTQForCausalLM`; Qwen3 layers may return a hidden state tensor instead of a tuple, so `_base.py` must tolerate both.
-
-Touch these paths under the AutoGPTQ repo:
-
-| Change | File |
-|--------|------|
-| New file | `auto_gptq/modeling/qwen3.py` |
-| Register class + `model_type` | `auto_gptq/modeling/auto.py` |
-| Export | `auto_gptq/modeling/__init__.py` |
-| Allow `model_type == "qwen3"` in checks | `auto_gptq/modeling/_const.py` |
-| Layer forward return value | `auto_gptq/modeling/_base.py` |
-
-#### 2.1 Add `auto_gptq/modeling/qwen3.py`
-
-```python
-from ._base import BaseGPTQForCausalLM
-
-
-class Qwen3GPTQForCausalLM(BaseGPTQForCausalLM):
-    layer_type = "Qwen3DecoderLayer"
-    layers_block_name = "model.layers"
-    outside_layer_modules = ["model.embed_tokens", "model.norm"]
-    inside_layer_modules = [
-        ["self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj"],
-        ["self_attn.o_proj"],
-        ["mlp.gate_proj", "mlp.up_proj"],
-        ["mlp.down_proj"],
-    ]
-
-
-__all__ = ["Qwen3GPTQForCausalLM"]
-```
-
-#### 2.2 Edit `auto_gptq/modeling/auto.py`
-
-With the other `from .xxx import ...` lines at the top of the file, add:
-
-```python
-from .qwen3 import Qwen3GPTQForCausalLM
-```
-
-In `GPTQ_CAUSAL_LM_MODEL_MAP`, add:
-
-```python
-    "qwen3": Qwen3GPTQForCausalLM,
-```
-
-#### 2.3 Edit `auto_gptq/modeling/__init__.py`
-
-Add the export next to the other modeling imports:
-
-```python
-from .qwen3 import Qwen3GPTQForCausalLM
-```
-
-#### 2.4 Edit `auto_gptq/modeling/_const.py`
-
-In the `SUPPORTED_MODELS` list, append the string `"qwen3"` (keep valid Python list syntax, e.g. a trailing comma on the previous entry).
-
-#### 2.5 Edit `auto_gptq/modeling/_base.py`
-
-In `BaseGPTQForCausalLM.quantize`, locate the inner loop that calls `layer(*layer_input, **additional_layer_inputs)` and feeds the result into `move_to_device`. Replace the single `[0]` indexing with logic that accepts either a tuple/list (use first element) or a bare tensor:
-
-```python
-                raw_output = layer(*layer_input, **additional_layer_inputs)
-                if isinstance(raw_output, (tuple, list)):
-                    raw_output = raw_output[0]
-                layer_output = move_to_device(
-                    raw_output,
-                    cur_layer_device if cache_examples_on_gpu else CPU,
-                )
-```
-
-(Remove the old pattern that assumed `layer(...)[0]` always exists.)
-
-#### 2.6 Install from source
+### 2.Install AutoGPTQ
 
 ```Bash
+git clone https://github.com/tc-mb/AutoGPTQ.git
 cd AutoGPTQ
 pip install -e .
 ```
-
-If extension build fails, follow AutoGPTQ’s README for your CUDA / PyTorch version.
 
 ### 3.Quantization Script
 
@@ -418,4 +340,3 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-

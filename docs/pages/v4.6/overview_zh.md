@@ -8,7 +8,7 @@
   - [`openbmb/MiniCPM-V-4.6`](https://huggingface.co/openbmb/MiniCPM-V-4.6) —— Instruct
   - [`openbmb/MiniCPM-V-4.6-Thinking`](https://huggingface.co/openbmb/MiniCPM-V-4.6-Thinking) —— Thinking（思考）
 - **Qwen3.5 hybrid backbone。** 线性注意力与全注意力混合，最长支持 **256K** 上下文。
-- **NaViT 风格视觉塔。** 用 merger 替换原有 resampler，结构更高效，GGUF 转换流程也大大简化。
+- **LLaVA-UHD v4 视觉塔。** 用切片编码 + ViT 内部早期压缩（4×/16× 混合压缩）替换原 Perceiver resampler，GGUF 转换流程也大大简化。参见 [LLaVA-UHD v4 论文](https://arxiv.org/abs/2605.08985)。
 - **transformers 独立架构。** 在 `transformers >= 5.7.0` 中以 `MiniCPMV4_6ForConditionalGeneration` 注册，标准 `AutoProcessor` + `AutoModelForImageTextToText` 即可使用。
 
 ## 快速上手
@@ -82,7 +82,7 @@ python ./convert_hf_to_gguf.py /path/to/MiniCPM-V-4.6 \
 | 思考模式 | 单模型，请求级 `enable_thinking` 切换 | **两个独立 checkpoint**（Instruct、Thinking） |
 | LM Backbone | Qwen3 | **Qwen3.5 hybrid**（线性 + 全注意力） |
 | 最大上下文 | 32K | **256K** |
-| 视觉塔 | Perceiver resampler | **NaViT 风格 merger** |
+| 视觉塔 | Perceiver resampler | **LLaVA-UHD v4**（切片编码 + ViT 内部压缩） |
 | GGUF 转换 | `minicpmv-surgery.py` + image encoder 脚本 | **标准 `convert_hf_to_gguf.py`** |
 | stop_token_ids（vLLM） | `[1, 151645]` | `[248044, 248046]` |
 | 音频 | —（仅视觉） | —（仅视觉） |

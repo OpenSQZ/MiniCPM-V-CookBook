@@ -96,91 +96,13 @@ https://huggingface.co/openbmb/MiniCPM-V-4_5
 git clone https://huggingface.co/openbmb/MiniCPM-V-4_5
 ```
 
-### 2. 安装 AutoGPTQ 并为 Qwen3 (MiniCPM-V-4_5) 打补丁
-
-clone 一份 AutoGPTQ 源码（如 `https://github.com/AutoGPTQ/AutoGPTQ`），按下方修改后从源码安装。本 cookbook 的脚本会把 `llm.config.model_type` 设为 `"qwen3"` 并使用 `Qwen3GPTQForCausalLM`；Qwen3 的 layer 可能直接返回 hidden state tensor 而不是 tuple，所以 `_base.py` 也需要兼容这两种情况。
-
-需要修改 AutoGPTQ 仓库中的以下路径：
-
-| 修改 | 文件 |
-|--------|------|
-| 新增文件 | `auto_gptq/modeling/qwen3.py` |
-| 注册类 + `model_type` | `auto_gptq/modeling/auto.py` |
-| 导出 | `auto_gptq/modeling/__init__.py` |
-| 让校验通过 `model_type == "qwen3"` | `auto_gptq/modeling/_const.py` |
-| 兼容 layer forward 返回值 | `auto_gptq/modeling/_base.py` |
-
-#### 2.1 新增 `auto_gptq/modeling/qwen3.py`
-
-```python
-from ._base import BaseGPTQForCausalLM
-
-
-class Qwen3GPTQForCausalLM(BaseGPTQForCausalLM):
-    layer_type = "Qwen3DecoderLayer"
-    layers_block_name = "model.layers"
-    outside_layer_modules = ["model.embed_tokens", "model.norm"]
-    inside_layer_modules = [
-        ["self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj"],
-        ["self_attn.o_proj"],
-        ["mlp.gate_proj", "mlp.up_proj"],
-        ["mlp.down_proj"],
-    ]
-
-
-__all__ = ["Qwen3GPTQForCausalLM"]
-```
-
-#### 2.2 修改 `auto_gptq/modeling/auto.py`
-
-在文件顶部其它 `from .xxx import ...` 行旁加上：
-
-```python
-from .qwen3 import Qwen3GPTQForCausalLM
-```
-
-并在 `GPTQ_CAUSAL_LM_MODEL_MAP` 中加：
-
-```python
-    "qwen3": Qwen3GPTQForCausalLM,
-```
-
-#### 2.3 修改 `auto_gptq/modeling/__init__.py`
-
-在其它 modeling 导入旁追加：
-
-```python
-from .qwen3 import Qwen3GPTQForCausalLM
-```
-
-#### 2.4 修改 `auto_gptq/modeling/_const.py`
-
-在 `SUPPORTED_MODELS` 列表中追加字符串 `"qwen3"`（注意保持有效的 Python 列表语法，例如前一项加逗号）。
-
-#### 2.5 修改 `auto_gptq/modeling/_base.py`
-
-在 `BaseGPTQForCausalLM.quantize` 中找到调用 `layer(*layer_input, **additional_layer_inputs)` 并把结果传给 `move_to_device` 的内层循环。把原来直接 `[0]` 取值的写法替换为既能处理 tuple/list（取第一个元素）也能直接处理 tensor 的逻辑：
-
-```python
-                raw_output = layer(*layer_input, **additional_layer_inputs)
-                if isinstance(raw_output, (tuple, list)):
-                    raw_output = raw_output[0]
-                layer_output = move_to_device(
-                    raw_output,
-                    cur_layer_device if cache_examples_on_gpu else CPU,
-                )
-```
-
-（删除原来假设 `layer(...)[0]` 一定存在的写法。）
-
-#### 2.6 从源码安装
+### 2. 安装 AutoGPTQ
 
 ```Bash
+git clone https://github.com/tc-mb/AutoGPTQ.git
 cd AutoGPTQ
 pip install -e .
 ```
-
-如果扩展构建失败，按 AutoGPTQ README 安装对应 CUDA / PyTorch 版本依赖。
 
 ### 3. 量化脚本
 

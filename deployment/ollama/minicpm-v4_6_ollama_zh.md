@@ -1,9 +1,7 @@
 # MiniCPM-V 4.6 - Ollama
 
 > [!NOTE]
-> MiniCPM-V 4.6 的 GGUF 支持已合并到上游 `llama.cpp`（[release `b9049`](https://github.com/ggml-org/llama.cpp/releases/tag/b9049)）。对应的 Ollama 支持正在上游合并中。在官方 Ollama 发布版包含此支持之前，可以选择以下任一方案：
-> 1. 直接使用 `llama.cpp`（见 [llama.cpp 指南](../llama.cpp/minicpm-v4_6_llamacpp_zh.md)），或
-> 2. 按下方步骤编译 OpenBMB Ollama 分支。
+> Ollama 自 **v0.30** 起官方支持 MiniCPM-V 4.6。请确保 Ollama 版本 **不低于 0.30**，旧版本不包含该模型支持，会加载失败。
 
 ## 1. 安装 Ollama
 
@@ -12,37 +10,20 @@
 - **Linux**：`curl -fsSL https://ollama.com/install.sh | sh`，或参照 Ollama 官方[手动安装指南](https://github.com/ollama/ollama/blob/main/docs/linux.md)。
 - **Docker**：官方的 [Ollama Docker 镜像](https://hub.docker.com/r/ollama/ollama) `ollama/ollama` 已在 Docker Hub 上提供。
 
-### 本地构建运行 Ollama（v4.6 当前推荐）
-
-环境需求：
-
-- [go](https://go.dev/doc/install) ≥ 1.22
-- cmake ≥ 3.24
-- C/C++ 编译工具链（macOS：Clang；Windows：[TDM-GCC](https://github.com/jmeubank/tdm-gcc/releases) / [llvm-mingw](https://github.com/mstorsjo/llvm-mingw)；Linux：GCC/Clang）
-
-获取支持 MiniCPM-V 4.6 的 OpenBMB Ollama 分支：
+确认版本不低于 0.30：
 
 ```bash
-git clone https://github.com/tc-mb/ollama.git
-cd ollama
-git checkout MiniCPM-V
-```
-
-在仓库根目录下编译并运行：
-
-```bash
-go build .
-./ollama serve
+ollama --version
 ```
 
 ## 2. 快速使用
 
-OpenBMB 在 Ollama registry 上发布的模型可直接运行：
+从 Ollama registry 拉取并运行 OpenBMB 官方模型（<https://ollama.com/openbmb/minicpm-v4.6>）：
 
 ```bash
-./ollama run openbmb/minicpm-v4.6
+ollama run openbmb/minicpm-v4.6
 # 或 Thinking 版本
-./ollama run openbmb/minicpm-v4.6-thinking
+ollama run openbmb/minicpm-v4.6-thinking
 ```
 
 ### 命令行
@@ -62,7 +43,7 @@ with open(image_path, 'rb') as image_file:
     # 将图片文件转换为 base64 编码
     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     data = {
-        "model": "minicpm-v4.6",
+        "model": "openbmb/minicpm-v4.6",
         "prompt": query,
         "stream": False,
         "images": [encoded_string],  # 列表可以放多张图，每张图用上面的方式转化为 base64
@@ -73,7 +54,7 @@ with open(image_path, 'rb') as image_file:
 
 ## 3. 自定义方式
 
-**若上述方式无法运行，请按下面的步骤手动加载 v4.6 GGUF 权重。**
+**如果需要加载本地 GGUF（例如自定义量化版本），请按下面的步骤操作。**
 
 ### 获取 GGUF 模型
 
@@ -113,13 +94,13 @@ PARAMETER temperature 0.7
 ### 创建 Ollama 模型实例
 
 ```bash
-./ollama create minicpm-v4.6 -f minicpmv4.6.Modelfile
+ollama create minicpm-v4.6 -f minicpmv4.6.Modelfile
 ```
 
 ### 另起一个命令行窗口，运行 Ollama 模型实例
 
 ```bash
-./ollama run minicpm-v4.6
+ollama run minicpm-v4.6
 ```
 
 ### 输入问题和图片路径，以空格分隔

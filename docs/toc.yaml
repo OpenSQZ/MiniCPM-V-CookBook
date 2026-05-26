@@ -236,6 +236,150 @@ versions:
             src:   demo/web_demo/gradio/README_o45.md
             url:   demos/gradio
 
+  - id: minicpm5
+    label: { en: "MiniCPM 5", zh: "MiniCPM 5" }
+    badge: "latest-llm"
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/minicpm5/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Chat (Hybrid Reasoning)", zh: "Chat（混合思考）" }
+            src:   inference/minicpm5_chat.md
+            url:   inference/chat
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "vLLM", zh: "vLLM" }
+            src:   deployment/vllm/minicpm5_vllm.md
+            url:   deployment/vllm
+          - title: { en: "SGLang (recommended for tool calling)", zh: "SGLang（推荐用于工具调用）" }
+            src:   deployment/sglang/minicpm5_sglang.md
+            url:   deployment/sglang
+          - title: { en: "llama.cpp", zh: "llama.cpp" }
+            src:   deployment/llama.cpp/minicpm5_llamacpp.md
+            url:   deployment/llamacpp
+          - title: { en: "Ollama", zh: "Ollama" }
+            src:   deployment/ollama/minicpm5_ollama.md
+            url:   deployment/ollama
+          - title: { en: "MLX (Apple Silicon)", zh: "MLX（Apple Silicon）" }
+            src:   deployment/mlx/minicpm5_mlx.md
+            url:   deployment/mlx
+
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
+            src:   finetune/llamafactory_minicpm5.md
+            url:   finetune/llamafactory
+
+  - id: minicpm4_1
+    label: { en: "MiniCPM 4.1", zh: "MiniCPM 4.1" }
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/minicpm4_1/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Chat (Hybrid Reasoning)", zh: "Chat（混合思考）" }
+            src:   inference/minicpm4_1_chat.md
+            url:   inference/chat
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "vLLM", zh: "vLLM" }
+            src:   deployment/vllm/minicpm4_1_vllm.md
+            url:   deployment/vllm
+          - title: { en: "SGLang", zh: "SGLang" }
+            src:   deployment/sglang/minicpm4_1_sglang.md
+            url:   deployment/sglang
+          - title: { en: "llama.cpp", zh: "llama.cpp" }
+            src:   deployment/llama.cpp/minicpm4_1_llamacpp.md
+            url:   deployment/llamacpp
+          - title: { en: "Ollama", zh: "Ollama" }
+            src:   deployment/ollama/minicpm4_1_ollama.md
+            url:   deployment/ollama
+          - title: { en: "MLX (Apple Silicon)", zh: "MLX（Apple Silicon）" }
+            src:   deployment/mlx/minicpm4_1_mlx.md
+            url:   deployment/mlx
+
+      - group: { en: "Quantization", zh: "量化" }
+        items:
+          - title: { en: "AWQ", zh: "AWQ" }
+            src:   quantization/awq/minicpm4_1_awq.md
+            url:   quantization/awq
+          - title: { en: "GPTQ (+ QAT)", zh: "GPTQ（含 QAT）" }
+            src:   quantization/gptq/minicpm4_1_gptq.md
+            url:   quantization/gptq
+
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
+            src:   finetune/llamafactory_minicpm4.md
+            url:   finetune/llamafactory
+
+  - id: minicpm4
+    label: { en: "MiniCPM 4", zh: "MiniCPM 4" }
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/minicpm4/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Chat", zh: "Chat" }
+            src:   inference/minicpm4_chat.md
+            url:   inference/chat
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "vLLM", zh: "vLLM" }
+            src:   deployment/vllm/minicpm4_vllm.md
+            url:   deployment/vllm
+          - title: { en: "SGLang", zh: "SGLang" }
+            src:   deployment/sglang/minicpm4_sglang.md
+            url:   deployment/sglang
+          - title: { en: "llama.cpp", zh: "llama.cpp" }
+            src:   deployment/llama.cpp/minicpm4_llamacpp.md
+            url:   deployment/llamacpp
+          - title: { en: "Ollama", zh: "Ollama" }
+            src:   deployment/ollama/minicpm4_ollama.md
+            url:   deployment/ollama
+
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
+            src:   finetune/llamafactory_minicpm4.md
+            url:   finetune/llamafactory
+
+  - id: minicpm-sala
+    label: { en: "MiniCPM-SALA", zh: "MiniCPM-SALA" }
+    badge: "research"
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/minicpm-sala/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Chat (long-context)", zh: "Chat（长上下文）" }
+            src:   inference/minicpm-sala_chat.md
+            url:   inference/chat
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "SGLang", zh: "SGLang" }
+            src:   deployment/sglang/minicpm-sala_sglang.md
+            url:   deployment/sglang
+
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "LLaMA-Factory", zh: "LLaMA-Factory" }
+            src:   finetune/llamafactory_minicpm-sala.md
+            url:   finetune/llamafactory
+
 # Cross-version pages (under /shared/...)
 shared:
   - group: { en: "Fine-tuning", zh: "微调" }
