@@ -1,6 +1,6 @@
 # MiniCPM-o 4.5 · llama.cpp-omni Usage Guide
 
-This document describes how to run multimodal inference for MiniCPM-o 4.5 on top of this repository (**llama.cpp-omni**), covering three main usages:
+This document describes how to run multimodal inference for MiniCPM-o 4.5 on top of the **llama.cpp-omni** repository, covering three main usages:
 
 1. **Command-line CLI** (`tools/omni/omni-cli.cpp` → `llama-omni-cli`)
 2. **Test programs** (`tools/omni/test/` → simplex audio / simplex omni / duplex)
@@ -14,7 +14,7 @@ Plus the accompanying **Demo** (HuggingFace Space and the locally-deployable Min
 
 ## Table of Contents
 
-- [Part 1: llama.cpp-omni (this repository)](#part-1-llamacpp-omni-this-repository)
+- [Part 1: llama.cpp-omni](#part-1-llamacpp-omni)
   - [1. Environment & Build](#1-environment--build)
   - [2. Download the Model](#2-download-the-model)
   - [3. Usage 1: CLI (`llama-omni-cli`)](#3-usage-1-cli-llama-omni-cli)
@@ -24,7 +24,7 @@ Plus the accompanying **Demo** (HuggingFace Space and the locally-deployable Min
 
 ---
 
-# Part 1: llama.cpp-omni (this repository)
+# Part 1: llama.cpp-omni
 
 llama.cpp-omni splits MiniCPM-o 4.5 into several independent GGUF modules that cooperate during inference:
 
@@ -45,7 +45,7 @@ llama.cpp-omni splits MiniCPM-o 4.5 into several independent GGUF modules that c
 
 - CMake 3.14+ and a C++17 compiler
 - GPU backend (auto-detected): Linux + NVIDIA → CUDA; macOS → Metal
-- (Optional) OpenSSL: this repository defaults to `LLAMA_OPENSSL=ON`, used for serving HTTPS. This option directly affects how `llama-omni-server` starts, see [5.1](#51-starting-the-server-important)
+- (Optional) OpenSSL: llama.cpp-omni defaults to `LLAMA_OPENSSL=ON`, used for serving HTTPS. This option directly affects how `llama-omni-server` starts, see [5.1](#51-starting-the-server-important)
 - (For server video input) `ffmpeg`: needed to parse uploaded MP4s in `turn_based` mode
 
 ### 1.2 Build
@@ -234,7 +234,7 @@ At the end it prints the per-frame decode/e2e timing and a speak/listen summary.
 
 ### 5.1 Starting the server (important)
 
-> This repository defaults to `LLAMA_OPENSSL=ON`, and the server starts with HTTPS (SSLServer). If no certificate is provided, the process exits immediately after printing `Omni HTTP server starting...`, and the port is not listened on. Choose one of the two approaches below:
+> llama.cpp-omni defaults to `LLAMA_OPENSSL=ON`, and the server starts with HTTPS (SSLServer). If no certificate is provided, the process exits immediately after printing `Omni HTTP server starting...`, and the port is not listened on. Choose one of the two approaches below:
 
 **Option A: Provide a certificate and start with HTTPS (required by the Demo / browsers)**
 
@@ -366,7 +366,7 @@ The MiniCPM-o 4.5 Demo is a **full-duplex real-time audio/video conversation** w
 
 Open the official hosted Demo for an online experience: <https://huggingface.co/spaces/openbmb/MiniCPM-o-4_5-Demo> (or visit <https://minicpmo45.modelbest.cn/> directly).
 
-## 2. Local Deployment: MiniCPM-o-Demo (with this repository's C++ backend)
+## 2. Local Deployment: MiniCPM-o-Demo (with llama.cpp-omni's C++ backend)
 
 To run the full audio/video call frontend on your own machine backed by your self-built `llama-omni-server`, use the official Demo repository:
 
@@ -374,7 +374,7 @@ To run the full audio/video call frontend on your own machine backed by your sel
 
 > Branch note: the C++ backend (llama.cpp-omni) has been merged into `main`, which supports both the PyTorch backend and the C++ backend. The old `Comni` branch is deprecated; use `main` instead.
 
-The Demo uses a gateway + worker + backend architecture, where worker/gateway is a generic Python orchestration layer, and the backend can be either PyTorch (`py_backend/server.py`) or C++ (this repository's `llama-omni-server`):
+The Demo uses a gateway + worker + backend architecture, where worker/gateway is a generic Python orchestration layer, and the backend can be either PyTorch (`py_backend/server.py`) or C++ (llama.cpp-omni's `llama-omni-server`):
 
 ```
 Browser ⇄ gateway.py (HTTPS, :8006) ⇄ worker.py (:22400) ⇄ llama-omni-server (HTTP, :22500)
@@ -390,7 +390,7 @@ cd MiniCPM-o-Demo
 
 # Generate a self-signed certificate (for gateway HTTPS)
 mkdir -p certs data
-openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
     -keyout certs/key.pem -out certs/cert.pem -subj "/CN=minicpm-o"
 
 # Build and start (GGUF_MODEL_HOST_PATH points to the host GGUF directory, mounted read-only)
@@ -413,7 +413,7 @@ Docker notes:
 Suitable for debugging or environments without Docker Hub access. Start the three processes in order:
 
 ```bash
-# 0) First build this repository's llama-omni-server (see Part 1, Section 1)
+# 0) First build llama.cpp-omni's llama-omni-server (see Part 1, Section 1)
 #    The backend must be the plain HTTP version: the demo's worker connects to the backend via ws://
 #    and does not skip self-signed certificate verification, so it cannot reach an HTTPS backend.
 #    Therefore, disable OpenSSL at build time:
@@ -461,7 +461,7 @@ For more details see the Demo repository's `README.md` / `README_zh.md` (`main` 
 
 ## References
 
-- This repository's upstream: <https://github.com/tc-mb/llama.cpp-omni>
+- llama.cpp-omni repository: <https://github.com/tc-mb/llama.cpp-omni>
 - Model (PyTorch): <https://huggingface.co/openbmb/MiniCPM-o-4_5>
 - Model (GGUF): <https://huggingface.co/openbmb/MiniCPM-o-4_5-gguf> · <https://modelscope.cn/models/OpenBMB/MiniCPM-o-4_5-gguf>
 - Online Demo: <https://minicpmo45.modelbest.cn/>

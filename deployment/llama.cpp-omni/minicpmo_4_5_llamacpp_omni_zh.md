@@ -1,6 +1,6 @@
 # MiniCPM-o 4.5 · llama.cpp-omni 使用文档
 
-本文档介绍如何基于本仓库（**llama.cpp-omni**）运行 MiniCPM-o 4.5 的多模态推理，涵盖三种主要用法：
+本文档介绍如何基于 **llama.cpp-omni** 仓库运行 MiniCPM-o 4.5 的多模态推理，涵盖三种主要用法：
 
 1. **命令行 CLI**（`tools/omni/omni-cli.cpp` → `llama-omni-cli`）
 2. **测试程序**（`tools/omni/test/` → 单工音频 / 单工 omni / 双工）
@@ -14,7 +14,7 @@
 
 ## 目录
 
-- [第一部分：llama.cpp-omni（本仓库）](#第一部分llamacpp-omni本仓库)
+- [第一部分：llama.cpp-omni](#第一部分llamacpp-omni)
   - [1. 环境与构建](#1-环境与构建)
   - [2. 下载模型](#2-下载模型)
   - [3. 用法一：CLI](#3-用法一cli-llama-omni-cli)
@@ -24,7 +24,7 @@
 
 ---
 
-# 第一部分：llama.cpp-omni（本仓库）
+# 第一部分：llama.cpp-omni
 
 llama.cpp-omni 把 MiniCPM-o 4.5 拆成多个独立的 GGUF 模块协同推理：
 
@@ -45,7 +45,7 @@ llama.cpp-omni 把 MiniCPM-o 4.5 拆成多个独立的 GGUF 模块协同推理�
 
 - CMake 3.14 及以上、C++17 编译器
 - GPU 后端（自动检测）：Linux + NVIDIA → CUDA；macOS → Metal
-- （可选）OpenSSL：本仓库默认 `LLAMA_OPENSSL=ON`，用于服务 HTTPS。该选项直接影响 `llama-omni-server` 的启动方式，见 [5.1](#51-启动服务重点)
+- （可选）OpenSSL：llama.cpp-omni 默认 `LLAMA_OPENSSL=ON`，用于服务 HTTPS。该选项直接影响 `llama-omni-server` 的启动方式，见 [5.1](#51-启动服务重点)
 - （服务的视频输入）`ffmpeg`：`turn_based` 模式下解析上传的 MP4 需要
 
 ### 1.2 构建
@@ -234,7 +234,7 @@ CUDA_VISIBLE_DEVICES=0 ./build/bin/llama-omni-test-duplex -m "$MODEL" --omni \
 
 ### 5.1 启动服务（重点）
 
-> 本仓库默认 `LLAMA_OPENSSL=ON`，服务以 HTTPS（SSLServer）启动。若不提供证书，进程会在打印 `Omni HTTP server starting...` 后直接退出，端口不会监听。以下两种方式任选其一：
+> llama.cpp-omni 默认 `LLAMA_OPENSSL=ON`，服务以 HTTPS（SSLServer）启动。若不提供证书，进程会在打印 `Omni HTTP server starting...` 后直接退出，端口不会监听。以下两种方式任选其一：
 
 **方式 A：提供证书，以 HTTPS 启动（Demo/浏览器均要求 HTTPS）**
 
@@ -366,7 +366,7 @@ MiniCPM-o 4.5 的 Demo 是一套**全双工音视频实时对话**的 Web 应用
 
 打开即可在线体验官方托管的 Demo：<https://huggingface.co/spaces/openbmb/MiniCPM-o-4_5-Demo>（或直接访问 <https://minicpmo45.modelbest.cn/>）。
 
-## 2. 本地部署：MiniCPM-o-Demo（配合本仓库 C++ 后端）
+## 2. 本地部署：MiniCPM-o-Demo（配合 llama.cpp-omni C++ 后端）
 
 如需在本机基于自建的 `llama-omni-server` 运行完整的音视频通话前端，使用官方 Demo 仓库：
 
@@ -374,7 +374,7 @@ MiniCPM-o 4.5 的 Demo 是一套**全双工音视频实时对话**的 Web 应用
 
 > 分支说明：C++ 后端（llama.cpp-omni）已合并进 `main`，`main` 同时支持 PyTorch 后端和 C++ 后端。旧 `Comni` 分支已废弃，统一使用 `main`。
 
-Demo 采用 gateway + worker + backend 架构，worker/gateway 是通用的 Python 编排层，后端可选 PyTorch（`py_backend/server.py`）或 C++（本仓库的 `llama-omni-server`）：
+Demo 采用 gateway + worker + backend 架构，worker/gateway 是通用的 Python 编排层，后端可选 PyTorch（`py_backend/server.py`）或 C++（llama.cpp-omni 的 `llama-omni-server`）：
 
 ```
 浏览器 ⇄ gateway.py（HTTPS，:8006）⇄ worker.py（:22400）⇄ llama-omni-server（HTTP，:22500）
@@ -390,7 +390,7 @@ cd MiniCPM-o-Demo
 
 # 生成自签名证书（gateway 的 HTTPS 用）
 mkdir -p certs data
-openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
     -keyout certs/key.pem -out certs/cert.pem -subj "/CN=minicpm-o"
 
 # 构建并启动（GGUF_MODEL_HOST_PATH 指向宿主机的 GGUF 目录，只读挂载）
@@ -413,7 +413,7 @@ Docker 方式注意事项：
 适用于调试或无法访问 Docker Hub 的场景。三个进程依次启动：
 
 ```bash
-# 0) 先构建本仓库的 llama-omni-server（见第一部分第 1 节）
+# 0) 先构建 llama.cpp-omni 的 llama-omni-server（见第一部分第 1 节）
 #    后端需为普通 HTTP 版：demo 的 worker 用 ws:// 连后端、且不会跳过自签证书校验，
 #    连不上 HTTPS 后端。因此构建时需关闭 OpenSSL：
 #       cmake -B build -DCMAKE_BUILD_TYPE=Release -DLLAMA_OPENSSL=OFF
@@ -460,7 +460,7 @@ curl http://127.0.0.1:8006/health    # gateway: {"status":"healthy",...}
 
 ## 参考链接
 
-- 本仓库上游：<https://github.com/tc-mb/llama.cpp-omni>
+- llama.cpp-omni 仓库：<https://github.com/tc-mb/llama.cpp-omni>
 - 模型（PyTorch）：<https://huggingface.co/openbmb/MiniCPM-o-4_5>
 - 模型（GGUF）：<https://huggingface.co/openbmb/MiniCPM-o-4_5-gguf> · <https://modelscope.cn/models/OpenBMB/MiniCPM-o-4_5-gguf>
 - 在线 Demo：<https://minicpmo45.modelbest.cn/>
