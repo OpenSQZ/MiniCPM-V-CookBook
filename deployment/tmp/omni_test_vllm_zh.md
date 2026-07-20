@@ -236,7 +236,48 @@ print(response.choices[0].message.content)
 > [!NOTE]
 > 音频输入与 TTS 输出是两条独立链路。当前支持理解 WAV、MP3 等输入音频，但响应仍是文本，不会返回生成语音。
 
-## 7. 离线推理
+## 7. 图像与音频联合输入
+
+同一条消息可以同时包含图像和音频。以下示例复用第 5、6 节的 `image_to_data_url` 和 `encode_audio`：
+
+```python
+response = client.chat.completions.create(
+    model="Omni-test",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {"url": image_to_data_url("frame.jpg")},
+                },
+                {
+                    "type": "input_audio",
+                    "input_audio": {
+                        "data": encode_audio("audio.wav"),
+                        "format": "wav",
+                    },
+                },
+                {
+                    "type": "text",
+                    "text": (
+                        "请结合画面和音频，说明这是什么场景、"
+                        "画面中有哪些关键信息，并概括音频内容。"
+                    ),
+                },
+            ],
+        }
+    ],
+    temperature=0,
+    max_tokens=384,
+)
+
+print(response.choices[0].message.content)
+```
+
+已使用同一段 Omni 视频中提取的画面和 12 秒音频进行联合测试。模型正确识别了电梯场景、楼层按钮和火灾警示牌，并概括了音频中的电梯语音播报。
+
+## 8. 离线推理
 
 ```python
 from pathlib import Path
@@ -282,7 +323,7 @@ outputs = llm.chat(
 print(outputs[0].outputs[0].text)
 ```
 
-## 8. 验证 MTP 是否生效
+## 9. 验证 MTP 是否生效
 
 启动参数中包含 `--speculative-config` 后，服务会定期输出类似日志：
 
@@ -302,10 +343,12 @@ Avg Draft acceptance rate: 65.8%
 | 图片 API | HTTP 200，正确识别形状、颜色和文字 |
 | 单音频 API | HTTP 200，正确理解英文演讲内容 |
 | 双音频 API | HTTP 200，正确判断两段音频内容相同 |
+| 图像 + 音频 API | HTTP 200，正确关联电梯画面和语音播报 |
 | MTP | 接受 50 / 76 draft tokens，接受率 65.8% |
+| 联合输入 MTP | 接受 31 / 53 draft tokens，接受率 58.5% |
 | CUDA Graph | FULL / PIECEWISE 捕获成功 |
 
-## 9. 常见问题
+## 10. 常见问题
 
 ### `_moe_C::moe_sum()` 参数数量不匹配
 
