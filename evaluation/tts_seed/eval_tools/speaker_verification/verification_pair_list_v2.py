@@ -27,6 +27,9 @@ parser.add_argument("--wav2_cut_wav1", type=bool, default=False)
 parser.add_argument("--device", default="cuda:0")
 args = parser.parse_args()
 
+# device=cpu 时不能走 .cuda()（否则报 "Invalid device, must be cuda device"）
+use_gpu = not str(args.device).lower().startswith("cpu")
+
 with open(args.pair, "r") as f:
     lines = f.readlines()
 
@@ -56,7 +59,7 @@ for t1, t2 in tqdm.tqdm(zip(tsv1, tsv2), total=len(tsv1)):
             args.model_name,
             t1_path,
             t2_path,
-            use_gpu=True,
+            use_gpu=use_gpu,
             checkpoint=args.checkpoint,
             wav1_start_sr=args.wav1_start_sr,
             wav2_start_sr=args.wav2_start_sr,
@@ -79,5 +82,5 @@ for t1, t2 in tqdm.tqdm(zip(tsv1, tsv2), total=len(tsv1)):
     score_list.append(sim.cpu().item())
     scores_w.flush()
 
-scores_w.write(f"avg score: {sum(score_list) / len(score_list)}")
+scores_w.write(f"avg score: {sum(score_list) / len(score_list) if score_list else 0.0}")
 scores_w.flush()

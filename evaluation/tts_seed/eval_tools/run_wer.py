@@ -29,8 +29,9 @@ def load_en_model():
 
 
 def load_zh_model():
-    paraformer_model = os.environ.get("PARAFORMER_MODEL", "/cache/hanqingzhe/paraformer")
-    return AutoModel(model=paraformer_model)
+    paraformer_model = os.environ.get("PARAFORMER_MODEL", "/path/to/paraformer-zh")
+    # device 由 WER_DEVICE 控制（cpu / cuda:0），无显卡时用 cpu
+    return AutoModel(model=paraformer_model, device=device, disable_update=True)
 
 
 def process_one(hypo, truth):

@@ -1,0 +1,1050 @@
+diff --git a/tools/omni/CMakeLists.txt b/tools/omni/CMakeLists.txt
+index 8d1e373..5bfe9a2 100644
+--- a/tools/omni/CMakeLists.txt
++++ b/tools/omni/CMakeLists.txt
+@@ -104,6 +104,16 @@ endif()
+ target_link_libraries  (${TARGET} PRIVATE llama-common omni Threads::Threads)
+ target_compile_features(${TARGET} PRIVATE cxx_std_17)
+ 
++# TTS 评测 CLI - manifest(TSV) 驱动的批量 seed-tts-eval 语音克隆推理（omni-tts-eval.cpp）
++set(TARGET_TTS_EVAL llama-omni-tts-eval)
++add_executable         (${TARGET_TTS_EVAL} omni-tts-eval.cpp)
++set_target_properties  (${TARGET_TTS_EVAL} PROPERTIES OUTPUT_NAME llama-omni-tts-eval)
++if(LLAMA_TOOLS_INSTALL)
++    install(TARGETS ${TARGET_TTS_EVAL} RUNTIME)
++endif()
++target_link_libraries  (${TARGET_TTS_EVAL} PRIVATE llama-common omni Threads::Threads)
++target_compile_features(${TARGET_TTS_EVAL} PRIVATE cxx_std_17)
++
+ # 单工模式 - 纯音频测试（批量 prefill + 单次 decode）
+ set(TARGET_SINGLE_TEST_AUDIO llama-omni-single-test-audio)
+ add_executable         (${TARGET_SINGLE_TEST_AUDIO} test/single_test_audio.cpp)
+diff --git a/tools/omni/omni-tts-eval.cpp b/tools/omni/omni-tts-eval.cpp
+new file mode 100644
+index 0000000..0ae27c2
+--- /dev/null
++++ b/tools/omni/omni-tts-eval.cpp
+@@ -0,0 +1,893 @@
++#include "omni.h"
++#include "token2wav/token2wav-impl.h"
++
++#include "sampling.h"
++#include "common.h"
++#include "llama.h"
++#include "ggml.h"
++
++#include <iostream>
++#include <fstream>
++#include <sstream>
++#include <chrono>
++#include <vector>
++#include <string>
++#include <set>
++#include <cinttypes>
++#include <algorithm>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <cmath>
++#include <filesystem>
++
++// ============================================================
++// Data structures
++// ============================================================
++
++struct EvalSample {
++    std::string ref_audio_path;
++    std::string bundle_dir;
++    std::string infer_text;
++    std::string output_wav_path;
++};
++
++struct TtsEvalParams {
++    std::string model_dir;
++    std::string manifest_path;
++    std::string language        = "zh";
++    int         seed            = 42;
++    float       temperature     = 0.8f;
++    int         max_audio_tokens = 2000;
++    int         n_gpu_layers    = 99;
++    std::string t2w_device      = "gpu:0";
++    int         n_threads       = 4;
++    int         n_ctx           = 8192;
++    int         n_batch         = 2048;
++
++    // Optional individual model path overrides
++    std::string llm_path;
++    std::string tts_path;
++    std::string audio_path;
++    std::string projector_path;
++};
++
++// ============================================================
++// Utility helpers
++// ============================================================
++
++static std::string get_parent_dir(const std::string & path) {
++    size_t pos = path.find_last_of("/\\");
++    if (pos != std::string::npos) {
++        return path.substr(0, pos);
++    }
++    return ".";
++}
++
++static bool file_exists(const std::string & path) {
++    FILE * f = fopen(path.c_str(), "rb");
++    if (f) { fclose(f); return true; }
++    return false;
++}
++
++// Try a list of candidate paths and return the first one that exists.
++static std::string find_first_existing(const std::vector<std::string> & candidates) {
++    for (const auto & c : candidates) {
++        if (file_exists(c)) return c;
++    }
++    return "";
++}
++
++// ============================================================
++// T2.1.2  Command-line argument parsing
++// ============================================================
++
++static void show_usage(const char * prog) {
++    printf(
++        "MiniCPM-o TTS Evaluation Tool\n\n"
++        "Usage: %s -m <model_dir> --manifest <tsv> [options]\n\n"
++        "Required:\n"
++        "  -m, --model-dir <dir>     Model directory containing GGUF files\n"
++        "  --manifest <path>         TSV manifest file (4 columns, TAB-separated):\n"
++        "                              ref_audio_path  bundle_dir  infer_text  output_wav_path\n\n"
++        "Options:\n"
++        "  --language <zh|en>        Prompt language (default: zh)\n"
++        "  --seed <n>                Random seed (default: 42)\n"
++        "  --temperature <f>         TTS sampling temperature (default: 0.8)\n"
++        "  --max-audio-tokens <n>    Max audio tokens to generate (default: 2000)\n"
++        "  -ngl, --n-gpu-layers <n>  GPU offload layers (default: 99)\n"
++        "  --t2w-device <dev>        Token2Wav device, e.g. gpu:0, cpu (default: gpu:0)\n"
++        "  -t, --n-threads <n>       CPU threads (default: 4)\n"
++        "  -c, --ctx-size <n>        Context size (default: 8192)\n"
++        "  --llm <path>              Override LLM model path\n"
++        "  --tts <path>              Override TTS model path\n"
++        "  --audio <path>            Override audio (APM) model path\n"
++        "  --projector <path>        Override projector model path\n"
++        "  -h, --help                Show this help\n\n"
++        "Example:\n"
++        "  %s -m ./models/MiniCPM-o-4_5-gguf --manifest eval.tsv --language zh\n",
++        prog, prog
++    );
++}
++
++static bool parse_args(int argc, char ** argv, TtsEvalParams & ep) {
++    for (int i = 1; i < argc; i++) {
++        std::string arg = argv[i];
++
++        if (arg == "-h" || arg == "--help") {
++            show_usage(argv[0]);
++            exit(0);
++        }
++        else if ((arg == "-m" || arg == "--model-dir") && i + 1 < argc) {
++            ep.model_dir = argv[++i];
++        }
++        else if (arg == "--manifest" && i + 1 < argc) {
++            ep.manifest_path = argv[++i];
++        }
++        else if (arg == "--language" && i + 1 < argc) {
++            ep.language = argv[++i];
++        }
++        else if (arg == "--seed" && i + 1 < argc) {
++            ep.seed = std::atoi(argv[++i]);
++        }
++        else if (arg == "--temperature" && i + 1 < argc) {
++            ep.temperature = std::atof(argv[++i]);
++        }
++        else if (arg == "--max-audio-tokens" && i + 1 < argc) {
++            ep.max_audio_tokens = std::atoi(argv[++i]);
++        }
++        else if ((arg == "-ngl" || arg == "--n-gpu-layers") && i + 1 < argc) {
++            ep.n_gpu_layers = std::atoi(argv[++i]);
++        }
++        else if (arg == "--t2w-device" && i + 1 < argc) {
++            ep.t2w_device = argv[++i];
++        }
++        else if ((arg == "-t" || arg == "--n-threads") && i + 1 < argc) {
++            ep.n_threads = std::atoi(argv[++i]);
++        }
++        else if ((arg == "-c" || arg == "--ctx-size") && i + 1 < argc) {
++            ep.n_ctx = std::atoi(argv[++i]);
++        }
++        else if (arg == "--llm" && i + 1 < argc) {
++            ep.llm_path = argv[++i];
++        }
++        else if (arg == "--tts" && i + 1 < argc) {
++            ep.tts_path = argv[++i];
++        }
++        else if (arg == "--audio" && i + 1 < argc) {
++            ep.audio_path = argv[++i];
++        }
++        else if (arg == "--projector" && i + 1 < argc) {
++            ep.projector_path = argv[++i];
++        }
++        else if (arg == "--teacher-forcing") {
++            // Always on — accepted for Python-side compatibility
++        }
++        else {
++            fprintf(stderr, "Unknown argument: %s\n", arg.c_str());
++            show_usage(argv[0]);
++            return false;
++        }
++    }
++
++    if (ep.model_dir.empty() && ep.llm_path.empty()) {
++        fprintf(stderr, "Error: -m <model_dir> is required\n\n");
++        show_usage(argv[0]);
++        return false;
++    }
++    if (ep.manifest_path.empty()) {
++        fprintf(stderr, "Error: --manifest <path> is required\n\n");
++        show_usage(argv[0]);
++        return false;
++    }
++    if (ep.language != "zh" && ep.language != "en") {
++        fprintf(stderr, "Error: --language must be 'zh' or 'en', got '%s'\n", ep.language.c_str());
++        return false;
++    }
++    return true;
++}
++
++// ============================================================
++// T2.1.3  Manifest TSV parser
++// ============================================================
++
++static std::vector<EvalSample> parse_manifest(const std::string & manifest_path) {
++    std::vector<EvalSample> samples;
++    std::ifstream fin(manifest_path);
++    if (!fin.is_open()) {
++        fprintf(stderr, "Error: cannot open manifest file: %s\n", manifest_path.c_str());
++        return samples;
++    }
++
++    std::string line;
++    int line_num = 0;
++    while (std::getline(fin, line)) {
++        line_num++;
++        if (line.empty() || line[0] == '#') continue;
++
++        std::vector<std::string> fields;
++        std::istringstream iss(line);
++        std::string field;
++        while (std::getline(iss, field, '\t')) {
++            fields.push_back(field);
++        }
++
++        if (fields.size() < 4) {
++            fprintf(stderr, "Warning: manifest line %d has %zu fields (expected 4), skipping\n",
++                    line_num, fields.size());
++            continue;
++        }
++
++        EvalSample s;
++        s.ref_audio_path  = fields[0];
++        s.bundle_dir      = fields[1];
++        s.infer_text      = fields[2];
++        s.output_wav_path = fields[3];
++        samples.push_back(std::move(s));
++    }
++
++    // Print statistics
++    std::set<std::string> unique_refs;
++    for (const auto & s : samples) {
++        unique_refs.insert(s.ref_audio_path);
++    }
++    fprintf(stderr, "Manifest: %zu samples, %zu unique reference audios\n",
++            samples.size(), unique_refs.size());
++
++    return samples;
++}
++
++// ============================================================
++// T2.1.4  Model path resolution
++// ============================================================
++
++struct EvalModelPaths {
++    std::string llm;
++    std::string tts;
++    std::string audio;
++    std::string projector;
++    std::string tts_bin_dir;   // directory containing TTS + projector (for omni_init)
++};
++
++static EvalModelPaths resolve_eval_model_paths(const TtsEvalParams & ep) {
++    EvalModelPaths p;
++    const std::string & dir = ep.model_dir;
++
++    // --- LLM ---
++    if (!ep.llm_path.empty()) {
++        p.llm = ep.llm_path;
++    } else {
++        p.llm = find_first_existing({
++            dir + "/MiniCPM-o-2_6-F16.gguf",
++            dir + "/MiniCPM-o-2_6-tts-F16.gguf",
++            dir + "/MiniCPM-o-4_5-F16.gguf",
++            dir + "/MiniCPM-o-4_5-Q4_K_M.gguf",
++        });
++        if (p.llm.empty()) {
++            fprintf(stderr, "Error: cannot find LLM GGUF in %s\n", dir.c_str());
++        }
++    }
++
++    // --- TTS ---
++    if (!ep.tts_path.empty()) {
++        p.tts = ep.tts_path;
++    } else {
++        p.tts = find_first_existing({
++            dir + "/MiniCPM-o-4_5-tts-step-audio-F16.gguf",
++            dir + "/MiniCPM-o-4_5-tts-F16.gguf",
++            dir + "/tts/MiniCPM-o-4_5-tts-F16.gguf",
++            dir + "/tts/MiniCPM-o-4_5-tts-step-audio-F16.gguf",
++        });
++        if (p.tts.empty()) {
++            fprintf(stderr, "Error: cannot find TTS GGUF in %s\n", dir.c_str());
++        }
++    }
++
++    // --- Audio (APM) ---
++    if (!ep.audio_path.empty()) {
++        p.audio = ep.audio_path;
++    } else {
++        p.audio = find_first_existing({
++            dir + "/MiniCPM-o-4_5-audio-F16.gguf",
++            dir + "/audio/MiniCPM-o-4_5-audio-F16.gguf",
++        });
++        if (p.audio.empty()) {
++            fprintf(stderr, "Error: cannot find Audio (APM) GGUF in %s\n", dir.c_str());
++        }
++    }
++
++    // --- Projector ---
++    if (!ep.projector_path.empty()) {
++        p.projector = ep.projector_path;
++    } else {
++        p.projector = find_first_existing({
++            dir + "/MiniCPM-o-4_5-projector-F16.gguf",
++            dir + "/tts/MiniCPM-o-4_5-projector-F16.gguf",
++        });
++        if (p.projector.empty()) {
++            fprintf(stderr, "Error: cannot find Projector GGUF in %s\n", dir.c_str());
++        }
++    }
++
++    // tts_bin_dir: directory that contains the projector GGUF
++    // omni_init loads projector from {tts_bin_dir}/MiniCPM-o-4_5-projector-F16.gguf
++    if (!p.projector.empty()) {
++        p.tts_bin_dir = get_parent_dir(p.projector);
++    } else if (!p.tts.empty()) {
++        p.tts_bin_dir = get_parent_dir(p.tts);
++    } else {
++        p.tts_bin_dir = dir;
++    }
++
++    return p;
++}
++
++static void print_eval_model_paths(const EvalModelPaths & p) {
++    fprintf(stderr, "=== Model Paths ===\n");
++    fprintf(stderr, "  LLM:        %s %s\n", p.llm.c_str(),       p.llm.empty()       ? "[NOT FOUND]" : (file_exists(p.llm)       ? "[OK]" : "[NOT FOUND]"));
++    fprintf(stderr, "  TTS:        %s %s\n", p.tts.c_str(),       p.tts.empty()       ? "[NOT FOUND]" : (file_exists(p.tts)       ? "[OK]" : "[NOT FOUND]"));
++    fprintf(stderr, "  Audio:      %s %s\n", p.audio.c_str(),     p.audio.empty()     ? "[NOT FOUND]" : (file_exists(p.audio)     ? "[OK]" : "[NOT FOUND]"));
++    fprintf(stderr, "  Projector:  %s %s\n", p.projector.c_str(), p.projector.empty() ? "[NOT FOUND]" : (file_exists(p.projector) ? "[OK]" : "[NOT FOUND]"));
++    fprintf(stderr, "  TTS bin:    %s\n", p.tts_bin_dir.c_str());
++    fprintf(stderr, "===================\n");
++}
++
++// ============================================================
++// T2.4.1  Hidden-state / token append helpers
++// ============================================================
++
++static void append_hidden_and_tokens(
++    std::vector<float>       & all_hidden,
++    std::vector<llama_token> & all_tokens,
++    const float * hidden, int n_tokens, int n_embd,
++    const std::vector<llama_token> & tokens)
++{
++    if (hidden && n_tokens > 0 && n_embd > 0) {
++        all_hidden.insert(all_hidden.end(),
++                          hidden, hidden + (size_t)n_tokens * n_embd);
++    }
++    if (!tokens.empty()) {
++        all_tokens.insert(all_tokens.end(), tokens.begin(), tokens.end());
++    } else {
++        for (int i = 0; i < n_tokens; i++) all_tokens.push_back(-1);
++    }
++}
++
++// ============================================================
++// T2.5  Build TTS condition from hidden states + token IDs
++// ============================================================
++
++static bool build_tts_condition(
++    struct omni_context * ctx_omni,
++    const std::vector<float>       & tts_hidden,
++    const std::vector<llama_token> & tts_tokens,
++    int llm_n_embd,
++    std::vector<float> & condition_out,
++    int & condition_length_out)
++{
++    const int n_tts = (int)tts_tokens.size();
++    int tts_n_embd = llama_model_n_embd(llama_get_model(ctx_omni->ctx_tts_llama));
++
++    // Step 1: emb_text(token_ids) → llm_embeds
++    std::vector<float> llm_embeds(n_tts * tts_n_embd);
++    for (int j = 0; j < n_tts; j++) {
++        if (!tts_emb_text(ctx_omni, tts_tokens[j],
++                          llm_embeds.data() + j * tts_n_embd, tts_n_embd)) {
++            fprintf(stderr, "build_tts_condition: tts_emb_text failed at token %d\n", j);
++            return false;
++        }
++    }
++
++    // Step 2: projector_semantic(hidden) → projected
++    std::vector<float> projected(n_tts * tts_n_embd);
++    if (!tts_projector_semantic(ctx_omni, tts_hidden.data(),
++                                n_tts, llm_n_embd,
++                                projected.data(), tts_n_embd)) {
++        fprintf(stderr, "build_tts_condition: tts_projector_semantic failed\n");
++        return false;
++    }
++
++    // Step 3: L2 normalize projected per token
++    normalize_l2_per_token(projected.data(), n_tts, tts_n_embd);
++
++    // Step 4: tts_embeds = llm_embeds + projected
++    std::vector<float> tts_embeds(n_tts * tts_n_embd);
++    for (size_t j = 0; j < tts_embeds.size(); j++) {
++        tts_embeds[j] = llm_embeds[j] + projected[j];
++    }
++
++    // Step 5: append text_eos_embed and audio_bos_embed
++    const int text_eos_token_id  = 151692;
++    const int audio_bos_token_id = 151687;
++
++    condition_out = std::move(tts_embeds);
++
++    std::vector<float> text_eos_embed(tts_n_embd);
++    tts_emb_text(ctx_omni, text_eos_token_id, text_eos_embed.data(), tts_n_embd);
++    condition_out.insert(condition_out.end(), text_eos_embed.begin(), text_eos_embed.end());
++
++    std::vector<float> audio_bos_embed(tts_n_embd);
++    tts_emb_text(ctx_omni, audio_bos_token_id, audio_bos_embed.data(), tts_n_embd);
++    condition_out.insert(condition_out.end(), audio_bos_embed.begin(), audio_bos_embed.end());
++
++    condition_length_out = n_tts + 2;
++    return true;
++}
++
++// ============================================================
++// T2.7.2  WAV file writer (16-bit PCM, mono)
++// ============================================================
++
++static bool write_wav_file(const std::string & path, const std::vector<float> & wave, int sample_rate) {
++    const int16_t num_channels    = 1;
++    const int16_t bits_per_sample = 16;
++    const int16_t block_align     = num_channels * (bits_per_sample / 8);
++    const int32_t byte_rate       = sample_rate * block_align;
++
++    std::vector<int16_t> pcm(wave.size());
++    for (size_t i = 0; i < wave.size(); i++) {
++        float x = wave[i];
++        if (!std::isfinite(x)) x = 0.0f;
++        x = std::max(-1.0f, std::min(1.0f, x));
++        float y = x * 32767.0f;
++        pcm[i] = (y >= 32767.0f) ? (int16_t)32767 :
++                 (y <= -32768.0f) ? (int16_t)-32768 : (int16_t)y;
++    }
++
++    const uint32_t data_bytes = (uint32_t)(pcm.size() * sizeof(int16_t));
++    const uint32_t riff_size  = 36u + data_bytes;
++
++    // Ensure parent directory exists
++    {
++        size_t pos = path.find_last_of("/\\");
++        if (pos != std::string::npos) {
++            std::string dir = path.substr(0, pos);
++            std::error_code ec;
++            std::filesystem::create_directories(dir, ec);
++        }
++    }
++
++    std::ofstream out(path, std::ios::binary);
++    if (!out) {
++        fprintf(stderr, "write_wav_file: cannot create %s\n", path.c_str());
++        return false;
++    }
++
++    auto w16 = [&](uint16_t v) { out.write(reinterpret_cast<const char *>(&v), 2); };
++    auto w32 = [&](uint32_t v) { out.write(reinterpret_cast<const char *>(&v), 4); };
++
++    out.write("RIFF", 4); w32(riff_size);
++    out.write("WAVE", 4);
++    out.write("fmt ", 4); w32(16); w16(1);
++    w16(num_channels); w32(sample_rate); w32(byte_rate);
++    w16(block_align); w16(bits_per_sample);
++    out.write("data", 4); w32(data_bytes);
++    out.write(reinterpret_cast<const char *>(pcm.data()), data_bytes);
++    return out.good();
++}
++
++// ============================================================
++// T2.1.5  Model loading
++// ============================================================
++
++struct EvalContext {
++    struct omni_context * ctx_omni = nullptr;
++    common_params        params;
++
++    // Special token IDs (cached from LLM vocab)
++    llama_token tts_bos_id     = -1;
++    llama_token tts_eos_id     = -1;
++    llama_token audio_start_id = -1;
++    llama_token audio_end_id   = -1;
++};
++
++static llama_token find_special_token(const struct llama_vocab * vocab, const char * token_str) {
++    llama_token tokens[4];
++    int n = llama_tokenize(vocab, token_str, strlen(token_str), tokens, 4, false, true);
++    if (n == 1) return tokens[0];
++
++    int n_vocab = llama_vocab_n_tokens(vocab);
++    for (int i = 0; i < n_vocab; i++) {
++        char buf[128];
++        int len = llama_token_to_piece(vocab, i, buf, sizeof(buf), 0, true);
++        if (len > 0 && len < (int)sizeof(buf)) {
++            buf[len] = '\0';
++            if (strcmp(buf, token_str) == 0) return i;
++        }
++    }
++    return -1;
++}
++
++static EvalContext * eval_context_init(const TtsEvalParams & ep, const EvalModelPaths & mp) {
++    auto * ec = new EvalContext();
++
++    // Populate common_params
++    ec->params.model.path   = mp.llm;
++    ec->params.apm_model    = mp.audio;
++    ec->params.tts_model    = mp.tts;
++    ec->params.n_ctx        = ep.n_ctx;
++    ec->params.n_batch      = ep.n_batch;
++    ec->params.n_gpu_layers = ep.n_gpu_layers;
++    ec->params.cpuparams.n_threads = ep.n_threads;
++
++    common_init();
++
++    fprintf(stderr, "=== Initializing Omni Context (TTS Eval) ===\n");
++    fprintf(stderr, "  Context size:    %d\n", ep.n_ctx);
++    fprintf(stderr, "  Batch size:      %d\n", ep.n_batch);
++    fprintf(stderr, "  GPU layers:      %d\n", ep.n_gpu_layers);
++    fprintf(stderr, "  CPU threads:     %d\n", ep.n_threads);
++    fprintf(stderr, "  T2W device:      %s\n", ep.t2w_device.c_str());
++    fprintf(stderr, "  TTS bin dir:     %s\n", mp.tts_bin_dir.c_str());
++
++    ec->ctx_omni = omni_init(
++        &ec->params,
++        /*media_type=*/1,          // audio only
++        /*use_tts=*/true,
++        mp.tts_bin_dir,
++        /*tts_gpu_layers=*/-1,
++        ep.t2w_device
++    );
++
++    if (!ec->ctx_omni) {
++        fprintf(stderr, "Error: omni_init failed\n");
++        delete ec;
++        return nullptr;
++    }
++
++    ec->ctx_omni->async = false;  // synchronous mode for eval
++
++    // Cache special token IDs from LLM vocab
++    const struct llama_vocab * vocab = llama_model_get_vocab(ec->ctx_omni->model);
++    if (vocab) {
++        ec->tts_bos_id     = find_special_token(vocab, "<|tts_bos|>");
++        ec->tts_eos_id     = find_special_token(vocab, "<|tts_eos|>");
++        ec->audio_start_id = find_special_token(vocab, "<|audio_start|>");
++        ec->audio_end_id   = find_special_token(vocab, "<|audio_end|>");
++
++        fprintf(stderr, "Special tokens:  tts_bos=%d  tts_eos=%d  audio_start=%d  audio_end=%d\n",
++                ec->tts_bos_id, ec->tts_eos_id, ec->audio_start_id, ec->audio_end_id);
++    }
++
++    return ec;
++}
++
++static void eval_context_free(EvalContext * ec) {
++    if (!ec) return;
++    if (ec->ctx_omni) omni_free(ec->ctx_omni);
++    delete ec;
++}
++
++// ============================================================
++// main
++// ============================================================
++
++int main(int argc, char ** argv) {
++    ggml_time_init();
++
++    // --- Parse command-line arguments ---
++    TtsEvalParams ep;
++    if (!parse_args(argc, argv, ep)) {
++        return 1;
++    }
++
++    // --- Resolve model paths ---
++    EvalModelPaths mp = resolve_eval_model_paths(ep);
++    print_eval_model_paths(mp);
++
++    if (mp.llm.empty() || mp.tts.empty() || mp.audio.empty()) {
++        fprintf(stderr, "Error: required model files not found\n");
++        return 1;
++    }
++
++    // --- Parse manifest ---
++    auto samples = parse_manifest(ep.manifest_path);
++    if (samples.empty()) {
++        fprintf(stderr, "Error: no valid samples in manifest\n");
++        return 1;
++    }
++
++    // --- Load models ---
++    auto * ec = eval_context_init(ep, mp);
++    if (!ec) {
++        return 1;
++    }
++
++    fprintf(stderr, "\n=== TTS Eval ready: %zu samples ===\n\n", samples.size());
++
++    // ============================================================
++    // Constants
++    // ============================================================
++    const int num_audio_tokens   = 6562;
++    const int audio_bos_token_id = 151687;
++    const int tts_eos_token_abs  = audio_bos_token_id + num_audio_tokens - 1; // 158248
++    const int SAMPLE_RATE        = 24000;
++
++    auto * ctx_omni = ec->ctx_omni;
++    int llm_n_embd  = llama_model_n_embd(llama_get_model(ctx_omni->ctx_llama));
++    int tts_n_embd  = llama_model_n_embd(llama_get_model(ctx_omni->ctx_tts_llama));
++
++    // ============================================================
++    // Main eval loop
++    // ============================================================
++    std::string prev_ref_audio;
++    std::string cur_bundle_dir;
++    omni_embed * audio_embed = nullptr;
++    int n_success = 0, n_fail = 0;
++    auto t_start_all = std::chrono::high_resolution_clock::now();
++
++    for (size_t i = 0; i < samples.size(); i++) {
++        const auto & s = samples[i];
++        auto t_sample_start = std::chrono::high_resolution_clock::now();
++
++        fprintf(stderr, "\n[%zu/%zu] ref=%s  text=\"%s\"  out=%s\n",
++                i + 1, samples.size(),
++                s.ref_audio_path.c_str(),
++                s.infer_text.c_str(),
++                s.output_wav_path.c_str());
++
++        // Skip if output already exists
++        if (file_exists(s.output_wav_path)) {
++            fprintf(stderr, "  -> output already exists, skipping\n");
++            n_success++;
++            continue;
++        }
++
++        try {
++
++        // ---- 6.1 Switch reference audio if needed ----
++        if (s.ref_audio_path != prev_ref_audio) {
++            if (audio_embed) { omni_embed_free(audio_embed); audio_embed = nullptr; }
++
++            audio_embed = omni_audio_embed_make_with_filename(
++                ctx_omni->ctx_audio, ec->params.cpuparams.n_threads, s.ref_audio_path);
++            if (!audio_embed) {
++                fprintf(stderr, "  ERROR: failed to load ref audio: %s\n", s.ref_audio_path.c_str());
++                n_fail++;
++                continue;
++            }
++
++            cur_bundle_dir = s.bundle_dir;
++            prev_ref_audio = s.ref_audio_path;
++            fprintf(stderr, "  -> loaded ref audio (%d frames)\n", audio_embed->n_pos);
++        }
++
++        // Always re-init Token2Wav stream before each sample (reset_stream clears
++        // the flow-matching / vocoder caches, so start_stream_with_prompt is needed)
++        if (!cur_bundle_dir.empty()) {
++            if (!ctx_omni->token2wav_session->switch_prompt_bundle(cur_bundle_dir)) {
++                fprintf(stderr, "  ERROR: switch_prompt_bundle failed: %s\n", cur_bundle_dir.c_str());
++                n_fail++;
++                continue;
++            }
++        }
++
++        // ---- 6.2 Clear LLM KV cache ----
++        llama_memory_t mem_llm = llama_get_memory(ctx_omni->ctx_llama);
++        llama_memory_seq_rm(mem_llm, 0, 0, -1);
++        int n_past = 0;
++
++        // ---- 6.3 Prefill: prefix 部分不收集 hidden，tts_bound 部分才收集 ----
++
++        // == Phase 1: prefill 到 <|tts_bos|> (含)，不收集 hidden states ==
++
++        // 1a: system prompt prefix
++        std::string sys_prefix = "<|im_start|>system\nPlease imitate the reference voice";
++        auto tokens_sys = common_tokenize(ctx_omni->ctx_llama, sys_prefix, false, true);
++        if (!eval_tokens(ctx_omni, &ec->params, tokens_sys, ec->params.n_batch, &n_past)) {
++            fprintf(stderr, "  ERROR: eval_tokens (sys_prefix) failed\n");
++            n_fail++; continue;
++        }
++
++        // 1b: <audio_start>
++        std::vector<llama_token> tokens_audio_start = {ec->audio_start_id};
++        if (!eval_tokens(ctx_omni, &ec->params, tokens_audio_start, ec->params.n_batch, &n_past)) {
++            fprintf(stderr, "  ERROR: eval_tokens (audio_start) failed\n");
++            n_fail++; continue;
++        }
++
++        // 1c: [ref audio embedding]
++        if (!prefill_with_emb(ctx_omni, &ec->params, audio_embed->embed, audio_embed->n_pos,
++                              ec->params.n_batch, &n_past)) {
++            fprintf(stderr, "  ERROR: prefill_with_emb failed\n");
++            n_fail++; continue;
++        }
++
++        // 1d: <audio_end> ... 到 <|tts_bos|> (含)
++        std::string pre_tts;
++        if (ep.language == "zh") {
++            pre_tts = "<|audio_end|><|im_end|>\n<|im_start|>user\n读出下列文本内容。"
++                      + s.infer_text
++                      + "<|im_end|>\n<|im_start|>assistant\n<think>\n</think>\n<|tts_bos|>";
++        } else {
++            pre_tts = "<|audio_end|><|im_end|>\n<|im_start|>user\nRead the following text aloud. "
++                      + s.infer_text
++                      + "<|im_end|>\n<|im_start|>assistant\n<think>\n</think>\n<|tts_bos|>";
++        }
++        auto tokens_pre_tts = common_tokenize(ctx_omni->ctx_llama, pre_tts, false, true);
++        if (!eval_tokens(ctx_omni, &ec->params, tokens_pre_tts, ec->params.n_batch, &n_past)) {
++            fprintf(stderr, "  ERROR: eval_tokens (pre_tts) failed\n");
++            n_fail++; continue;
++        }
++
++        // == Phase 2: tts_bound 区间 — 只对这段收集 hidden states ==
++        // tts_bound 内容 = infer_text + <|tts_eos|><|im_end|>
++        std::string tts_region = s.infer_text + "<|tts_eos|><|im_end|>";
++        auto tokens_tts_region = common_tokenize(ctx_omni->ctx_llama, tts_region, false, true);
++
++        // 找到 tts_eos 在这段 token 中的位置
++        int tts_eos_local = -1;
++        for (int j = (int)tokens_tts_region.size() - 1; j >= 0; j--) {
++            if (tokens_tts_region[j] == ec->tts_eos_id) { tts_eos_local = j; break; }
++        }
++        if (tts_eos_local < 0) {
++            fprintf(stderr, "  ERROR: tts_eos not found in tts_region tokens\n");
++            n_fail++; continue;
++        }
++
++        // 只 prefill 到 tts_eos (不含)，收集 hidden states
++        std::vector<llama_token> tokens_tts_content(tokens_tts_region.begin(),
++                                                     tokens_tts_region.begin() + tts_eos_local);
++        int n_tts_tokens = (int)tokens_tts_content.size();
++        if (n_tts_tokens <= 0) {
++            fprintf(stderr, "  ERROR: empty tts content\n");
++            n_fail++; continue;
++        }
++
++        float * hs_tts = nullptr;
++        if (!eval_tokens_with_hidden(ctx_omni, &ec->params, tokens_tts_content, ec->params.n_batch, &n_past, hs_tts)) {
++            fprintf(stderr, "  ERROR: eval_tokens_with_hidden (tts_content) failed\n");
++            if (hs_tts) free(hs_tts);
++            n_fail++; continue;
++        }
++
++        // Prefill 剩余部分 (<|tts_eos|><|im_end|>)，不需要 hidden
++        std::vector<llama_token> tokens_tts_tail(tokens_tts_region.begin() + tts_eos_local,
++                                                  tokens_tts_region.end());
++        if (!tokens_tts_tail.empty()) {
++            eval_tokens(ctx_omni, &ec->params, tokens_tts_tail, ec->params.n_batch, &n_past);
++        }
++
++        fprintf(stderr, "  -> prefill done: n_past=%d, tts_content=%d tokens (hidden collected)\n",
++                n_past, n_tts_tokens);
++
++        // tts_hidden 和 tts_token_ids 直接就是收集到的结果
++        std::vector<float> tts_hidden(hs_tts, hs_tts + (size_t)n_tts_tokens * llm_n_embd);
++        std::vector<llama_token> tts_token_ids = tokens_tts_content;
++        free(hs_tts); hs_tts = nullptr;
++
++        // ---- 6.5 Build TTS condition ----
++        std::vector<float> condition;
++        int condition_length = 0;
++        if (!build_tts_condition(ctx_omni, tts_hidden, tts_token_ids,
++                                 llm_n_embd, condition, condition_length)) {
++            fprintf(stderr, "  ERROR: build_tts_condition failed\n");
++            n_fail++; continue;
++        }
++        fprintf(stderr, "  -> TTS condition: %d tokens (tts_n_embd=%d)\n", condition_length, tts_n_embd);
++
++        // ---- 6.6 TTS autoregressive generation ----
++        // Clear TTS KV cache
++        llama_memory_t mem_tts = llama_get_memory(ctx_omni->ctx_tts_llama);
++        llama_memory_seq_rm(mem_tts, 0, 0, -1);
++
++        // Save condition for re-forward in sample_tts_token
++        ctx_omni->tts_condition_embeddings = condition;
++        ctx_omni->tts_condition_length     = condition_length;
++        ctx_omni->tts_condition_n_embd     = tts_n_embd;
++        ctx_omni->tts_condition_saved      = true;
++        ctx_omni->tts_all_generated_tokens.clear();
++        ctx_omni->tts_n_past_accumulated   = 0;
++
++        int n_past_tts = 0;
++        if (!prefill_with_emb_tts(ctx_omni, &ec->params,
++                                  condition.data(), condition_length,
++                                  ec->params.n_batch, &n_past_tts)) {
++            fprintf(stderr, "  ERROR: prefill_with_emb_tts failed\n");
++            n_fail++; continue;
++        }
++
++        // Create TTS sampler (pure random seed — C++ RNG differs from Python)
++        common_params_sampling tts_sampling = ec->params.sampling;
++        tts_sampling.temp           = ep.temperature;
++        tts_sampling.top_p          = 0.85f;
++        tts_sampling.top_k          = 25;
++        tts_sampling.penalty_repeat = 1.05f;
++        tts_sampling.min_p          = 0.01f;
++        tts_sampling.penalty_last_n = 16;
++        tts_sampling.seed           = LLAMA_DEFAULT_SEED;
++
++        struct common_sampler * tts_sampler = common_sampler_init(ctx_omni->model_tts, tts_sampling);
++        if (!tts_sampler) {
++            fprintf(stderr, "  ERROR: failed to create TTS sampler\n");
++            n_fail++; continue;
++        }
++
++        // Autoregressive loop
++        std::vector<int32_t> audio_tokens;
++        std::vector<llama_token> all_gen_tokens;
++        std::vector<llama_token> chunk_gen_tokens;
++
++        for (int t = 0; t < ep.max_audio_tokens; t++) {
++            bool force_no_eos = (t < 10);
++            llama_token audio_tok = sample_tts_token(
++                tts_sampler, ctx_omni, &ec->params,
++                &n_past_tts,
++                &all_gen_tokens,
++                &chunk_gen_tokens,
++                t,
++                force_no_eos);
++
++            if (audio_tok == 0) {
++                fprintf(stderr, "  WARNING: sample_tts_token returned 0 at step %d\n", t);
++                break;
++            }
++            if (audio_tok == tts_eos_token_abs) {
++                fprintf(stderr, "  -> EOS at step %d\n", t);
++                break;
++            }
++            int32_t relative_tok = (int32_t)(audio_tok - audio_bos_token_id);
++            audio_tokens.push_back(relative_tok);   // Token2Wav expects relative indices [0,6561]
++            all_gen_tokens.push_back(audio_tok);     // absolute IDs for sample_tts_token internal use
++            chunk_gen_tokens.push_back(audio_tok);
++        }
++
++        common_sampler_free(tts_sampler);
++
++        fprintf(stderr, "  -> generated %zu audio tokens\n", audio_tokens.size());
++
++        if (audio_tokens.empty()) {
++            fprintf(stderr, "  ERROR: no audio tokens generated\n");
++            n_fail++; continue;
++        }
++
++        // ---- 6.7 Token2Wav → WAV ----
++        std::vector<float> pcm_wave;
++        if (!ctx_omni->token2wav_session->feed_tokens(
++                audio_tokens.data(), (int64_t)audio_tokens.size(), true, pcm_wave)) {
++            fprintf(stderr, "  ERROR: Token2Wav feed_tokens failed\n");
++            n_fail++; continue;
++        }
++
++        if (pcm_wave.empty()) {
++            fprintf(stderr, "  ERROR: Token2Wav produced empty output\n");
++            n_fail++; continue;
++        }
++
++        if (!write_wav_file(s.output_wav_path, pcm_wave, SAMPLE_RATE)) {
++            fprintf(stderr, "  ERROR: failed to write WAV: %s\n", s.output_wav_path.c_str());
++            n_fail++; continue;
++        }
++
++        // ---- 6.8 Reset TTS state ----
++        ctx_omni->tts_condition_saved = false;
++        ctx_omni->tts_all_generated_tokens.clear();
++
++        auto t_sample_end = std::chrono::high_resolution_clock::now();
++        double elapsed_s = std::chrono::duration<double>(t_sample_end - t_sample_start).count();
++        double wav_dur_s = (double)pcm_wave.size() / SAMPLE_RATE;
++        fprintf(stderr, "  -> OK: %.1fs audio, %.1fs wall (RTF=%.2f)\n",
++                wav_dur_s, elapsed_s, elapsed_s / std::max(wav_dur_s, 0.001));
++        n_success++;
++
++        } catch (const std::exception & e) {
++            fprintf(stderr, "  EXCEPTION: %s\n", e.what());
++            n_fail++;
++        } catch (...) {
++            fprintf(stderr, "  EXCEPTION: unknown\n");
++            n_fail++;
++        }
++    }
++
++    // Free last audio embed
++    if (audio_embed) omni_embed_free(audio_embed);
++
++    auto t_end_all = std::chrono::high_resolution_clock::now();
++    double total_s = std::chrono::duration<double>(t_end_all - t_start_all).count();
++    fprintf(stderr, "\n=== TTS Eval complete: %d success, %d failed, %.1fs total ===\n",
++            n_success, n_fail, total_s);
++
++    // --- Cleanup ---
++    eval_context_free(ec);
++    return 0;
++}
+diff --git a/tools/omni/omni.cpp b/tools/omni/omni.cpp
+index c14ed35..af9ebbd 100644
+--- a/tools/omni/omni.cpp
++++ b/tools/omni/omni.cpp
+@@ -1161,7 +1161,7 @@ static void kv_cache_slide_window(struct omni_context* ctx_omni, common_params*
+     print_with_timestamp("⚠️ KV Cache 滑动窗口完成: n_past %d→%d\n", old_n_past, ctx_omni->n_past);
+ }
+ 
+-static bool eval_tokens(struct omni_context* ctx_omni, common_params* params, std::vector<llama_token> tokens, int n_batch, int * n_past, bool get_emb = false) {
++bool eval_tokens(struct omni_context* ctx_omni, common_params* params, std::vector<llama_token> tokens, int n_batch, int * n_past, bool get_emb) {
+     int N = (int) tokens.size();
+     kv_cache_slide_window(ctx_omni, params, N);
+ 
+@@ -1200,7 +1200,7 @@ static bool eval_tokens(struct omni_context* ctx_omni, common_params* params, st
+ 
+ // 与 eval_tokens 类似，但会将每次 decode 的 hidden_state 保存并拼接到 hidden_states 中
+ // hidden_states 由函数内部分配空间，大小为 N * n_embd * sizeof(float)，调用者负责释放
+-static bool eval_tokens_with_hidden(struct omni_context* ctx_omni, common_params* params, std::vector<llama_token> tokens, int n_batch, int * n_past, float *& hidden_states) {
++bool eval_tokens_with_hidden(struct omni_context* ctx_omni, common_params* params, std::vector<llama_token> tokens, int n_batch, int * n_past, float *& hidden_states) {
+     int N = (int) tokens.size();
+     if (N == 0) {
+         hidden_states = nullptr;
+@@ -2127,7 +2127,7 @@ bool load_tts_weights_from_gguf(struct omni_context * ctx_omni, const char * tts
+ // 1. 在omni_context中添加emb_text_weight字段（float*, 152064 * 768）
+ // 2. 在omni_init中从TTS模型文件加载emb_text权重
+ // 3. 在这里实现查找逻辑
+-static bool tts_emb_text(struct omni_context * ctx_omni, llama_token token_id, float * embedding_out, int tts_n_embd) {
++bool tts_emb_text(struct omni_context * ctx_omni, llama_token token_id, float * embedding_out, int tts_n_embd) {
+     // Check if weights are loaded
+     if (!ctx_omni->emb_text_weight) {
+         LOG_ERR("TTS: emb_text_weight not loaded\n");
+@@ -2172,7 +2172,7 @@ static bool tts_emb_text(struct omni_context * ctx_omni, llama_token token_id, f
+ //     hidden_proj = ReLU(linear1(hidden) + bias1)  // (1, 4096) @ (4096, 768) = (1, 768)
+ //     hidden_proj = linear2(hidden_proj) + bias2    // (1, 768) @ (768, 768) = (1, 768)
+ //   归一化在调用者中完成（使用normalize_l2_per_token）
+-static bool tts_projector_semantic(struct omni_context * ctx_omni, 
++bool tts_projector_semantic(struct omni_context * ctx_omni,
+                                     const float * llm_hidden_states, int n_tokens, int llm_n_embd,
+                                     float * projected_hidden_states, int tts_n_embd) {
+     // 优先使用新的 ggml 实现 (精度验证版本)
+@@ -2265,7 +2265,7 @@ static bool tts_projector_semantic(struct omni_context * ctx_omni,
+ // 辅助函数：L2归一化（对每个token的embedding分别归一化）
+ // 匹配Python的 F.normalize(hidden_embeds, p=2, dim=-1)
+ // 注意：PyTorch的F.normalize使用sqrt(sum(x^2) + eps)，然后除以norm
+-static void normalize_l2_per_token(float * embeddings, int n_tokens, int n_embd, float eps = 1e-8f) {
++void normalize_l2_per_token(float * embeddings, int n_tokens, int n_embd, float eps) {
+     for (int t = 0; t < n_tokens; t++) {
+         float * vec = embeddings + t * n_embd;
+         
+@@ -2982,7 +2982,7 @@ static llama_token sample_tts_token_simplex(struct common_sampler * smpl, struct
+     return id;
+ }
+ 
+-llama_token sample_tts_token(struct common_sampler * smpl, struct omni_context * ctx_omni, common_params* params, int * n_past_tts, const std::vector<llama_token> * all_generated_tokens, const std::vector<llama_token> * chunk_generated_tokens, int token_index_in_chunk, bool force_no_eos, bool is_final_text_chunk = false) {
++llama_token sample_tts_token(struct common_sampler * smpl, struct omni_context * ctx_omni, common_params* params, int * n_past_tts, const std::vector<llama_token> * all_generated_tokens, const std::vector<llama_token> * chunk_generated_tokens, int token_index_in_chunk, bool force_no_eos, bool is_final_text_chunk) {
+     // Debug: Save logits directory (set via environment variable)
+     const char* logits_debug_dir = getenv("TTS_LOGITS_DEBUG_DIR");
+     
+diff --git a/tools/omni/omni.h b/tools/omni/omni.h
+index ab524b3..97b8496 100644
+--- a/tools/omni/omni.h
++++ b/tools/omni/omni.h
+@@ -604,7 +604,22 @@ bool prefill_with_emb_tts(struct omni_context* ctx_omni, common_params* params,
+ // - chunk_generated_tokens: 当前 chunk 内已生成的 tokens（用于 repetition penalty，与 Python generate_chunk 对齐）
+ // - token_index_in_chunk: 当前 chunk 内的 token 索引（用于判断是否跳过 sampling processors）
+ // - force_no_eos: 是否强制阻止 EOS token 被采样（用于 min_new_tokens 逻辑，与 Python generate_chunk 对齐）
+-llama_token sample_tts_token(struct common_sampler * smpl, struct omni_context * ctx_omni, common_params* params, int * n_past_tts, const std::vector<llama_token> * all_generated_tokens = nullptr, const std::vector<llama_token> * chunk_generated_tokens = nullptr, int token_index_in_chunk = 0, bool force_no_eos = false);
++llama_token sample_tts_token(struct common_sampler * smpl, struct omni_context * ctx_omni, common_params* params, int * n_past_tts, const std::vector<llama_token> * all_generated_tokens = nullptr, const std::vector<llama_token> * chunk_generated_tokens = nullptr, int token_index_in_chunk = 0, bool force_no_eos = false, bool is_final_text_chunk = false);
++
++// ==================== TTS Eval 辅助函数声明 ====================
++// 从 omni.cpp 暴露的函数，供 omni-tts-eval.cpp 使用（原 diff-master.patch 内容，
++// 随框架重构重新导出：仅去掉 static，默认参数保留在此声明中）
++bool eval_tokens(struct omni_context* ctx_omni, common_params* params,
++                 std::vector<llama_token> tokens, int n_batch, int * n_past, bool get_emb = false);
++bool eval_tokens_with_hidden(struct omni_context* ctx_omni, common_params* params,
++                             std::vector<llama_token> tokens, int n_batch,
++                             int * n_past, float *& hidden_states);
++bool tts_emb_text(struct omni_context* ctx_omni, llama_token token_id,
++                  float * embedding_out, int tts_n_embd);
++bool tts_projector_semantic(struct omni_context* ctx_omni, const float * hidden,
++                            int n_tokens, int llm_n_embd,
++                            float * projected, int tts_n_embd);
++void normalize_l2_per_token(float * embeddings, int n_tokens, int n_embd, float eps = 1e-8f);
+ 
+ // Projector 函数声明（精度验证版本）
+ bool projector_init(projector_model & model, const std::string & fname, bool use_cuda);
+diff --git a/tools/omni/token2wav/token2wav-impl.h b/tools/omni/token2wav/token2wav-impl.h
+index a7caa74..31fc8ae 100644
+--- a/tools/omni/token2wav/token2wav-impl.h
++++ b/tools/omni/token2wav/token2wav-impl.h
+@@ -2277,6 +2277,11 @@ struct Token2WavSession {
+                                  float               temperature         = 1.0f,
+                                  const std::string & coreml_model_path  = "");
+ 
++    // 仅更换示例音频（prompt bundle）而不重新加载模型：reset 流式状态后重新 start_stream。
++    // 供 omni-tts-eval.cpp 逐条切换参考音频使用（原 diff-master.patch 内容）。
++    bool switch_prompt_bundle(const std::string & prompt_bundle_dir,
++                              int n_timesteps = 10, float temperature = 1.0f);
++
+     bool feed_tokens(const int32_t * tokens, int64_t n_tokens, bool is_final, std::vector<float> & wave_bt_out);
+ 
+     bool feed_tokens(const std::vector<int32_t> & tokens, bool is_final, std::vector<float> & wave_bt_out) {
+diff --git a/tools/omni/token2wav/token2wav.cpp b/tools/omni/token2wav/token2wav.cpp
+index 73fa9c9..53f0bd1 100644
+--- a/tools/omni/token2wav/token2wav.cpp
++++ b/tools/omni/token2wav/token2wav.cpp
+@@ -63,6 +63,23 @@ bool Token2WavSession::init_from_prompt_bundle(const std::string & encoder_gguf,
+     return true;
+ }
+ 
++bool Token2WavSession::switch_prompt_bundle(const std::string & prompt_bundle_dir,
++                                            int n_timesteps, float temperature) {
++    // 仅更换示例音频：先 reset 流式状态（清 pending + flow-matching/vocoder 缓存），
++    // 再用新的 prompt bundle 重新 start_stream。不重新加载模型。
++    reset();
++    Token2Mel::PromptBundle pb;
++    if (!Token2Mel::load_prompt_bundle_dir(prompt_bundle_dir, pb)) {
++        fprintf(stderr, "Token2WavSession: failed to load prompt bundle from %s\n", prompt_bundle_dir.c_str());
++        return false;
++    }
++    if (!t2w.start_stream_with_prompt(pb, n_timesteps, temperature)) {
++        fprintf(stderr, "Token2WavSession: failed to start stream with new prompt bundle\n");
++        return false;
++    }
++    return true;
++}
++
+ bool Token2WavSession::feed_window(const int32_t *      tokens,
+                                    int64_t              n_tokens,
+                                    bool                 is_final,

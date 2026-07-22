@@ -6,9 +6,9 @@ set -e
 # 用法: bash run_eval_only.sh /path/to/save_dir
 # ============================================================
 
-CONDA_ENV_BIN="/cache/hanqingzhe/miniconda3/envs/${CONDA_ENV:-minicpmo45_eval}/bin"
-export PATH="${CONDA_ENV_BIN}:$(echo "$PATH" | tr ':' '\n' | grep -v 'miniconda3/envs/' | tr '\n' ':' | sed 's/:$//')"
-echo "Python: $(which python3)"
+source "$(cd "$(dirname "$0")"; pwd)/pipeline.env"
+
+echo "Python: $(command -v python3)"
 
 SAVE_DIR="${1:?用法: bash run_eval_only.sh <save_dir>}"
 if [ ! -d "$SAVE_DIR" ]; then
@@ -17,20 +17,21 @@ if [ ! -d "$SAVE_DIR" ]; then
 fi
 
 LANG="zh"
-GPUS_PER_NODE=${GPUS_PER_NODE:-8}
-EVAL_META_PATH=${EVAL_META_PATH:-"/cache/hanqingzhe/seedtts_testset_zh/zh/meta.lst"}
-EVAL_DATA_PATH=${EVAL_DATA_PATH:-"/cache/hanqingzhe/seedtts_testset_zh/zh"}
-SPEAKER_CKPT=${SPEAKER_CKPT:-"/cache/hanqingzhe/seed-tts-eval/ckpts/wavlm/wavlm_large_finetune.pth"}
+GPUS_PER_NODE=${GPUS_PER_NODE:-1}
+EVAL_META_PATH=${EVAL_META_PATH:-"/path/to/seedtts_testset_zh/zh/meta.lst"}
+EVAL_DATA_PATH=${EVAL_DATA_PATH:-"/path/to/seedtts_testset_zh/zh"}
+SPEAKER_CKPT=${SPEAKER_CKPT:-"/path/to/wavlm_large_finetune.pth"}
 WORKDIR=$(cd "$(dirname "$0")"; pwd)
 EVAL_SCRIPT_DIR=${EVAL_SCRIPT_DIR:-"${WORKDIR}/eval_tools"}
 SPEAKER_VERIF_DIR=${SPEAKER_VERIF_DIR:-"${EVAL_SCRIPT_DIR}/speaker_verification"}
-PARAFORMER_MODEL=${PARAFORMER_MODEL:-"/cache/hanqingzhe/paraformer"}
+PARAFORMER_MODEL=${PARAFORMER_MODEL:-"/path/to/paraformer-zh"}
 S3PRL_REPO=${S3PRL_REPO:-"${EVAL_SCRIPT_DIR}/s3prl-main"}
 export PARAFORMER_MODEL
 export S3PRL_REPO
+export WER_DEVICE
 
-MODEL_PATH=${MODEL_PATH:-"/cache/hanqingzhe/o45-gguf"}
-CPP_BIN=${CPP_BIN:-"/cache/hanqingzhe/Video-MME/llama.cpp-omni/build/bin/llama-omni-tts-eval"}
+MODEL_PATH=${MODEL_PATH:-"/path/to/MiniCPM-o-4_5-gguf"}
+CPP_BIN=${CPP_BIN:-"/path/to/llama.cpp-omni/build/bin/llama-omni-tts-eval"}
 SEED=${SEED:-42}
 TIME_STR=$(date +%Y%m%d_%H%M%S)
 
@@ -108,7 +109,7 @@ if [ -f "$SPEAKER_CKPT" ]; then
         --wav2_start_sr 0 \
         --wav1_end_sr -1 \
         --wav2_end_sr -1 \
-        --device cuda:0 \
+        --device "${SIM_DEVICE:-cuda:0}" \
         >> "${SIM_LOG}" 2>&1
 
     rm -f "$WAV_WAV_TEXT"

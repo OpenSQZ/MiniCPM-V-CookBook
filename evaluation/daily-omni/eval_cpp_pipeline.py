@@ -1,37 +1,33 @@
 """
-Daily-Omni CPP 评测 Pipeline 主控脚本。
+Daily-Omni CPP 评测 Pipeline 主控脚本（CLI 版）。
 
 功能：
   1. 加载 JSONL 数据集（1197 条 MCQ）
-  2. 均匀分配到 N 个 GPU worker
-  3. 启动 N 个 llama-server 进程（每卡一个）
-  4. 调用 omni_init 初始化
-  5. N 线程并发处理：视频帧采样 + 音频切分 + 交错 prefill + decode
-  6. 收集结果，输出 JSON
-  7. 可选：重跑失败题目
-  8. 可选：调用 Daily-Omni 评分脚本
+  2. 按 video_id 分组均匀分配到 N 个 GPU worker
+  3. 每卡启动一个常驻 llama-omni-eval-daily-cli 进程（模型只加载一次）
+  4. N 线程并发处理：视频帧采样 + 音频切分 → 交错 prefill + decode（通过 JSONL 管道）
+  5. 收集结果，输出 JSON
+  6. 可选：重跑失败题目
+  7. 可选：调用 Daily-Omni 评分脚本
 
 用法：
   python eval_cpp_pipeline.py [--num-gpus 8] [--output output.json]
 """
 import os
-import sys
-import json
 import re
+import json
 import time
 import argparse
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
 from eval_cpp_config import (
     DATASET_DIR, ANNOTATION_PATH, OUTPUT_DIR, OUTPUT_JSON,
-    NUM_GPUS, BASE_PORT, MAX_TOKENS, MEDIA_TYPE, USE_TTS,
-    USER_PROMPT_TEMPLATE, MAX_NUM_FRAMES,
+    NUM_GPUS, USER_PROMPT_TEMPLATE, MAX_NUM_FRAMES,
 )
-from eval_cpp_server_manager import start_all_servers, stop_all_servers
-from eval_cpp_http_client import OmniServerClient
+from eval_cpp_cli_client import OmniCliClient, start_all_clients, stop_all_clients
 from eval_cpp_video_prep import prepare_video_frames, cleanup_sample_media, cleanup_all_media
 from eval_cpp_audio_prep import prepare_audio_segments
 
@@ -145,7 +141,7 @@ def extract_answer(response_text: str) -> str:
 # ==================== 单样本处理 ====================
 
 def process_sample(
-    client: OmniServerClient,
+    client: "OmniCliClient",
     sample: Dict[str, Any],
     data_dir: str = DATASET_DIR,
 ) -> Dict[str, Any]:
@@ -153,14 +149,11 @@ def process_sample(
     处理单个 Daily-Omni 样本。
 
     流程：
-      1. 采样视频帧并保存 JPG
+      1. 采样视频帧并保存 JPG（同时得到时间戳）
       2. 加载音频并按时间戳切分保存 WAV
-      3. reset KV cache
-      4. 交错 prefill (frame, audio_seg, frame, audio_seg, ...)
-      5. prefill 文本 prompt
-      6. decode 获取模型回答
-      7. 提取答案字母
-      8. 清理临时文件
+      3. CLI 单题推理：reset -> 交错 prefill(frame, audio, ...) -> prefill 文本 -> decode
+      4. 提取答案字母
+      5. 清理临时文件
     """
     paths = build_paths(sample, data_dir)
     video_path = paths["video_path"]
@@ -188,13 +181,13 @@ def process_sample(
         return result
 
     try:
-        # 1. 视频帧采样
+        # 1. 视频帧采样（带时间戳）
         frame_paths, timestamps = prepare_video_frames(video_path, sample_id)
         if not frame_paths:
             result["prediction"] = "[ERROR] no frames extracted"
             return result
 
-        # 2. 音频切分
+        # 2. 音频切分（按帧时间戳，一段音频对应一帧）
         audio_seg_paths = []
         if os.path.isfile(audio_path):
             audio_seg_paths = prepare_audio_segments(
@@ -203,25 +196,14 @@ def process_sample(
         else:
             logger.warning(f"Audio not found: {audio_path}, proceeding without audio")
 
-        # 3. Reset
-        client.reset()
-
-        # 4. 交错 prefill (v2: batch 音频预计算，mel 归一化 + conv 边界与 Python 对齐)
-        total_cnt = client.prefill_interleaved_v2(
-            frame_paths=frame_paths,
-            audio_paths=audio_seg_paths,
-            skip_system_prompt=True,
-        )
-
-        # 5. Prefill 文本
+        # 3. CLI 单题推理（交错 prefill 在 CLI 内部完成）
         prompt = build_prompt(sample["question"], sample["choices"])
-        client.prefill_text(prompt, cnt=total_cnt)
-
-        # 6. Decode
-        raw_response = client.decode(round_idx=0)
+        raw_response = client.infer(
+            frame_paths, audio_seg_paths, prompt, qid=sample_id,
+        )
         result["raw_response"] = raw_response
 
-        # 7. 提取答案
+        # 4. 提取答案
         result["prediction"] = extract_answer(raw_response)
 
     except Exception as e:
@@ -238,13 +220,12 @@ def process_sample(
 
 def process_chunk(
     gpu_id: int,
-    port: int,
+    client: "OmniCliClient",
     chunk: List[Dict[str, Any]],
     stop_event: threading.Event,
     data_dir: str = DATASET_DIR,
 ) -> List[Dict[str, Any]]:
-    """单个 GPU worker：串行处理分配到的所有样本。"""
-    client = OmniServerClient(f"http://127.0.0.1:{port}")
+    """单个 GPU worker：用常驻 CLI 客户端串行处理分配到的所有样本。"""
     all_results = []
     total = len(chunk)
 
@@ -267,7 +248,6 @@ def process_chunk(
             f"GT={gt} Pred={pred} Resp={resp_short}"
         )
 
-    client.close()
     return all_results
 
 
@@ -316,17 +296,15 @@ def save_results(output: Dict, path: str = OUTPUT_JSON):
 # ==================== Main ====================
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Daily-Omni CPP Evaluation Pipeline")
+    parser = argparse.ArgumentParser(description="Daily-Omni CPP Evaluation Pipeline (CLI)")
     parser.add_argument("--num-gpus", type=int, default=NUM_GPUS, help="Number of GPUs to use")
-    parser.add_argument("--base-port", type=int, default=BASE_PORT, help="Base port for servers")
     parser.add_argument("--annotation", type=str, default=ANNOTATION_PATH, help="Path to JSONL annotation file")
     parser.add_argument("--data-dir", type=str, default=DATASET_DIR, help="Dataset root directory")
     parser.add_argument("--output", type=str, default=OUTPUT_JSON, help="Output JSON path")
     parser.add_argument("--limit", type=int, default=0, help="Only load first N samples (0 = all)")
     parser.add_argument("--skip-rerun", action="store_true", help="Skip rerun of failed questions")
     parser.add_argument("--skip-scoring", action="store_true", help="Skip scoring after evaluation")
-    parser.add_argument("--rerun-gpu", type=int, default=0, help="GPU id for rerun server")
-    parser.add_argument("--rerun-port", type=int, default=9080, help="Port for rerun server")
+    parser.add_argument("--rerun-gpu", type=int, default=0, help="GPU id for rerun CLI process")
     parser.add_argument("--log-level", type=str, default="INFO",
                         choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     return parser.parse_args()
@@ -336,7 +314,7 @@ def main():
     args = parse_args()
     stop_event = threading.Event()
     interrupted = False
-    servers = []
+    clients = []
 
     logging.basicConfig(
         level=getattr(logging, args.log_level),
@@ -345,9 +323,8 @@ def main():
     )
 
     logger.info("=" * 60)
-    logger.info("Daily-Omni CPP Evaluation Pipeline")
+    logger.info("Daily-Omni CPP Evaluation Pipeline (CLI)")
     logger.info(f"  GPUs: {args.num_gpus}")
-    logger.info(f"  Base port: {args.base_port}")
     logger.info(f"  Annotation: {args.annotation}")
     logger.info(f"  Data dir: {args.data_dir}")
     logger.info(f"  Output: {args.output}")
@@ -358,20 +335,11 @@ def main():
     chunks = split_into_chunks(samples, args.num_gpus)
 
     try:
-        # 2. 启动 servers
-        logger.info("Starting llama-servers...")
-        servers = start_all_servers(args.num_gpus, args.base_port)
+        # 2. 启动常驻 CLI 进程（每卡一个，模型只加载一次）
+        logger.info("Starting llama-omni-eval-daily-cli processes...")
+        clients = start_all_clients(args.num_gpus)
 
-        # 3. 初始化 omni 上下文
-        logger.info("Initializing omni contexts...")
-        for srv in servers:
-            if stop_event.is_set():
-                break
-            client = OmniServerClient(srv.base_url)
-            client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
-            client.close()
-
-        # 4. 并发处理
+        # 3. 并发处理
         logger.info("Starting evaluation...")
         t_start = time.time()
         all_results = []
@@ -380,10 +348,9 @@ def main():
         futures = {}
         try:
             for gpu_id, chunk in enumerate(chunks):
-                port = args.base_port + gpu_id
                 fut = pool.submit(
-                    process_chunk, gpu_id, port, chunk, stop_event,
-                    data_dir=args.data_dir,
+                    process_chunk, gpu_id, clients[gpu_id], chunk, stop_event,
+                    args.data_dir,
                 )
                 futures[fut] = gpu_id
 
@@ -398,11 +365,11 @@ def main():
         except KeyboardInterrupt:
             interrupted = True
             stop_event.set()
-            logger.warning("KeyboardInterrupt received, stopping workers and servers...")
+            logger.warning("KeyboardInterrupt received, stopping workers and CLI processes...")
             for fut in futures:
                 fut.cancel()
-            stop_all_servers(servers)
-            servers = []
+            stop_all_clients(clients)
+            clients = []
             pool.shutdown(wait=False, cancel_futures=True)
             raise
         finally:
@@ -411,11 +378,11 @@ def main():
         elapsed = time.time() - t_start
         logger.info(f"Evaluation done: {len(all_results)} samples in {elapsed:.1f}s")
 
-        # 5. 格式化并保存结果
+        # 4. 格式化并保存结果
         output = format_output(all_results)
         save_results(output, args.output)
 
-        # 6. 简单统计
+        # 5. 简单统计
         correct = sum(1 for r in all_results if r.get("prediction", "") == r.get("gt_answer", ""))
         total = len(all_results)
         if total > 0:
@@ -428,41 +395,37 @@ def main():
         stop_event.set()
         logger.warning("Interrupted by user (Ctrl+C).")
     finally:
-        logger.info("Stopping servers...")
-        stop_all_servers(servers)
+        logger.info("Stopping CLI processes...")
+        stop_all_clients(clients)
         cleanup_all_media()
 
     if interrupted:
         logger.warning("Pipeline interrupted, skip rerun and scoring.")
         return
 
-    # 7. 重跑失败题目
+    # 6. 重跑失败题目
     if not args.skip_rerun:
         from rerun_failed import find_failed, rerun_failed_samples, patch_output
-        from eval_cpp_server_manager import start_server, wait_server_ready, stop_server
         failed_indices = find_failed(args.output)
         if failed_indices:
             logger.info(f"Rerunning {len(failed_indices)} failed samples...")
-            server = start_server(args.rerun_gpu, args.rerun_port)
-            if wait_server_ready(server):
+            client = OmniCliClient(args.rerun_gpu)
+            if client.wait_ready():
                 try:
-                    client = OmniServerClient(f"http://127.0.0.1:{args.rerun_port}")
-                    client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
                     rerun_results = rerun_failed_samples(
                         client, args.output, failed_indices,
                         data_dir=args.data_dir,
                     )
-                    client.close()
                 finally:
-                    stop_server(server)
+                    client.close()
                 patch_output(args.output, rerun_results)
             else:
-                stop_server(server)
-                logger.error("Rerun server failed to start, skipping.")
+                client.close()
+                logger.error("Rerun CLI failed to start, skipping.")
         else:
             logger.info("All predictions valid, no rerun needed.")
 
-    # 8. 评分
+    # 7. 评分
     if not args.skip_scoring:
         from eval_daily_omni_result import eval_daily_omni_results
         logger.info("Running Daily-Omni scoring...")

@@ -1,6 +1,6 @@
 """
 扫描 output JSON 中 response 不合法的题目并重跑推理。
-用法：python rerun_failed.py [--gpu 0] [--port 9080] [--output-json path]
+用法：python rerun_failed.py [--gpu 0] [--output-json path]
 """
 import json
 import logging
@@ -9,11 +9,9 @@ import argparse
 import pandas as pd
 
 from eval_cpp_config import (
-    PARQUET_PATH, VIDEO_DATA_DIR, MEDIA_TYPE, USE_TTS, MAX_TOKENS,
-    USER_PROMPT_TEMPLATE,
+    PARQUET_PATH, VIDEO_DATA_DIR, USER_PROMPT_TEMPLATE,
 )
-from eval_cpp_http_client import OmniServerClient
-from eval_cpp_server_manager import start_server, wait_server_ready, stop_server
+from eval_cpp_cli_client import OmniCliClient
 from eval_cpp_video_prep import prepare_video_frames, cleanup_frames
 from eval_cpp_pipeline import extract_answer
 
@@ -77,12 +75,9 @@ def rerun_questions(client, questions):
             continue
 
         try:
-            client.reset()
-            client.prefill_all_frames(frame_paths, skip_system_prompt=True)
             options_text = "\n".join(q["options"])
             prompt = USER_PROMPT_TEMPLATE.format(question=q["question"], options=options_text)
-            client.prefill_text(prompt, cnt=len(frame_paths))
-            raw = client.decode(round_idx=0)
+            raw = client.infer(frame_paths, prompt, qid=qid)
         except Exception as e:
             logger.error(f"Error: {e}")
             raw = f"[ERROR] {e}"
@@ -115,7 +110,6 @@ def patch_output(output_json: str, results: dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--port", type=int, default=9080)
     parser.add_argument("--output-json", default="output/output_videomme_cpp.json")
     args = parser.parse_args()
 
@@ -131,22 +125,18 @@ def main():
     questions = load_questions_by_qids(failed_qids)
     logger.info(f"Loaded {len(questions)} questions from parquet")
 
-    # 3. 启动 server
-    logger.info(f"Starting server on GPU {args.gpu}, port {args.port}...")
-    server = start_server(args.gpu, args.port)
-    if not wait_server_ready(server):
-        stop_server(server)
-        raise RuntimeError("Server failed to start")
+    # 3. 启动 CLI 进程
+    logger.info(f"Starting CLI on GPU {args.gpu}...")
+    client = OmniCliClient(args.gpu)
+    if not client.wait_ready():
+        client.close()
+        raise RuntimeError("CLI failed to start")
 
     try:
-        client = OmniServerClient(f"http://127.0.0.1:{args.port}")
-        client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
-
         # 4. 重跑
         results = rerun_questions(client, questions)
-        client.close()
     finally:
-        stop_server(server)
+        client.close()
 
     # 5. 回写结果
     patch_output(args.output_json, results)

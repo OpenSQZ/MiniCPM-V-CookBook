@@ -1,18 +1,15 @@
 """
-扫描 output JSON 中 prediction 不合法的样本并重跑推理。
-用法：python rerun_failed.py [--gpu 0] [--port 9080] [--output-json path]
+扫描 output JSON 中 prediction 不合法的样本并用常驻 CLI 重跑（Daily-Omni CLI 版）。
+用法：python rerun_failed.py [--gpu 0] [--output-json path]
 """
 import json
 import os
 import logging
 import argparse
-from typing import List, Dict, Set, Any
+from typing import List, Dict, Any
 
-from eval_cpp_config import (
-    DATASET_DIR, ANNOTATION_PATH, MEDIA_TYPE, USE_TTS, MAX_TOKENS,
-)
-from eval_cpp_http_client import OmniServerClient
-from eval_cpp_server_manager import start_server, wait_server_ready, stop_server
+from eval_cpp_config import DATASET_DIR, ANNOTATION_PATH
+from eval_cpp_cli_client import OmniCliClient
 from eval_cpp_video_prep import prepare_video_frames, cleanup_sample_media
 from eval_cpp_audio_prep import prepare_audio_segments
 from eval_cpp_pipeline import build_prompt, extract_answer, build_paths
@@ -60,7 +57,7 @@ def load_sample_by_video_id(
 
 
 def rerun_failed_samples(
-    client: OmniServerClient,
+    client: OmniCliClient,
     output_json: str,
     failed_indices: List[int],
     data_dir: str = DATASET_DIR,
@@ -100,25 +97,18 @@ def rerun_failed_samples(
             if os.path.isfile(audio_path):
                 audio_seg_paths = prepare_audio_segments(audio_path, timestamps, video_id)
 
-            client.reset()
-            total_cnt = client.prefill_interleaved(
-                frame_paths=frame_paths,
-                audio_paths=audio_seg_paths,
-                skip_system_prompt=True,
-            )
-
             prompt = build_prompt(sample["question"], sample["choices"])
-            client.prefill_text(prompt, cnt=total_cnt)
-            raw = client.decode(round_idx=0)
+            raw = client.infer(frame_paths, audio_seg_paths, prompt, qid=video_id)
 
         except Exception as e:
             logger.error(f"Error: {e}")
             raw = f"[ERROR] {e}"
+        finally:
+            cleanup_sample_media(video_id)
 
         pred_letter = extract_answer(raw)
         logger.info(f"  GT={annotation.get('gt_answer', '?')} Raw='{raw}' Pred='{pred_letter}'")
         results[idx] = pred_letter
-        cleanup_sample_media(video_id)
 
     return results
 
@@ -146,7 +136,6 @@ def patch_output(output_json: str, results: Dict[int, str]):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--port", type=int, default=9080)
     parser.add_argument("--output-json", default="output/output_daily_omni_cpp.json")
     parser.add_argument("--data-dir", default=DATASET_DIR)
     args = parser.parse_args()
@@ -158,19 +147,16 @@ def main():
         return
     logger.info(f"Found {len(failed_indices)} invalid predictions")
 
-    logger.info(f"Starting server on GPU {args.gpu}, port {args.port}...")
-    server = start_server(args.gpu, args.port)
-    if not wait_server_ready(server):
-        stop_server(server)
-        raise RuntimeError("Server failed to start")
+    logger.info(f"Starting daily CLI on GPU {args.gpu}...")
+    client = OmniCliClient(args.gpu)
+    if not client.wait_ready():
+        client.close()
+        raise RuntimeError("CLI failed to start")
 
     try:
-        client = OmniServerClient(f"http://127.0.0.1:{args.port}")
-        client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
         results = rerun_failed_samples(client, args.output_json, failed_indices, data_dir=args.data_dir)
-        client.close()
     finally:
-        stop_server(server)
+        client.close()
 
     patch_output(args.output_json, results)
 
