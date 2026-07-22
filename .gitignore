@@ -81,6 +81,17 @@ logs/
 .venv
 venv/
 .env
+
+# Local evaluation artifacts
+evaluation/**/output/
+evaluation/**/result/
+evaluation/**/results/
+evaluation/**/eval_results/
+evaluation/**/log/
+evaluation/**/logs/
+evaluation/**/tmp_media/
+evaluation/**/tmp_frames/
+evaluation/**/run_cpp_eval_results.txt
 # WebRTC Demo 构建产物和临时文件
 demo/web_demo/WebRTC_Demo/frontend-dist/
 demo/web_demo/WebRTC_Demo/*.tar

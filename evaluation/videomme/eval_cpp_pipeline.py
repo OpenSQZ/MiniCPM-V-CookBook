@@ -4,10 +4,9 @@ Video-MME CPP 评测 Pipeline 主控脚本。
 功能：
   1. 加载 parquet 数据集，按 video_id 分组（900 视频 × 3 题）
   2. 均匀分配到 N 个 GPU worker
-  3. 启动 N 个 llama-server 进程（每卡一个）
-  4. 调用 omni_init 初始化
-  5. N 线程并发处理视频评测
-  6. 收集结果，输出 JSON（对齐 output_test_template.json 格式）
+  3. 每卡启动一个常驻 llama-omni-eval-cli 进程（模型只加载一次）
+  4. N 线程并发处理视频评测（通过 JSONL 管道逐题推理）
+  5. 收集结果，输出 JSON（对齐 output_test_template.json 格式）
 
 用法：
   python eval_cpp_pipeline.py [--num-gpus 8] [--output output.json]
@@ -26,11 +25,9 @@ import pandas as pd
 
 from eval_cpp_config import (
     PARQUET_PATH, VIDEO_DATA_DIR, OUTPUT_DIR, OUTPUT_JSON,
-    NUM_GPUS, BASE_PORT, MAX_TOKENS, MEDIA_TYPE, USE_TTS,
-    USER_PROMPT_TEMPLATE,
+    NUM_GPUS, USER_PROMPT_TEMPLATE,
 )
-from eval_cpp_server_manager import start_all_servers, stop_all_servers
-from eval_cpp_http_client import OmniServerClient
+from eval_cpp_cli_client import OmniCliClient, start_all_clients, stop_all_clients
 from eval_cpp_video_prep import prepare_video_frames, cleanup_frames, cleanup_all_frames
 
 logger = logging.getLogger(__name__)
@@ -148,7 +145,7 @@ def extract_answer(response_text: str) -> str:
 # ==================== 单视频处理 ====================
 
 def process_video(
-    client: OmniServerClient,
+    client: "OmniCliClient",
     video_info: Dict[str, Any],
     stop_event: threading.Event,
     video_data_dir: str = VIDEO_DATA_DIR,
@@ -201,20 +198,11 @@ def process_video(
                 logger.info(f"Stop requested, skip remaining questions in video {video_id}")
                 break
             try:
-                # 1. Reset
-                client.reset()
-
-                # 2. Prefill 图片帧（第一帧 skip_system_prompt=True）
-                client.prefill_all_frames(frame_paths, skip_system_prompt=True)
-
-                # 3. Prefill 文本 prompt
+                # 单题推理：CLI 内部完成 reset -> prefill 帧 -> prefill 文本 -> decode
                 prompt = build_prompt(q["question"], q["options"])
-                client.prefill_text(prompt, cnt=len(frame_paths))
+                response_text = client.infer(frame_paths, prompt, qid=q["question_id"])
 
-                # 4. Decode
-                response_text = client.decode(round_idx=0)
-
-                # 5. 提取答案
+                # 提取答案字母
                 answer_pred = extract_answer(response_text)
 
             except Exception as e:
@@ -242,14 +230,13 @@ def process_video(
 
 def process_chunk(
     gpu_id: int,
-    port: int,
+    client,
     chunk: List[Dict[str, Any]],
     stop_event: threading.Event,
 ) -> List[Dict[str, Any]]:
     """
-    单个 GPU worker：串行处理分配到的所有视频。
+    单个 GPU worker：用常驻 CLI 客户端串行处理分配到的所有视频。
     """
-    client = OmniServerClient(f"http://127.0.0.1:{port}")
     all_results = []
     total = len(chunk)
 
@@ -265,7 +252,6 @@ def process_chunk(
         all_results.extend(results)
         logger.info(f"[GPU {gpu_id}] ({i+1}/{total}) Video {vid} done, {len(results)} questions, {elapsed:.1f}s")
 
-    client.close()
     return all_results
 
 
@@ -331,15 +317,13 @@ def save_results(output: List[Dict], path: str = OUTPUT_JSON):
 def parse_args():
     parser = argparse.ArgumentParser(description="Video-MME CPP Evaluation Pipeline")
     parser.add_argument("--num-gpus", type=int, default=NUM_GPUS, help="Number of GPUs to use")
-    parser.add_argument("--base-port", type=int, default=BASE_PORT, help="Base port for servers")
     parser.add_argument("--parquet", type=str, default=PARQUET_PATH, help="Path to parquet file")
     parser.add_argument("--video-dir", type=str, default=VIDEO_DATA_DIR, help="Video data directory")
     parser.add_argument("--output", type=str, default=OUTPUT_JSON, help="Output JSON path")
     parser.add_argument("--limit", type=int, default=0, help="Only load first N rows from parquet (0 = all)")
     parser.add_argument("--skip-rerun", action="store_true", help="Skip rerun of failed questions")
     parser.add_argument("--skip-scoring", action="store_true", help="Skip scoring after evaluation")
-    parser.add_argument("--rerun-gpu", type=int, default=0, help="GPU id for rerun server")
-    parser.add_argument("--rerun-port", type=int, default=9080, help="Port for rerun server")
+    parser.add_argument("--rerun-gpu", type=int, default=0, help="GPU id for rerun CLI process")
     parser.add_argument("--log-level", type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     return parser.parse_args()
 
@@ -348,7 +332,7 @@ def main():
     args = parse_args()
     stop_event = threading.Event()
     interrupted = False
-    servers = []
+    clients = []
 
     logging.basicConfig(
         level=getattr(logging, args.log_level),
@@ -359,7 +343,6 @@ def main():
     logger.info("=" * 60)
     logger.info("Video-MME CPP Evaluation Pipeline")
     logger.info(f"  GPUs: {args.num_gpus}")
-    logger.info(f"  Base port: {args.base_port}")
     logger.info(f"  Parquet: {args.parquet}")
     logger.info(f"  Video dir: {args.video_dir}")
     logger.info(f"  Output: {args.output}")
@@ -371,20 +354,11 @@ def main():
     chunks = split_into_chunks(video_groups, args.num_gpus)
 
     try:
-        # 2. 启动 servers
-        logger.info("Starting llama-servers...")
-        servers = start_all_servers(args.num_gpus, args.base_port)
+        # 2. 启动常驻 CLI 进程（每卡一个，模型只加载一次）
+        logger.info("Starting llama-omni-eval-cli processes...")
+        clients = start_all_clients(args.num_gpus)
 
-        # 3. 初始化 omni 上下文
-        logger.info("Initializing omni contexts...")
-        for srv in servers:
-            if stop_event.is_set():
-                break
-            client = OmniServerClient(srv.base_url)
-            client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
-            client.close()
-
-        # 4. 并发处理
+        # 3. 并发处理
         logger.info("Starting evaluation...")
         t_start = time.time()
         all_results = []
@@ -393,8 +367,7 @@ def main():
         futures = {}
         try:
             for gpu_id, chunk in enumerate(chunks):
-                port = args.base_port + gpu_id
-                fut = pool.submit(process_chunk, gpu_id, port, chunk, stop_event)
+                fut = pool.submit(process_chunk, gpu_id, clients[gpu_id], chunk, stop_event)
                 futures[fut] = gpu_id
 
             for fut in as_completed(futures):
@@ -408,12 +381,12 @@ def main():
         except KeyboardInterrupt:
             interrupted = True
             stop_event.set()
-            logger.warning("KeyboardInterrupt received, stopping workers and servers...")
+            logger.warning("KeyboardInterrupt received, stopping workers and CLI processes...")
             for fut in futures:
                 fut.cancel()
-            # 先停 server，尽快让阻塞中的 HTTP 调用失败退出
-            stop_all_servers(servers)
-            servers = []
+            # 先停 CLI，尽快让阻塞中的管道读取失败退出
+            stop_all_clients(clients)
+            clients = []
             pool.shutdown(wait=False, cancel_futures=True)
             raise
         finally:
@@ -422,11 +395,11 @@ def main():
         elapsed = time.time() - t_start
         logger.info(f"Evaluation done: {len(all_results)} questions in {elapsed:.1f}s")
 
-        # 5. 格式化并保存结果
+        # 4. 格式化并保存结果
         output = format_output(all_results, video_groups)
         save_results(output, args.output)
 
-        # 6. 简单统计
+        # 5. 简单统计
         correct = sum(1 for r in all_results if extract_answer(r.get("response", "")) == r.get("answer", ""))
         total = len(all_results)
         logger.info(f"Accuracy: {correct}/{total} = {correct/total*100:.1f}%" if total > 0 else "No results")
@@ -436,9 +409,9 @@ def main():
         stop_event.set()
         logger.warning("Interrupted by user (Ctrl+C).")
     finally:
-        # 7. 清理
-        logger.info("Stopping servers...")
-        stop_all_servers(servers)
+        # 6. 清理
+        logger.info("Stopping CLI processes...")
+        stop_all_clients(clients)
         cleanup_all_frames()
 
     if interrupted:
@@ -448,24 +421,20 @@ def main():
     # 8. 重跑失败题目
     if not args.skip_rerun:
         from rerun_failed import find_failed_qids, load_questions_by_qids, rerun_questions, patch_output
-        from eval_cpp_server_manager import start_server, wait_server_ready, stop_server
         failed_qids = find_failed_qids(args.output)
         if failed_qids:
             logger.info(f"Rerunning {len(failed_qids)} failed questions...")
             questions = load_questions_by_qids(failed_qids)
-            server = start_server(args.rerun_gpu, args.rerun_port)
-            if wait_server_ready(server):
+            client = OmniCliClient(args.rerun_gpu)
+            if client.wait_ready():
                 try:
-                    client = OmniServerClient(f"http://127.0.0.1:{args.rerun_port}")
-                    client.omni_init(media_type=MEDIA_TYPE, use_tts=USE_TTS, n_predict=MAX_TOKENS)
                     results = rerun_questions(client, questions)
-                    client.close()
                 finally:
-                    stop_server(server)
+                    client.close()
                 patch_output(args.output, results)
             else:
-                stop_server(server)
-                logger.error("Rerun server failed to start, skipping.")
+                client.close()
+                logger.error("Rerun CLI failed to start, skipping.")
         else:
             logger.info("All responses valid, no rerun needed.")
 

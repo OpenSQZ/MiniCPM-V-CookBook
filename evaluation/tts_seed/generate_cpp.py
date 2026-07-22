@@ -218,11 +218,11 @@ def generate_manifest(samples, eval_data_path, wav_to_bundle, save_dir,
 
 def run_cpp_inference(cpp_bin, model_path, manifest_path, language="zh",
                       teacher_forcing=True, seed=42, temperature=0.3,
-                      tts_model_path=None):
+                      tts_model_path=None, n_gpu_layers=99, t2w_device="gpu:0"):
     """调用 C++ 推理程序处理 manifest 中的所有样本。"""
     if not os.path.exists(cpp_bin):
         print_error(f"C++ binary not found: {cpp_bin}")
-        print_info("请先编译 llama-omni-tts-eval，参见 plan.md 阶段 2")
+        print_info("请先编译 llama-omni-tts-eval，参见 README/CLI-Migration.md")
         sys.exit(1)
 
     cmd = [
@@ -232,6 +232,8 @@ def run_cpp_inference(cpp_bin, model_path, manifest_path, language="zh",
         "--language", language,
         "--seed", str(seed),
         "--temperature", str(temperature),
+        "-ngl", str(n_gpu_layers),
+        "--t2w-device", t2w_device,
     ]
     if teacher_forcing:
         cmd.append("--teacher-forcing")
@@ -311,6 +313,8 @@ def main(args):
         seed=args.seed,
         temperature=args.temperature,
         tts_model_path=args.tts_model_path,
+        n_gpu_layers=args.n_gpu_layers,
+        t2w_device=args.t2w_device,
     )
 
     # --- Step 5: 验证输出 ---
@@ -342,10 +346,12 @@ if __name__ == "__main__":
         description="CPP TTS eval: data processing + prompt_bundle extraction + C++ invocation"
     )
 
-    # C++ 相关
+    # C++ 相关（默认从环境变量读取，见 pipeline.env；否则用文档里的示例路径）
     parser.add_argument("--cpp-bin", type=str,
-                        default="/cache/hanqingzhe/Video-MME/llama.cpp-omni/build/bin/llama-omni-tts-eval",
-                        help="Path to compiled llama-omni-tts-eval binary")
+                        default=os.environ.get(
+                            "CPP_BIN",
+                            "/path/to/llama.cpp-omni/build/bin/llama-omni-tts-eval"),
+                        help="Path to compiled llama-omni-tts-eval binary (see README to build)")
     parser.add_argument("--model-path", type=str, required=True,
                         help="Path to GGUF model directory (for C++ inference)")
 
@@ -359,9 +365,12 @@ if __name__ == "__main__":
 
     # prompt_bundle 提取
     parser.add_argument("--onnx-model-dir", type=str,
-                        default="/cache/hanqingzhe/o45-pure-py/assets/token2wav",
+                        default=os.environ.get(
+                            "ONNX_MODEL_DIR",
+                            "/path/to/Step-Audio-2-mini/token2wav"),
                         help="Dir containing speech_tokenizer_v2_25hz.onnx and campplus.onnx")
-    parser.add_argument("--device", type=str, default="cuda",
+    parser.add_argument("--device", type=str,
+                        default=os.environ.get("TTS_DEVICE", "cuda"),
                         help="Device for prompt_bundle extraction (cuda/cpu)")
 
     # TTS 模型路径覆盖（用于测试量化版本等）
@@ -374,6 +383,13 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=float, default=0.3)
     parser.add_argument("--num-samples", type=int, default=10000000)
     parser.add_argument("--teacher-forcing", action="store_true")
+    # 设备：C++ LLM offload 层数与 Token2Wav 设备（CPU 跑用 -ngl 0 / cpu）
+    parser.add_argument("--n-gpu-layers", type=int,
+                        default=int(os.environ.get("CPP_NGL", "99")),
+                        help="C++ LLM GPU offload layers (0 = all CPU)")
+    parser.add_argument("--t2w-device", type=str,
+                        default=os.environ.get("T2W_DEVICE", "gpu:0"),
+                        help="C++ Token2Wav device (gpu:0 / cpu)")
 
     # 并行
     parser.add_argument("--rank", type=int, default=0)

@@ -5,31 +5,35 @@ set -e
 # CPP 版 MiniCPM-o 4.5 TTS Evaluation Script (Chinese / seed-zh)
 # ============================================================
 
-CONDA_ENV_BIN="/cache/hanqingzhe/miniconda3/envs/${CONDA_ENV:-minicpmo45_eval}/bin"
-export PATH="${CONDA_ENV_BIN}:$(echo "$PATH" | tr ':' '\n' | grep -v 'miniconda3/envs/' | tr '\n' ':' | sed 's/:$//')"
-echo "Python: $(which python3)"
+# 集中配置：所有外部路径/设备都在 pipeline.env（可用环境变量覆盖）
+source "$(cd "$(dirname "$0")"; pwd)/pipeline.env"
+
+echo "Python: $(command -v python3)"
+
+# llama-omni-tts-eval 运行时需要其构建目录下的 libomni.so 等；CUDA 版还需 CUDA 运行库
+export LD_LIBRARY_PATH="${CUDA_RUNTIME_LIB}:${CPP_BUILD_LIB}:${LD_LIBRARY_PATH}"
 
 # 1. 参数设置
 TIME_STR=$(date +%Y%m%d_%H%M%S)
 SEED=${SEED:-42}
 
 # C++ 模型目录（GGUF 格式）
-MODEL_PATH=${MODEL_PATH:-"/cache/hanqingzhe/o45-gguf"}
+MODEL_PATH=${MODEL_PATH:-"/path/to/MiniCPM-o-4_5-gguf"}
 # TTS 模型路径覆盖（可选，用于测试量化版本，留空则由 C++ 从 MODEL_PATH 自动查找）
-TTS_MODEL_PATH=${TTS_MODEL_PATH:-"/cache/hanqingzhe/o45-gguf/tts/MiniCPM-o-4_5-tts-F16.gguf"}
+TTS_MODEL_PATH=${TTS_MODEL_PATH:-"$MODEL_PATH/tts/MiniCPM-o-4_5-tts-F16.gguf"}
 # C++ 推理程序路径
-CPP_BIN=${CPP_BIN:-"/cache/hanqingzhe/Video-MME/llama.cpp-omni/build/bin/llama-omni-tts-eval"}
+CPP_BIN=${CPP_BIN:-"/path/to/llama.cpp-omni/build/bin/llama-omni-tts-eval"}
 # ONNX 模型目录（prompt_bundle 提取用）
-ONNX_MODEL_DIR=${ONNX_MODEL_DIR:-"/cache/hanqingzhe/o45-pure-py/assets/token2wav"}
+ONNX_MODEL_DIR=${ONNX_MODEL_DIR:-"/path/to/Step-Audio-2-mini/token2wav"}
 
-SAVE_DIR=${SAVE_DIR:-"/cache/hanqingzhe/Video-MME/cpp-eval/tts_seed/eval_results/cpp-zh-${TIME_STR}-${SEED}"}
+SAVE_DIR=${SAVE_DIR:-"${WORKDIR:-$(cd "$(dirname "$0")"; pwd)}/eval_results/cpp-zh-${TIME_STR}-${SEED}"}
 
 LANG="zh"
-EVAL_META_PATH=${EVAL_META_PATH:-"/cache/hanqingzhe/seedtts_testset_zh/zh/meta.lst"}
-EVAL_DATA_PATH=${EVAL_DATA_PATH:-"/cache/hanqingzhe/seedtts_testset_zh/zh"}
+EVAL_META_PATH=${EVAL_META_PATH:-"/path/to/seedtts_testset_zh/zh/meta.lst"}
+EVAL_DATA_PATH=${EVAL_DATA_PATH:-"/path/to/seedtts_testset_zh/zh"}
 
 # WavLM speaker verification checkpoint
-SPEAKER_CKPT=${SPEAKER_CKPT:-"/cache/hanqingzhe/seed-tts-eval/ckpts/wavlm/wavlm_large_finetune.pth"}
+SPEAKER_CKPT=${SPEAKER_CKPT:-"/path/to/wavlm_large_finetune.pth"}
 
 echo "============================================"
 echo "CPP TTS Evaluation Pipeline"
@@ -48,13 +52,15 @@ echo "============================================"
 mkdir -p "$SAVE_DIR"
 
 WORKDIR=$(cd "$(dirname "$0")"; pwd)
-GPUS_PER_NODE=${GPUS_PER_NODE:-8}
+# 无显卡默认单进程（CPU）；有多卡可 GPUS_PER_NODE=8
+GPUS_PER_NODE=${GPUS_PER_NODE:-1}
+# 只跑前 N 条（冒烟/调试用）；默认全量
+NUM_SAMPLES=${NUM_SAMPLES:-10000000}
 EVAL_SCRIPT_DIR=${EVAL_SCRIPT_DIR:-"${WORKDIR}/eval_tools"}
 SPEAKER_VERIF_DIR=${SPEAKER_VERIF_DIR:-"${EVAL_SCRIPT_DIR}/speaker_verification"}
-PARAFORMER_MODEL=${PARAFORMER_MODEL:-"/cache/hanqingzhe/paraformer"}
-S3PRL_REPO=${S3PRL_REPO:-"${EVAL_SCRIPT_DIR}/s3prl-main"}
 export PARAFORMER_MODEL
 export S3PRL_REPO
+export WER_DEVICE
 
 echo "EVAL_SCRIPT_DIR: ${EVAL_SCRIPT_DIR}"
 echo "S3PRL_REPO:      ${S3PRL_REPO}"
@@ -81,16 +87,21 @@ mkdir -p "$BUNDLE_DIR"
 
 EXTRACT_LOG="${LOG_BASE}/extract_bundle_${TIME_STR}.log"
 
-# 生成去重的 batch list
+# 生成去重的 batch list（NUM_SAMPLES 限制时只预提取会用到的前若干条，避免 CPU 上全量提取 1010 条）
 python3 -c "
 import os, hashlib
 meta_path = '${EVAL_META_PATH}'
 data_path = '${EVAL_DATA_PATH}'
 bundle_dir = '${BUNDLE_DIR}'
+num_samples = ${NUM_SAMPLES}
+world = ${GPUS_PER_NODE}
+cap = num_samples * world if num_samples < 10000000 else None
 seen = set()
 tasks = []
 with open(meta_path) as f:
-    for line in f:
+    for i, line in enumerate(f):
+        if cap is not None and i >= cap:
+            break
         parts = line.strip().split('|')
         wav_rel = None
         if len(parts) == 5:
@@ -118,7 +129,7 @@ if [ "$N_EXTRACT" -gt 0 ]; then
     CUDA_VISIBLE_DEVICES=0 python3 "${WORKDIR}/extract_prompt_bundle.py" \
         --batch-list "$BATCH_LIST" \
         --model-dir "$ONNX_MODEL_DIR" \
-        --device cuda \
+        --device "${TTS_DEVICE:-cuda}" \
         --skip-existing \
         > "${EXTRACT_LOG}" 2>&1
     echo "=== Prompt bundle extraction done ==="
@@ -145,6 +156,10 @@ do
         --seed "${SEED}" \
         --temperature 0.3 \
         --teacher-forcing \
+        --device "${TTS_DEVICE:-cuda}" \
+        --n-gpu-layers "${CPP_NGL:-99}" \
+        --t2w-device "${T2W_DEVICE:-gpu:0}" \
+        --num-samples "${NUM_SAMPLES}" \
         --rank $i \
         --world-size ${GPUS_PER_NODE} \
         > "${LOG_BASE}/cpp_gpu${i}_${TIME_STR}.log" 2>&1 &
@@ -212,7 +227,7 @@ if [ -f "$SPEAKER_CKPT" ]; then
         --wav2_start_sr 0 \
         --wav1_end_sr -1 \
         --wav2_end_sr -1 \
-        --device cuda:0 \
+        --device "${SIM_DEVICE:-cuda:0}" \
         >> "${SIM_LOG}" 2>&1
 
     rm -f "$WAV_WAV_TEXT"

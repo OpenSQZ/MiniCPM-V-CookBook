@@ -1,168 +1,32 @@
-# Daily-Omni CPP Evaluation Pipeline
+# Daily-Omni C++ Evaluation
 
-基于 llama.cpp-omni 的 Daily-Omni 多模态（视频 + 音频）评测流水线，支持多卡并行推理、自动重跑失败题目、自动评分。
+This pipeline evaluates MiniCPM-o on Daily-Omni through a persistent `llama-omni-eval-daily-cli` process per GPU. It samples video frames, interleaves audio segments, supports failed-item retries, and scores the resulting JSON.
 
-## 关于 llama.cpp-omni 的修改
+## Setup
 
-对 [llama.cpp-omni](https://github.com/anthropic-ai/llama.cpp-omni) 的**全部改动**以补丁形式提供在本目录下的 `diff-master.patch` 中（不再依赖本仓库内是否自带一份已改好的 `llama.cpp-omni/` 子目录）。使用前先**克隆上游仓库并在其根目录打上补丁**，再按下方步骤编译。
-
-为支持 Daily-Omni 视频+音频评测，补丁主要涉及：
-
-- `tools/omni/omni.cpp` — 扩展 omni 推理接口，支持多帧视频 + 音频交错 prefill
-- `tools/omni/omni.h` — 对应的头文件声明
-- `tools/server/server.cpp` — 调整 server 端 streaming API 路由
-- 以及说明类文档等（以 patch 中实际 diff 为准）
-
-**打补丁与编译**（在 llama.cpp-omni 仓库根目录执行 `git apply`）：
+Install Python dependencies:
 
 ```bash
-git clone https://github.com/anthropic-ai/llama.cpp-omni.git
-cd llama.cpp-omni
-git apply /path/to/cpp-eval/daily-omni/diff-master.patch
-mkdir build && cd build
-cmake .. -DGGML_CUDA=ON
-cmake --build . --config Release -j
+pip install pandas python-dotenv decord Pillow soundfile
 ```
 
-将上方 `/path/to/cpp-eval` 换成本仓库 `daily-omni` 的父目录实际路径。若 `git apply` 因上游更新产生冲突，需对照 patch 与上游版本手动合并后再编译。
-
-编译产物位于 `llama.cpp-omni/build/bin/`。
-
-## 环境准备
+Apply [llama-omni-eval-daily-cli.patch](llama-omni-eval-daily-cli.patch) to a compatible `llama.cpp-omni` checkout, then build its target:
 
 ```bash
-pip install pandas pyarrow requests python-dotenv decord Pillow soundfile
+cd /path/to/llama.cpp-omni
+git apply /path/to/MiniCPM-V-CookBook/evaluation/daily-omni/llama-omni-eval-daily-cli.patch
+cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target llama-omni-eval-daily-cli -j
 ```
 
-## 配置
+Create `.env` from `.env.example` and provide the CLI executable, GGUF model, and Daily-Omni dataset paths. Download the MiniCPM-o GGUF model from [openbmb/MiniCPM-o-4_5-gguf](https://huggingface.co/openbmb/MiniCPM-o-4_5-gguf). The dataset must provide the JSONL annotation file and media paths referenced by it.
 
-复制 `.env.example` 创建 `.env`，填入本机路径：
+## Run
 
 ```bash
-# CUDA 动态库路径（编译 llama-server 时使用的 CUDA 版本）
-EXTRA_LD_LIBRARY_PATH=/path/to/cuda/lib
-
-# llama-server 可执行文件路径
-LLAMA_SERVER_BIN=/path/to/llama.cpp-omni/build/bin/llama-server
-
-# GGUF 模型目录（包含 vision、audio 等子目录）
-GGUF_MODEL_DIR=/path/to/gguf-model-dir
-
-# LLM 主模型文件
-LLM_MODEL_PATH=/path/to/gguf-model-dir/MiniCPM-o-4_5-F16.gguf
-
-# Daily-Omni 数据集
-DATASET_DIR=~/daily-omni
-ANNOTATION_PATH=~/daily-omni/daily_omni.jsonl
+python smoke_test.py 2
+python eval_cpp_pipeline.py --num-gpus 1 --limit 6
+python eval_cpp_pipeline.py --num-gpus 8
 ```
 
-其他参数（GPU 数量、端口、ctx_size 等）可通过环境变量或命令行参数覆盖，详见 `eval_cpp_config.py`。
-
-## 使用
-
-### 完整流水线（推理 + 重跑 + 评分）
-
-```bash
-python eval_cpp_pipeline.py --num-gpus 8 --base-port 9080
-```
-
-### 推荐启动（保存 Python 日志到文件）
-
-```bash
-LOG="log/daily_omni_$(date +%Y%m%d_%H%M%S).log"
-nohup bash -c "python -u eval_cpp_pipeline.py --num-gpus 8 --base-port 9080 2>&1 | tee \"$LOG\"" >/dev/null 2>&1 &
-echo "log: $LOG"
-```
-
-### 后 4 张卡跑（假设共 8 卡，使用物理卡 4,5,6,7）
-
-```bash
-LOG="log/daily_omni_$(date +%Y%m%d_%H%M%S).log"
-CUDA_VISIBLE_DEVICES=4,5,6,7 nohup bash -c "python -u eval_cpp_pipeline.py --num-gpus 4 --base-port 9080 2>&1 | tee \"$LOG\"" >/dev/null 2>&1 &
-echo "log: $LOG"
-```
-
-- `2>&1 | tee ...` 会把 Python 的 stdout/stderr 同时输出到屏幕和日志文件
-- 按 `Ctrl+C` 会触发优雅中断：停止 worker 线程处理并回收 llama-server 进程
-- llama-server 日志写入 `log/server_gpu{gpu_id}.log`，并自动轮转历史日志（默认保留最近 5 份）
-
-流水线会依次执行：
-1. 加载 JSONL 数据集（1197 条 MCQ）
-2. 启动 N 个 llama-server，多线程并发推理
-3. 对每个样本：视频帧采样 + 音频切分 → 交错 prefill → decode
-4. 保存结果到 `output/output_daily_omni_cpp.json`
-5. 自动扫描不合法的 response 并用单卡重跑
-6. 按 qa_type、content_parent_category、video_category 等维度评分
-
-### 常用参数
-
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--num-gpus` | 使用 GPU 数量 | 8 |
-| `--base-port` | Server 起始端口 | 8080 |
-| `--limit N` | 只取前 N 条数据（测试用） | 0（全量） |
-| `--annotation` | JSONL 标注文件路径 | `~/daily-omni/daily_omni.jsonl` |
-| `--data-dir` | 数据集根目录 | `~/daily-omni` |
-| `--output` | 输出 JSON 路径 | `output/output_daily_omni_cpp.json` |
-| `--skip-rerun` | 跳过重跑失败题目 | false |
-| `--skip-scoring` | 跳过评分 | false |
-| `--rerun-gpu` | 重跑使用的 GPU | 0 |
-| `--rerun-port` | 重跑 server 端口 | 9080 |
-| `--log-level` | 日志级别 | INFO |
-
-### 快速测试（1 卡 + 6 条数据）
-
-```bash
-python eval_cpp_pipeline.py --num-gpus 1 --base-port 9080 --limit 6
-```
-
-如需全链路记录 HTTP 请求内容（URL + 完整 JSON payload），可使用 DEBUG 日志并落盘：
-
-```bash
-LOG="log/daily_omni_$(date +%Y%m%d_%H%M%S).log"
-python -u eval_cpp_pipeline.py --num-gpus 1 --base-port 9080 --limit 6 --log-level DEBUG 2>&1 | tee "$LOG"
-echo "log: $LOG"
-```
-
-### 单独重跑失败题目
-
-```bash
-python rerun_failed.py --gpu 0 --port 9080
-```
-
-### 单独评分
-
-```bash
-python eval_daily_omni_result.py --results-file output/output_daily_omni_cpp.json
-```
-
-## 与 Video-MME 的区别
-
-| 特性 | Video-MME | Daily-Omni |
-|------|-----------|------------|
-| 数据集格式 | Parquet | JSONL |
-| 模态 | 纯视频帧 | 视频帧 + 音频 |
-| Prefill 方式 | 逐帧 prefill | 帧-音频交错 prefill |
-| 样本数 | 900 视频 × 3 题 | 1197 MCQ |
-| Prompt 模板 | 无 leading `\n` | 带 leading `\n` + 尾部 "Please select..." |
-| 评分脚本 | `eval_your_result.py` | `eval_daily_omni_result.py` |
-
-## 文件结构
-
-```
-daily-omni/
-├── diff-master.patch            # 对 llama.cpp-omni 的完整改动（需先 git apply 再编译）
-├── eval_cpp_pipeline.py         # 主流水线
-├── eval_cpp_config.py           # 配置（路径、参数）
-├── eval_cpp_server_manager.py   # llama-server 生命周期管理
-├── eval_cpp_http_client.py      # HTTP 客户端（omni streaming API）
-├── eval_cpp_video_prep.py       # 视频帧采样
-├── eval_cpp_audio_prep.py       # 音频切分（按帧时间戳）
-├── rerun_failed.py              # 重跑失败题目（独立可用）
-├── eval_daily_omni_result.py    # 评分脚本
-├── .env.example                 # 路径配置模板（入库）
-├── output/                      # 评测结果输出
-├── log/                         # llama-server 日志 + Pipeline 日志
-├── result/                      # 历史评测结果备份
-└── tmp_media/                   # 临时帧 JPG + 音频 WAV 片段（自动清理）
-```
+Use `--skip-rerun` or `--skip-scoring` for inference-only runs. Outputs are written locally under `output/` and are intentionally ignored by Git.

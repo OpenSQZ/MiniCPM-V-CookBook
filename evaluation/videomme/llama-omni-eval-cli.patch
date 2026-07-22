@@ -1,0 +1,445 @@
+diff --git a/tools/omni/CMakeLists.txt b/tools/omni/CMakeLists.txt
+index 8d1e373..b5fd5be 100644
+--- a/tools/omni/CMakeLists.txt
++++ b/tools/omni/CMakeLists.txt
+@@ -104,6 +104,17 @@ endif()
+ target_link_libraries  (${TARGET} PRIVATE llama-common omni Threads::Threads)
+ target_compile_features(${TARGET} PRIVATE cxx_std_17)
+ 
++# Video-MME 评测 CLI - pipe 驱动的批量多模态推理（替代 HTTP llama-server）
++set(TARGET_EVAL_CLI llama-omni-eval-cli)
++add_executable         (${TARGET_EVAL_CLI} omni-eval-cli.cpp)
++set_target_properties  (${TARGET_EVAL_CLI} PROPERTIES OUTPUT_NAME llama-omni-eval-cli)
++if(LLAMA_TOOLS_INSTALL)
++    install(TARGETS ${TARGET_EVAL_CLI} RUNTIME)
++endif()
++target_link_libraries  (${TARGET_EVAL_CLI} PRIVATE llama-common omni Threads::Threads)
++target_include_directories(${TARGET_EVAL_CLI} PRIVATE ../../vendor)
++target_compile_features(${TARGET_EVAL_CLI} PRIVATE cxx_std_17)
++
+ # 单工模式 - 纯音频测试（批量 prefill + 单次 decode）
+ set(TARGET_SINGLE_TEST_AUDIO llama-omni-single-test-audio)
+ add_executable         (${TARGET_SINGLE_TEST_AUDIO} test/single_test_audio.cpp)
+diff --git a/tools/omni/omni-eval-cli.cpp b/tools/omni/omni-eval-cli.cpp
+new file mode 100644
+index 0000000..541fded
+--- /dev/null
++++ b/tools/omni/omni-eval-cli.cpp
+@@ -0,0 +1,417 @@
++// omni-eval-cli.cpp
++//
++// A long-running, pipe-driven CLI for batch multimodal (video-frame) evaluation
++// of MiniCPM-o with llama.cpp-omni. Designed to replace the HTTP `llama-server`
++// path used by the Video-MME evaluation pipeline.
++//
++// Rationale
++// ---------
++// The evaluation harness prepares video frames on the Python side and then needs
++// the model to: reset -> prefill N image frames -> prefill the question text ->
++// decode a short answer. Doing that over an HTTP/SSE server is wasteful (one
++// network round-trip per frame, JSON (de)serialization, an HTTP stack, etc.).
++//
++// This tool loads the model ONCE and then serves a simple line-delimited JSON
++// (JSONL) protocol over stdin/stdout, so the Python side can pipe many questions
++// through a single persistent process per GPU with near-zero overhead.
++//
++// Protocol (one JSON object per line)
++// -----------------------------------
++//   Requests  (Python -> CLI, on stdin):
++//     {"type":"ping"}
++//     {"type":"infer","id":"001-1","frames":["/abs/f0.jpg", ...],
++//      "prompt":"<question text>","max_slice_nums":0,"n_predict":100}
++//     {"type":"quit"}
++//
++//   Responses (CLI -> Python, on the protocol channel):
++//     {"type":"ready"}                                  // emitted once, after model load
++//     {"type":"pong"}
++//     {"type":"result","id":"001-1","ok":true,"response":"A"}
++//     {"type":"result","id":"001-1","ok":false,"error":"..."}
++//
++// Channel separation
++// ------------------
++// The omni library is very chatty on stdout (print_with_timestamp uses std::cout
++// and vprintf). To keep the protocol channel clean, at startup we dup() the
++// original stdout to a private fd used only for protocol replies, then redirect
++// fd 1 (stdout) to fd 2 (stderr). All model/ggml noise therefore goes to stderr,
++// and the parent process reads clean JSONL from the child's stdout.
++//
++// The per-question inference sequence mirrors exactly what the (working) HTTP
++// server path did:
++//   1. reset KV cache + session state
++//   2. stream_prefill(index=0)          -> initialize system prompt, start LLM thread
++//   3. stream_prefill(index=k, image)   -> one call per frame (k = 1..N)
++//      stream_prefill(index=k, "\n")    -> per-frame newline separator (Python parity)
++//   4. stream_prefill(index=.., prompt) -> inject question + options
++//   5. stream_decode()                  -> greedy/sampled generation
++//   6. drain text_queue                 -> raw answer text
++//
++// Model config is fixed for evaluation: media_type=2 (omni: audio+vision) and
++// use_tts=false (text-only output, saves VRAM and skips TTS/T2W threads).
++
++#include "omni-impl.h"
++#include "omni.h"
++#include "vision.h"
++
++#include "common.h"
++#include "llama.h"
++#include "ggml.h"
++
++#include "nlohmann/json.hpp"
++
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <string>
++#include <vector>
++#include <iostream>
++#include <mutex>
++
++#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
++#include <unistd.h>
++#endif
++
++using json = nlohmann::json;
++
++// ---------------------------------------------------------------------------
++// Model path resolution (same layout as omni-cli.cpp)
++//   {dir}/MiniCPM-o-4_5-*.gguf        (LLM, passed via -m)
++//   {dir}/vision/MiniCPM-o-4_5-vision-F16.gguf
++//   {dir}/audio/MiniCPM-o-4_5-audio-F16.gguf
++//   {dir}/tts/MiniCPM-o-4_5-tts-F16.gguf
++//   {dir}/tts/MiniCPM-o-4_5-projector-F16.gguf
++// ---------------------------------------------------------------------------
++struct OmniModelPaths {
++    std::string llm;
++    std::string vision;
++    std::string audio;
++    std::string tts;
++    std::string projector;
++    std::string base_dir;
++};
++
++static std::string get_parent_dir(const std::string & path) {
++    size_t last_slash = path.find_last_of("/\\");
++    if (last_slash != std::string::npos) {
++        return path.substr(0, last_slash);
++    }
++    return ".";
++}
++
++static bool file_exists(const std::string & path) {
++    FILE * f = fopen(path.c_str(), "rb");
++    if (f) { fclose(f); return true; }
++    return false;
++}
++
++static OmniModelPaths resolve_model_paths(const std::string & llm_path) {
++    OmniModelPaths p;
++    p.llm       = llm_path;
++    p.base_dir  = get_parent_dir(llm_path);
++    p.vision    = p.base_dir + "/vision/MiniCPM-o-4_5-vision-F16.gguf";
++    p.audio     = p.base_dir + "/audio/MiniCPM-o-4_5-audio-F16.gguf";
++    p.tts       = p.base_dir + "/tts/MiniCPM-o-4_5-tts-F16.gguf";
++    p.projector = p.base_dir + "/tts/MiniCPM-o-4_5-projector-F16.gguf";
++    return p;
++}
++
++// ---------------------------------------------------------------------------
++// Protocol channel: a FILE* that survives the stdout->stderr redirect.
++// ---------------------------------------------------------------------------
++static FILE * g_proto = nullptr;
++
++static void proto_write(const json & obj) {
++    const std::string s = obj.dump();
++    if (g_proto) {
++        fwrite(s.data(), 1, s.size(), g_proto);
++        fputc('\n', g_proto);
++        fflush(g_proto);
++    }
++}
++
++// ---------------------------------------------------------------------------
++// Per-question state reset. Mirrors the HTTP server's /v1/stream/reset handler,
++// plus system_prompt_initialized=false so the next index=0 prefill rebuilds the
++// system prompt (each question starts from a clean context).
++// ---------------------------------------------------------------------------
++static void eval_reset(omni_context * ctx) {
++    if (ctx->ctx_llama) {
++        llama_memory_t mem = llama_get_memory(ctx->ctx_llama);
++        if (mem) llama_memory_seq_rm(mem, 0, 0, -1);
++    }
++    if (ctx->ctx_tts_llama) {
++        llama_memory_t tts_mem = llama_get_memory(ctx->ctx_tts_llama);
++        if (tts_mem) llama_memory_seq_rm(tts_mem, 0, 0, -1);
++    }
++    ctx->n_past = 0;
++    ctx->tts_all_generated_tokens.clear();
++    ctx->break_event = false;
++    ctx->current_turn_ended = false;
++    ctx->llm_generation_done = false;
++    ctx->speek_done = true;                 // avoid stream_prefill(index=0) blocking
++    ctx->system_prompt_initialized = false; // rebuild system prompt next turn
++    ctx->simplex_round_idx = 0;
++    {
++        std::lock_guard<std::mutex> lk(ctx->text_mtx);
++        ctx->text_queue.clear();
++        ctx->text_done_flag = false;
++        ctx->text_streaming = false;
++    }
++}
++
++// Drain the text_queue populated by stream_decode into a single string,
++// dropping the control markers pushed alongside the real text.
++static std::string collect_response(omni_context * ctx) {
++    std::string out;
++    std::lock_guard<std::mutex> lk(ctx->text_mtx);
++    while (!ctx->text_queue.empty()) {
++        std::string piece = ctx->text_queue.front();
++        ctx->text_queue.pop_front();
++        if (piece == "__IS_LISTEN__" || piece == "__END_OF_TURN__") continue;
++        out += piece;
++    }
++    return out;
++}
++
++// ---------------------------------------------------------------------------
++// One question: reset -> prefill frames -> prefill prompt -> decode.
++// Returns the raw decoded text (answer parsing is done on the Python side).
++// ---------------------------------------------------------------------------
++static bool run_infer(omni_context * ctx,
++                      const std::vector<std::string> & frames,
++                      const std::string & prompt,
++                      int max_slice_nums,
++                      int n_predict,
++                      std::string & out_text,
++                      std::string & out_err) {
++    eval_reset(ctx);
++
++    if (n_predict > 0) {
++        ctx->params->n_predict = n_predict;
++    }
++
++    // index=0: system prompt init (also starts the persistent LLM thread on the
++    // very first call). No image/audio content is consumed here by design.
++    if (!stream_prefill(ctx, /*aud*/ "", /*img*/ "", /*index*/ 0)) {
++        out_err = "stream_prefill(index=0) failed";
++        return false;
++    }
++
++    int idx = 1;
++    for (const std::string & frame : frames) {
++        if (!file_exists(frame)) {
++            out_err = "frame not found: " + frame;
++            return false;
++        }
++        // image frame
++        if (!stream_prefill(ctx, /*aud*/ "", /*img*/ frame, idx++, max_slice_nums)) {
++            out_err = "stream_prefill(image) failed: " + frame;
++            return false;
++        }
++        // per-frame newline separator (matches the Python-side frame formatting)
++        if (!stream_prefill(ctx, /*aud*/ "", /*img*/ "", idx++, /*max_slice*/ -1, /*text*/ "\n")) {
++            out_err = "stream_prefill(newline) failed";
++            return false;
++        }
++    }
++
++    // question + options
++    if (!stream_prefill(ctx, /*aud*/ "", /*img*/ "", idx++, /*max_slice*/ -1, /*text*/ prompt)) {
++        out_err = "stream_prefill(prompt) failed";
++        return false;
++    }
++
++    if (!stream_decode(ctx, /*debug_dir*/ "./", /*round_idx*/ 0)) {
++        out_err = "stream_decode failed";
++        return false;
++    }
++
++    out_text = collect_response(ctx);
++    return true;
++}
++
++static void show_usage(const char * prog) {
++    fprintf(stderr,
++        "MiniCPM-o Omni Eval CLI - pipe-driven batch multimodal inference\n\n"
++        "Usage: %s -m <llm_model_path> [options]\n\n"
++        "Required:\n"
++        "  -m <path>              LLM GGUF model; vision/audio auto-detected from its dir\n\n"
++        "Options:\n"
++        "  --vision <path>        Override vision model path\n"
++        "  --audio <path>         Override audio model path\n"
++        "  --ref-audio <path>     Reference audio (system prompt voice slot; eval ignores audio)\n"
++        "  -c, --ctx-size <n>     Context size (default: 40960)\n"
++        "  -ngl <n>               GPU layers (default: 999)\n"
++        "  --max-slice-nums <n>   Default vision slices per frame (default: 0 = use global)\n"
++        "  --n-predict <n>        Max generated tokens per answer (default: 100)\n"
++        "  --temp <f>             Sampling temperature (default: 0.2)\n"
++        "  --top-p <f>            top-p (default: 0.8)\n"
++        "  --top-k <n>            top-k (default: 100)\n"
++        "  --repeat-penalty <f>   repetition penalty (default: 1.02)\n"
++        "  -h, --help             Show this help\n\n"
++        "Then feed JSONL requests on stdin; read JSONL replies on stdout.\n",
++        prog);
++}
++
++int main(int argc, char ** argv) {
++    ggml_time_init();
++
++    std::string llm_path;
++    std::string vision_override;
++    std::string audio_override;
++    std::string ref_audio_path = "tools/omni/assets/default_ref_audio/default_ref_audio.wav";
++    int   n_ctx          = 40960;
++    int   n_gpu_layers   = 999;
++    int   max_slice_nums = 0;    // default per-frame slices (0 => stream_prefill keeps global)
++    int   n_predict      = 100;
++    float temp           = 0.2f;
++    float top_p          = 0.8f;
++    int   top_k          = 100;
++    float repeat_penalty = 1.02f;
++
++    for (int i = 1; i < argc; i++) {
++        std::string a = argv[i];
++        if (a == "-h" || a == "--help") { show_usage(argv[0]); return 0; }
++        else if (a == "-m" && i + 1 < argc)               llm_path = argv[++i];
++        else if (a == "--vision" && i + 1 < argc)         vision_override = argv[++i];
++        else if (a == "--audio" && i + 1 < argc)          audio_override = argv[++i];
++        else if (a == "--ref-audio" && i + 1 < argc)      ref_audio_path = argv[++i];
++        else if ((a == "-c" || a == "--ctx-size") && i + 1 < argc) n_ctx = std::atoi(argv[++i]);
++        else if (a == "-ngl" && i + 1 < argc)             n_gpu_layers = std::atoi(argv[++i]);
++        else if (a == "--max-slice-nums" && i + 1 < argc) max_slice_nums = std::atoi(argv[++i]);
++        else if (a == "--n-predict" && i + 1 < argc)      n_predict = std::atoi(argv[++i]);
++        else if (a == "--temp" && i + 1 < argc)           temp = (float) std::atof(argv[++i]);
++        else if (a == "--top-p" && i + 1 < argc)          top_p = (float) std::atof(argv[++i]);
++        else if (a == "--top-k" && i + 1 < argc)          top_k = std::atoi(argv[++i]);
++        else if (a == "--repeat-penalty" && i + 1 < argc) repeat_penalty = (float) std::atof(argv[++i]);
++        else { fprintf(stderr, "Unknown argument: %s\n", a.c_str()); show_usage(argv[0]); return 1; }
++    }
++
++    if (llm_path.empty()) {
++        fprintf(stderr, "Error: -m <llm_model_path> is required\n");
++        show_usage(argv[0]);
++        return 1;
++    }
++
++    // --- Channel separation: keep original stdout for protocol, send noise to stderr.
++    int proto_fd = dup(fileno(stdout));
++    if (proto_fd < 0) { fprintf(stderr, "Error: dup(stdout) failed\n"); return 1; }
++    g_proto = fdopen(proto_fd, "w");
++    if (!g_proto) { fprintf(stderr, "Error: fdopen(proto_fd) failed\n"); return 1; }
++    fflush(stdout);
++    dup2(fileno(stderr), fileno(stdout)); // model/ggml stdout noise now goes to stderr
++
++    OmniModelPaths paths = resolve_model_paths(llm_path);
++    if (!vision_override.empty()) paths.vision = vision_override;
++    if (!audio_override.empty())  paths.audio  = audio_override;
++
++    if (!file_exists(paths.llm)) {
++        proto_write({{"type", "fatal"}, {"error", "LLM model not found: " + paths.llm}});
++        return 1;
++    }
++    if (!file_exists(paths.audio)) {
++        proto_write({{"type", "fatal"}, {"error", "Audio model not found: " + paths.audio}});
++        return 1;
++    }
++    if (!file_exists(paths.vision)) {
++        proto_write({{"type", "fatal"}, {"error", "Vision model not found: " + paths.vision}});
++        return 1;
++    }
++
++    common_params params;
++    params.model.path   = paths.llm;
++    params.vpm_model    = paths.vision;
++    params.apm_model    = paths.audio;
++    params.tts_model    = paths.tts;
++    params.n_ctx        = n_ctx;
++    params.n_gpu_layers = n_gpu_layers;
++    params.n_predict    = n_predict;
++    // Sampling (kept identical to the previous HTTP-server evaluation config).
++    params.sampling.temp           = temp;
++    params.sampling.top_p          = top_p;
++    params.sampling.top_k          = top_k;
++    params.sampling.penalty_repeat = repeat_penalty;
++
++    const std::string tts_bin_dir = get_parent_dir(paths.tts);
++
++    common_init();
++
++    fprintf(stderr, "=== omni-eval-cli init ===\n");
++    fprintf(stderr, "  LLM:     %s\n", paths.llm.c_str());
++    fprintf(stderr, "  Vision:  %s\n", paths.vision.c_str());
++    fprintf(stderr, "  Audio:   %s\n", paths.audio.c_str());
++    fprintf(stderr, "  ctx=%d ngl=%d n_predict=%d max_slice=%d\n", n_ctx, n_gpu_layers, n_predict, max_slice_nums);
++    fprintf(stderr, "  temp=%.3f top_p=%.3f top_k=%d repeat_penalty=%.3f\n", temp, top_p, top_k, repeat_penalty);
++
++    // media_type=2 (omni: audio+vision), use_tts=false (text-only answers).
++    omni_context * ctx = omni_init(&params, /*media_type*/ 2, /*use_tts*/ false, tts_bin_dir,
++                                   /*tts_gpu_layers*/ -1, /*token2wav_device*/ "gpu:0");
++    if (ctx == nullptr) {
++        proto_write({{"type", "fatal"}, {"error", "omni_init failed"}});
++        return 1;
++    }
++    ctx->async = true;                    // same mode the HTTP server used
++    ctx->ref_audio_path = ref_audio_path; // used only if the system-prompt template has an audio slot
++
++    // Ready handshake: the parent blocks until it sees this line.
++    proto_write({{"type", "ready"}});
++
++    // --- Main request loop -------------------------------------------------
++    std::string line;
++    int rc = 0;
++    while (std::getline(std::cin, line)) {
++        if (line.empty()) continue;
++
++        json req;
++        try {
++            req = json::parse(line);
++        } catch (const std::exception & e) {
++            proto_write({{"type", "error"}, {"error", std::string("bad json: ") + e.what()}});
++            continue;
++        }
++
++        const std::string type = req.value("type", "");
++        if (type == "quit") {
++            break;
++        } else if (type == "ping") {
++            proto_write({{"type", "pong"}});
++            continue;
++        } else if (type != "infer") {
++            proto_write({{"type", "error"}, {"error", "unknown type: " + type}});
++            continue;
++        }
++
++        const std::string id = req.value("id", "");
++        std::vector<std::string> frames;
++        if (req.contains("frames") && req["frames"].is_array()) {
++            for (const auto & f : req["frames"]) frames.push_back(f.get<std::string>());
++        }
++        const std::string prompt = req.value("prompt", "");
++        const int req_slice      = req.value("max_slice_nums", max_slice_nums);
++        const int req_npredict   = req.value("n_predict", n_predict);
++
++        std::string text, err;
++        bool ok = false;
++        try {
++            ok = run_infer(ctx, frames, prompt, req_slice, req_npredict, text, err);
++        } catch (const std::exception & e) {
++            ok = false;
++            err = std::string("exception: ") + e.what();
++        }
++
++        if (ok) {
++            proto_write({{"type", "result"}, {"id", id}, {"ok", true}, {"response", text}});
++        } else {
++            proto_write({{"type", "result"}, {"id", id}, {"ok", false}, {"error", err}});
++        }
++    }
++
++    // --- Teardown ----------------------------------------------------------
++    if (ctx->async) {
++        omni_stop_threads(ctx);
++        if (ctx->llm_thread.joinable()) ctx->llm_thread.join();
++    }
++    omni_free(ctx);
++    return rc;
++}
