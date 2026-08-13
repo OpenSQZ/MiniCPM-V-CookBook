@@ -97,6 +97,7 @@ We provide training methods serving different needs as following:
 | [llama.cpp](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/llamacpp.html)     | Fast CPU / GGUF inference on PC, iPhone and iPad                                                              |
 | [Ollama](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/ollama.html)          | User-friendly one-line local run                                                                              |
 | [MLX](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm5/deployment/mlx.html)            | Apple Silicon inference                                                                                       |
+| [pip (ocrcpm)](./deployment/pip/minicpm-v-ocr_pip.md)                                           | Pip-installable OCR document-parsing pipeline with a pluggable backend                                        |
 | [OpenWebUI](./demo/web_demo/openwebui)                                                          | Interactive Web demo with Open WebUI                                                                          |
 | [Gradio](./demo/web_demo/gradio/README.md)                                                      | Interactive Web demo with Gradio                                                                              |
 | [FastAPI](./demo/README.md)                                                                     | Interactive Omni Streaming demo with FastAPI                                                                  |

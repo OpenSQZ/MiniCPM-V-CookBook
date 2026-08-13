@@ -1,0 +1,51 @@
+# Example config: SGLang backend (OCRCPM auto-starts the server).
+run:
+  run_tag: example_sglang_local
+  run_root: ./runs
+  mode: full
+  seed: 42
+
+input:
+  file_path: /abs/path/to/page.png
+  limit: 0
+
+layout:
+  enabled: true
+  provider: ppdoclayout3
+  model_dir: /abs/path/to/PP-DocLayoutV3_safetensors
+  device: cpu
+
+engine:
+  type: minicpm_sglang_openai_api
+  model_path: /abs/path/to/MiniCPM-V-4_7
+  model_name: minicpm-v4.7
+  sglang_python: /abs/path/to/sglang-env/bin/python
+  auto_start: true
+  host: 127.0.0.1
+  port: 19699
+  gpu_id: "0"
+  torch_dtype: bfloat16
+  cuda_home: /abs/path/to/cuda-toolkit
+  max_model_len: 40960
+  max_num_batched_tokens: 40960
+  gpu_memory_utilization: 0.8
+  wait_ready: true
+  startup_timeout_sec: 1800
+  request_timeout_sec: 600
+
+pipeline:
+  max_workers: 1
+  page_workers: 1
+  queue_mode: serial
+
+mm:
+  image_limit: 1
+  max_slice_nums: 9
+  downsample_mode: 4x
+
+decode:
+  temperature: 0
+  top_p: 1
+  top_k: 1
+  repetition_penalty: 1.1
+  no_repeat_ngram_size: 0

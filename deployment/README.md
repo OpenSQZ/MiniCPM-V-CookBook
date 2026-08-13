@@ -12,6 +12,7 @@ Multiple deployment solutions for efficient MiniCPM-o model deployment across di
 | [**SGLang**](./sglang/) | High | Medium | High | GPU | Structured generation tasks |
 | [**Ollama**](./ollama/) | Medium | Excellent | Medium | CPU/GPU | Personal use, rapid prototyping |
 | [**Llama.cpp**](./llama.cpp/) | Medium | High | Medium | CPU | Edge devices, lightweight deployment |
+| [**pip (ocrcpm)**](./pip/) | Depends on backend | Excellent | Medium | CPU/GPU | Document parsing as an installable SDK |
 
 ## Framework Details
 
@@ -39,12 +40,19 @@ Multiple deployment solutions for efficient MiniCPM-o model deployment across di
 - Ideal for mobile devices and edge computing
 - Hardware requirements: 4GB+ RAM, various CPU architectures
 
+### [pip (ocrcpm)](./pip/)
+- Pip-installable OCR document-parsing pipeline: layout detection, crop recognition, Markdown assembly
+- Command-line entry points plus a Python API; the inference engine stays pluggable
+- Ideal for shipping OCR as a dependency rather than standing up a service by hand
+- Hardware requirements: follow whichever backend it drives; layout detection runs on CPU
+
 ## Selection Guide
 
 - **Production Environment (High Concurrency)**: vLLM - Best performance, optimal scalability
 - **Complex Reasoning Tasks**: SGLang - Structured generation, function calling optimization
 - **Personal Development**: Ollama - Simple to use, quick setup
 - **Edge Deployment**: Llama.cpp - Lightweight, low power consumption
+- **Document Parsing / OCR**: pip (ocrcpm) - One command from PDF or image to Markdown
 
 ## Hardware Requirements (cheat sheet)
 

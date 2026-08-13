@@ -1,0 +1,5 @@
+include README.md
+include pyproject.toml
+recursive-include src/ocrcpm/configs *.yaml
+global-exclude __pycache__/*
+global-exclude *.py[cod]

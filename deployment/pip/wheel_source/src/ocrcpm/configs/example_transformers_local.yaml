@@ -1,0 +1,36 @@
+# Example config: local HF Transformers backend.
+# No OCR HTTP server is started; the pipeline loads the MiniCPM-V OCR model
+# in the same Python process and calls model.chat(...) directly.
+run:
+  run_tag: example_transformers_local
+  run_root: ./runs
+  mode: full
+  seed: 42
+
+input:
+  file_path: /abs/path/to/page.png
+  limit: 0
+
+layout:
+  enabled: true
+  provider: ppdoclayout3
+  model_dir: /abs/path/to/PP-DocLayoutV3_safetensors
+  device: cpu
+
+engine:
+  type: minicpm_transformers_local
+  model_path: /abs/path/to/ocr_minicpmv_model
+  model_name: minicpm-v4.7
+  device: cuda
+  gpu_id: "0"
+  torch_dtype: bfloat16
+
+pipeline:
+  max_workers: 1
+  page_workers: 1
+  queue_mode: serial
+
+mm:
+  image_limit: 1
+  max_slice_nums: 9
+  downsample_mode: 4x

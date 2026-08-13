@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocrcpm"
+version = "0.1.0"
+description = "MiniCPM-V OCR SDK: a document-parsing pipeline (layout -> prepare -> infer) with a pluggable OpenAI-compatible inference backend."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "MiniCPM-V OCR SDK contributors" }]
+keywords = ["ocr", "document-parsing", "minicpm-v", "vllm", "layout", "pipeline"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Text Processing",
+]
+
+# Core dependencies are intentionally light: the package itself only orchestrates
+# the pipeline and talks to an OpenAI-compatible endpoint over HTTP. Heavy
+# inference backends are opt-in extras (MinerU-style pluggable backends).
+dependencies = [
+    "pyyaml>=5.4",
+    "requests>=2.25",
+    "pillow>=9.0",
+]
+
+[project.optional-dependencies]
+# Layout parsing (PP-DocLayoutV3) needs the compatible Torch image stack.
+layout = [
+    "torch>=2.10,<2.11",
+    "torchvision>=0.25,<0.26",
+    "transformers>=5.8,<5.9",
+    "opencv-python-headless>=4.10",
+    "pillow>=9.0",
+]
+# PDF input rendering.
+pdf = ["pymupdf>=1.23"]
+# Bundled HF Transformers OpenAI-compatible server backend.
+server = [
+    "torch>=2.10,<2.11",
+    "transformers>=5.8,<5.9",
+    "accelerate>=1.0",
+    "einops>=0.8,<0.9",
+    "pillow>=9.0",
+]
+# GPU high-throughput serving backend.
+vllm = ["vllm"]
+# GPU high-throughput serving backend with native SGLang auto-start support.
+sglang = ["sglang[all]"]
+# Lightweight / local GGUF backend. The official llama-server binary is
+# supplied separately; OCRCPM only uses its OpenAI-compatible HTTP endpoint.
+llamacpp = []
+# Ollama backend. The ollama binary is installed separately; OCRCPM only drives
+# its HTTP API and, when registering a model, its CLI.
+ollama = []
+# Model snapshot download helpers used by `ocrcpm download-models`.
+models = ["huggingface_hub>=0.20", "modelscope>=1.9"]
+# Everything except the heavyweight serving engines (vllm / sglang / llamacpp).
+all = [
+    "torch>=2.10,<2.11",
+    "torchvision>=0.25,<0.26",
+    "transformers>=5.8,<5.9",
+    "accelerate>=1.0",
+    "einops>=0.8,<0.9",
+    "opencv-python-headless>=4.10",
+    "pymupdf>=1.23",
+    "pillow>=9.0",
+    "huggingface_hub>=0.20",
+]
+
+[project.scripts]
+ocrcpm = "ocrcpm.cli:main"
+ocrcpm-server = "ocrcpm.server.hf_openai_server:main"
+ocrcpm-pipeline-server = "ocrcpm.server.pipeline_openai_server:main"
+
+[project.urls]
+Homepage = "https://github.com/OpenBMB/MiniCPM-V"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ocrcpm = ["configs/*.yaml"]

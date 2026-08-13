@@ -1,0 +1,42 @@
+# Example config: vllm backend (SDK auto-starts a local vLLM OpenAI server).
+# Requires the `vllm` extra and a Python interpreter that can run vLLM with the
+# target model. Set engine.vllm_python or the OCRCPM_VLLM_PYTHON env var.
+run:
+  run_tag: example_vllm_local
+  run_root: ./runs
+  mode: full
+  seed: 42
+
+input:
+  file_path: /abs/path/to/page.png
+  limit: 0
+
+layout:
+  enabled: true
+  provider: ppdoclayout3
+  model_dir: /abs/path/to/PP-DocLayoutV3_safetensors
+  device: cuda
+
+engine:
+  model_path: /abs/path/to/ocr_minicpmv_model
+  auto_start: true
+  # Interpreter used to launch `python -m vllm.entrypoints.openai.api_server`.
+  # Leave empty to read from the OCRCPM_VLLM_PYTHON environment variable.
+  vllm_python: ""
+  gpu_id: "0"
+  port: 18499
+  gpu_memory_utilization: 0.40
+  max_model_len: 8192
+  max_num_batched_tokens: 8192
+  wait_ready: true
+  request_timeout_sec: 600
+
+pipeline:
+  max_workers: 8
+  page_workers: 1
+  queue_mode: serial
+
+mm:
+  image_limit: 36
+  max_slice_nums: 9
+  downsample_mode: 4x

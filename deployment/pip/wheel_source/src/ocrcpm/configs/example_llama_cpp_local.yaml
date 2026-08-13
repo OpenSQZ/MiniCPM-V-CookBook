@@ -1,0 +1,49 @@
+# Example config: llama.cpp backend (SDK auto-starts llama-server).
+run:
+  run_tag: example_llama_cpp_local
+  run_root: ./runs
+  mode: full
+  seed: 42
+
+input:
+  file_path: /abs/path/to/page.png
+  limit: 0
+
+layout:
+  enabled: true
+  provider: ppdoclayout3
+  model_dir: /abs/path/to/PP-DocLayoutV3_safetensors
+  device: cpu
+
+engine:
+  type: minicpm_llamacpp_openai_api
+  model_path: /abs/path/to/model-f16.gguf
+  mmproj_path: /abs/path/to/mmproj-f16.gguf
+  model_name: minicpm-v4.7
+  llama_server: /abs/path/to/llama-server
+  auto_start: true
+  host: 127.0.0.1
+  port: 19699
+  gpu_id: "0"
+  gpu_layers: 99
+  parallel: 1
+  max_model_len: 8192
+  wait_ready: true
+  request_timeout_sec: 600
+
+pipeline:
+  max_workers: 1
+  page_workers: 1
+  queue_mode: serial
+
+mm:
+  image_limit: 1
+  max_slice_nums: 9
+  downsample_mode: 4x
+
+decode:
+  temperature: 0
+  top_p: 1
+  top_k: 1
+  repetition_penalty: 1.1
+  no_repeat_ngram_size: 0
