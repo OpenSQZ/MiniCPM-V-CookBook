@@ -1,13 +1,116 @@
-"""
-Quantize MiniCPM-V 4.6's LLM backbone (Qwen3_5TextModel) to 4-bit using GPTQ.
-Output is compatible with both transformers and vLLM for inference.
+# GPTQ
 
-Download the model from https://huggingface.co/openbmb/MiniCPM-V-4.6
-Install AutoGPTQ from source:
-  git clone https://github.com/tc-mb/AutoGPTQ.git && cd AutoGPTQ && pip install -e .
-Then run:
-  python quantization/gptq/minicpm-v4_6_gptq_quantize.py
-"""
+::::{Note}
+**支持版本：** MiniCPM-V 4.6
+::::
+
+## 方法 1（用预量化模型）
+
+### 1. 下载模型
+
+从下面任一来源获取 4-bit GPTQ 量化的 MiniCPM-V-4.6：
+
+* **HuggingFace** — <https://huggingface.co/openbmb/MiniCPM-V-4.6-GPTQ>
+* **ModelScope** — <https://modelscope.cn/models/OpenBMB/MiniCPM-V-4.6-GPTQ>
+
+```Bash
+git clone https://huggingface.co/openbmb/MiniCPM-V-4.6-GPTQ
+```
+
+### 2. 用 vLLM 运行
+
+```python
+import os
+from PIL import Image
+from transformers import AutoTokenizer
+from vllm import LLM, SamplingParams
+
+
+# 量化模型名称或本地路径
+MODEL_NAME = "openbmb/MiniCPM-V-4.6-GPTQ"
+
+# List of image file paths
+IMAGES = [
+    "image.png",
+]
+
+# Open and convert image
+image = Image.open(IMAGES[0]).convert("RGB")
+
+# Initialize tokenizer
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
+
+# Initialize LLM
+llm = LLM(
+    model=MODEL_NAME, 
+    # gpu_memory_utilization=0.9,
+    max_model_len=2048,
+    trust_remote_code=True,
+    # disable_mm_preprocessor_cache=True,
+    # limit_mm_per_prompt={"image": 5}
+)
+
+# Build messages
+messages = [{
+    "role": "user",
+    "content": "(<image>./</image>)\nPlease describe the content of this image",
+    # "content": "(<image>./</image>)\n请描述这张图片的内容",
+}]
+
+# Apply chat template to the messages
+prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+# Set stop token IDs
+stop_tokens = ['<|im_end|>', '</s>']
+stop_token_ids = [tokenizer.convert_tokens_to_ids(i) for i in stop_tokens]
+
+# Set generation parameters
+sampling_params = SamplingParams(
+    stop_token_ids=stop_token_ids,
+    temperature=0.7,
+    top_p=0.8,
+    max_tokens=1024,
+)
+
+# Get model output
+outputs = llm.generate({
+    "prompt": prompt,
+    "multi_modal_data": {
+        "image": image
+    }
+}, sampling_params=sampling_params)
+print(outputs[0].outputs[0].text)
+```
+
+
+## 方法 2（自己进行 GPTQ 量化）
+
+### 1. 下载模型
+<!-- 下载模型
+https://huggingface.co/openbmb/MiniCPM-V-4.6
+ -->
+
+从 [HuggingFace](https://huggingface.co/openbmb/MiniCPM-V-4.6) 下载 MiniCPM-V 4.6 模型。
+
+```Bash
+git clone https://huggingface.co/openbmb/MiniCPM-V-4.6
+```
+
+### 2. 安装 AutoGPTQ
+
+```Bash
+git clone https://github.com/tc-mb/AutoGPTQ.git
+cd AutoGPTQ
+pip install -e .
+```
+
+### 3. 量化脚本
+
+下方脚本会从 MiniCPM-V-4.6 中提取 LLM backbone（Qwen3.5，含 GatedDeltaNet linear attention），用 GPTQ 量化为 4-bit，再把量化后的权重与原始多模态部分重新组装。
+
+执行下方脚本（按需替换 `MODEL_PATH` 与 `OUTPUT_PATH`）：
+
+```python
 import os
 import json
 import shutil
@@ -244,3 +347,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
