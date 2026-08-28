@@ -6,17 +6,15 @@
 
 ## Method 1 (Use the pre-quantized model)
 
-> [!NOTE]
-> The HuggingFace mirror (`openbmb/MiniCPM-V-4_6-GPTQ`) hasn't been published yet — it will be online soon. For now download from **ModelScope** below, or use **Method 2** to quantize the model yourself.
-
 ### 1.Download the Model
 
-* **ModelScope** — <https://modelscope.cn/models/OpenBMB/MiniCPM-V-4_6-GPTQ>
-* HuggingFace (coming soon) — <https://huggingface.co/openbmb/MiniCPM-V-4_6-GPTQ>
+Download the 4-bit GPTQ-quantized MiniCPM-V-4.6 from one of:
+
+* **HuggingFace** — <https://huggingface.co/openbmb/MiniCPM-V-4.6-GPTQ>
+* **ModelScope** — <https://modelscope.cn/models/OpenBMB/MiniCPM-V-4.6-GPTQ>
 
 ```Bash
-# from ModelScope
-git clone https://modelscope.cn/OpenBMB/MiniCPM-V-4_6-GPTQ
+git clone https://huggingface.co/openbmb/MiniCPM-V-4.6-GPTQ
 ```
 
 ### 2.Run with vllm
@@ -29,7 +27,7 @@ from vllm import LLM, SamplingParams
 
 
 # Quantized model name or path
-MODEL_NAME = "openbmb/MiniCPM-V-4_6-GPTQ"
+MODEL_NAME = "openbmb/MiniCPM-V-4.6-GPTQ"
 
 # List of image file paths
 IMAGES = [
@@ -89,13 +87,13 @@ print(outputs[0].outputs[0].text)
 
 ### 1.Download the Model
 <!-- 下载模型
-https://huggingface.co/openbmb/MiniCPM-V-4_6
+https://huggingface.co/openbmb/MiniCPM-V-4.6
  -->
 
-Download the MiniCPM-V 4.6 model from [HuggingFace](https://huggingface.co/openbmb/MiniCPM-V-4_6)
+Download the MiniCPM-V 4.6 model from [HuggingFace](https://huggingface.co/openbmb/MiniCPM-V-4.6)
 
 ```Bash
-git clone https://huggingface.co/openbmb/MiniCPM-V-4_6
+git clone https://huggingface.co/openbmb/MiniCPM-V-4.6
 ```
 
 ### 2.Install AutoGPTQ
@@ -108,7 +106,7 @@ pip install -e .
 
 ### 3.Quantization Script
 
-The following script extracts the LLM backbone (Qwen3.5, with GatedDeltaNet linear attention) from MiniCPM-V-4_6, quantizes it to 4-bit using GPTQ, and reassembles the full model with the original multimodal components.
+The following script extracts the LLM backbone (Qwen3.5, with GatedDeltaNet linear attention) from MiniCPM-V-4.6, quantizes it to 4-bit using GPTQ, and reassembles the full model with the original multimodal components.
 
 Run the following quantization script (replace `MODEL_PATH` and `OUTPUT_PATH` with the paths to the original model and the quantized model, respectively).
 
@@ -130,8 +128,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = "/model/MiniCPM-V-4_6"
-OUTPUT_PATH = "./model/MiniCPM-V-4_6-gptq-int4"
+MODEL_PATH = "/model/MiniCPM-V-4.6"
+OUTPUT_PATH = "./model/MiniCPM-V-4.6-gptq-int4"
 
 BITS = 4
 GROUP_SIZE = 128

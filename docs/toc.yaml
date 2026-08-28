@@ -98,6 +98,9 @@ versions:
           - title: { en: "AWQ",  zh: "AWQ"  }
             src:   quantization/awq/minicpm-v4_6_awq_quantize.md
             url:   quantization/awq
+          - title: { en: "GPTQ", zh: "GPTQ" }
+            src:   quantization/gptq/minicpm-v4_6_gptq_quantize.md
+            url:   quantization/gptq
 
       - group: { en: "Demos", zh: "演示" }
         items:

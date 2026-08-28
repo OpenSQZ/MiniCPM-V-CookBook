@@ -114,7 +114,7 @@ We provide training methods serving different needs as following:
 | [GGUF](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/gguf.html)                 | Simplest and most portable format                                 |
 | [BNB](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/bnb.html)                   | Simple and easy-to-use quantization method                        |
 | [AWQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/awq.html)                   | High-performance INT4 quantization for efficient inference        |
-| [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.5/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging (also supports QAT) |
+| [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging |
 
 
 ## Awesome Works using MiniCPM-V & o
