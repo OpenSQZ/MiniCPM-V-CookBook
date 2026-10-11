@@ -19,8 +19,8 @@ All features are displayed at a glance, making it easy for you to quickly find e
 
 We support a wide range of users, from individuals to enterprises and researchers.
 
-- **Individuals**: Enjoy effortless inference using [Ollama](./deployment/ollama/minicpm-v4_6_ollama.md) and [Llama.cpp](./deployment/llama.cpp/minicpm-v4_6_llamacpp.md) with minimal setup.
-- **Enterprises**: Achieve high-throughput, scalable performance with [vLLM](./deployment/vllm/minicpm-v4_6_vllm.md) and [SGLang](./deployment/sglang/minicpm-v4_6_sglang.md).
+- **Individuals**: Enjoy effortless inference using [Ollama](./deployment/ollama/minicpm-v4_7_ollama.md) and [Llama.cpp](./deployment/llama.cpp/minicpm-v4_7_llamacpp.md) with minimal setup.
+- **Enterprises**: Achieve high-throughput, scalable performance with [vLLM](./deployment/vllm/minicpm-v4_7_vllm.md) and [SGLang](./deployment/sglang/minicpm-v4_7_sglang.md).
 - **Researchers**: Leverage advanced frameworks including [Transformers](./finetune/official/finetune_full.md) , [LLaMA-Factory](./finetune/llamafactory/finetune_llamafactory.md), [SWIFT](./finetune/swift/swift.md), and [Align-anything](./finetune/align-anything/align_anything.md) to enable flexible model development and cutting-edge experimentation.
 
 ### Versatile Deployment Scenarios
@@ -28,7 +28,7 @@ We support a wide range of users, from individuals to enterprises and researcher
 Our ecosystem delivers optimal solution for a variety of hardware environments and deployment demands.
 
 - **Web demo**: Launch interactive multimodal AI web demo with [FastAPI](./demo/README.md).
-- **Quantized deployment**: Maximize efficiency and minimize resource consumption using [GGUF](./quantization/gguf/minicpm-v4_6_gguf_quantize.md), [BNB](./quantization/bnb/minicpm-v4_6_bnb_quantize.md), and [AWQ](./quantization/awq/minicpm-v4_6_awq_quantize.md).
+- **Quantized deployment**: Maximize efficiency and minimize resource consumption using [GGUF](./quantization/gguf/minicpm-v4_7_gguf_quantize.md), [BNB](./quantization/bnb/minicpm-v4_7_bnb_quantize.md), and [AWQ](./quantization/awq/minicpm-v4_7_awq_quantize.md).
 - **Edge devices**: Local multimodal demos on **[MiniCPM-V-Apps](https://github.com/OpenBMB/MiniCPM-V-Apps)** (iOS / Android / HarmonyOS NEXT, `llama.cpp`); Cookbook iOS quickstart: [iPhone and iPad](./demo/ios_demo/ios.md).
 
 ## ⭐️ Live Demonstrations
@@ -48,13 +48,13 @@ Explore real-world examples of MiniCPM-V deployed on edge devices using our cura
 
 | Recipe                                                          | Description                                        |
 | --------------------------------------------------------------- | -------------------------------------------------- |
-| **Vision Capabilities** (MiniCPM-V 4.6)                         |                                                    |
-| 🖼️ [Single-image QA](./inference/minicpm-v4_6_single_image.md) | Question answering on a single image               |
-| 🧩 [Multi-image QA](./inference/minicpm-v4_6_multi_images.md)   | Question answering with multiple images            |
-| 🎬 [Video QA](./inference/minicpm-v4_6_video_understanding.md)  | Video-based question answering                     |
-| 📄 [Document Parser](./inference/minicpm-v4_6_pdf_parse.md)     | Parse and extract content from PDFs and webpages   |
-| 📝 [Text Recognition](./inference/minicpm-v4_6_ocr.md)          | Reliable OCR for photos and screenshots            |
-| 🎯 [Grounding](./inference/minicpm-v4_6_grounding.md)           | Visual grounding and object localization in images |
+| **Vision Capabilities** (MiniCPM-V 4.7)                         |                                                    |
+| 🖼️ [Single-image QA](./inference/minicpm-v4_7_single_image.md) | Question answering on a single image               |
+| 🧩 [Multi-image QA](./inference/minicpm-v4_7_multi_images.md)   | Question answering with multiple images            |
+| 🎬 [Video QA](./inference/minicpm-v4_7_video_understanding.md)  | Video-based question answering                     |
+| 📄 [Document Parser](./inference/minicpm-v4_7_pdf_parse.md)     | Parse and extract content from PDFs and webpages   |
+| 📝 [Text Recognition](./inference/minicpm-v4_7_ocr.md)          | Reliable OCR for photos and screenshots            |
+| 🎯 [Grounding](./inference/minicpm-v4_7_grounding.md)           | Visual grounding and object localization in images |
 | **Audio Capabilities** (MiniCPM-o)                              |                                                    |
 | 🎤 [Speech-to-Text](./inference/speech2text.md)                 | Multilingual speech recognition                    |
 | 🗣️ [Text-to-Speech](./inference/text2speech.md)                | Instruction-following speech synthesis             |
@@ -92,10 +92,10 @@ We provide training methods serving different needs as following:
 
 | Framework | Description                                                                                                                                  |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [vLLM](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/vllm.html)              | High-throughput GPU inference                                                                                |
-| [SGLang](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/sglang.html)          | High-throughput GPU inference *(MiniCPM 5 on upstream `>=0.5.12` with native `minicpm5` tool-call parser; older LLM series via [`tc-mb/sglang`](https://github.com/tc-mb/sglang) fork)* |
-| [llama.cpp](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/llamacpp.html)     | Fast CPU / GGUF inference on PC, iPhone and iPad                                                              |
-| [Ollama](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/deployment/ollama.html)          | User-friendly one-line local run                                                                              |
+| [vLLM](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/deployment/vllm.html)              | High-throughput GPU inference                                                                                |
+| [SGLang](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/deployment/sglang.html)          | High-throughput GPU inference *(MiniCPM 5 on upstream `>=0.5.12` with native `minicpm5` tool-call parser; older LLM series via [`tc-mb/sglang`](https://github.com/tc-mb/sglang) fork)* |
+| [llama.cpp](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/deployment/llamacpp.html)     | Fast CPU / GGUF inference on PC, iPhone and iPad                                                              |
+| [Ollama](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/deployment/ollama.html)          | User-friendly one-line local run                                                                              |
 | [MLX](https://opensqz.github.io/MiniCPM-V-CookBook/en/minicpm5/deployment/mlx.html)            | Apple Silicon inference                                                                                       |
 | [pip (ocrcpm)](./deployment/pip/minicpm-v-ocr_pip.md)                                           | Pip-installable OCR document-parsing pipeline with a pluggable backend                                        |
 | [OpenWebUI](./demo/web_demo/openwebui)                                                          | Interactive Web demo with Open WebUI                                                                          |
@@ -111,10 +111,11 @@ We provide training methods serving different needs as following:
 
 | Method                                                                                              | Key Feature                                                       |
 | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [GGUF](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/gguf.html)                 | Simplest and most portable format                                 |
-| [BNB](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/bnb.html)                   | Simple and easy-to-use quantization method                        |
-| [AWQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/awq.html)                   | High-performance INT4 quantization for efficient inference        |
-| [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.6/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging |
+| [GGUF](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/quantization/gguf.html)                 | Simplest and most portable format                                 |
+| [BNB](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/quantization/bnb.html)                   | Simple and easy-to-use quantization method                        |
+| [AWQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/quantization/awq.html)                   | High-performance INT4 quantization for efficient inference        |
+| [GPTQ](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/quantization/gptq.html)                 | Weight-only INT4 with vLLM-compatible packaging (also supports QAT) |
+| [FP8 / INT4](https://opensqz.github.io/MiniCPM-V-CookBook/en/v4.7/quantization/llmcompressor.html)  | llm-compressor `compressed-tensors` (fused-expert aware; 35B-A3B)  |
 
 
 ## Awesome Works using MiniCPM-V & o

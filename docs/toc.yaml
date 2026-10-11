@@ -21,7 +21,7 @@ site:
     zh: "视觉 / 语音 / 实时流多模态 AI 的实战手册。"
   repo: "https://github.com/OpenSQZ/MiniCPM-V-CookBook"
   base_url: "/MiniCPM-V-CookBook"
-  default_version: v4.6
+  default_version: v4.7
   default_lang: en
   brand:
     primary: "#3680ff"        # MiniCPM blue
@@ -40,9 +40,73 @@ top_level:
     url:    index
 
 versions:
+  - id: v4.7
+    label: { en: "MiniCPM-V 4.7",  zh: "MiniCPM-V 4.7" }
+    badge: "latest"
+    nav:
+      - title: { en: "Overview", zh: "概览" }
+        src:   docs/pages/v4.7/overview.md
+        url:   overview
+
+      - group: { en: "Inference", zh: "推理" }
+        items:
+          - title: { en: "Single-image QA",   zh: "单图问答"    }
+            src:   inference/minicpm-v4_7_single_image.md
+            url:   inference/single-image
+          - title: { en: "Multi-image QA",    zh: "多图问答"    }
+            src:   inference/minicpm-v4_7_multi_images.md
+            url:   inference/multi-images
+          - title: { en: "Video QA",          zh: "视频理解"    }
+            src:   inference/minicpm-v4_7_video_understanding.md
+            url:   inference/video-understanding
+          - group: { en: "Other visual tasks", zh: "其他视觉任务" }
+            collapsed: true
+            items:
+              - title: { en: "OCR",              zh: "OCR"       }
+                src:   inference/minicpm-v4_7_ocr.md
+                url:   inference/ocr
+              - title: { en: "PDF parsing",      zh: "PDF 解析"  }
+                src:   inference/minicpm-v4_7_pdf_parse.md
+                url:   inference/pdf-parse
+              - title: { en: "Visual grounding", zh: "视觉定位"   }
+                src:   inference/minicpm-v4_7_grounding.md
+                url:   inference/grounding
+
+      - group: { en: "Deployment", zh: "部署" }
+        items:
+          - title: { en: "vLLM",      zh: "vLLM"      }
+            src:   deployment/vllm/minicpm-v4_7_vllm.md
+            url:   deployment/vllm
+          - title: { en: "SGLang",    zh: "SGLang"    }
+            src:   deployment/sglang/minicpm-v4_7_sglang.md
+            url:   deployment/sglang
+          - title: { en: "llama.cpp", zh: "llama.cpp" }
+            src:   deployment/llama.cpp/minicpm-v4_7_llamacpp.md
+            url:   deployment/llamacpp
+          - title: { en: "Ollama",    zh: "Ollama"    }
+            src:   deployment/ollama/minicpm-v4_7_ollama.md
+            url:   deployment/ollama
+
+      - group: { en: "Quantization", zh: "量化" }
+        items:
+          - title: { en: "GGUF", zh: "GGUF" }
+            src:   quantization/gguf/minicpm-v4_7_gguf_quantize.md
+            url:   quantization/gguf
+          - title: { en: "BNB",  zh: "BNB"  }
+            src:   quantization/bnb/minicpm-v4_7_bnb_quantize.md
+            url:   quantization/bnb
+          - title: { en: "AWQ",  zh: "AWQ"  }
+            src:   quantization/awq/minicpm-v4_7_awq_quantize.md
+            url:   quantization/awq
+          - title: { en: "GPTQ", zh: "GPTQ" }
+            src:   quantization/gptq/minicpm-v4_7_gptq_quantize.md
+            url:   quantization/gptq
+          - title: { en: "FP8 / INT4 (llm-compressor)", zh: "FP8 / INT4（llm-compressor）" }
+            src:   quantization/llmcompressor/minicpm-v4_7_llmcompressor_quantize.md
+            url:   quantization/llmcompressor
+
   - id: v4.6
     label: { en: "MiniCPM-V 4.6",  zh: "MiniCPM-V 4.6" }
-    badge: "latest"
     nav:
       - title: { en: "Overview", zh: "概览" }
         src:   docs/pages/v4.6/overview.md
@@ -98,9 +162,6 @@ versions:
           - title: { en: "AWQ",  zh: "AWQ"  }
             src:   quantization/awq/minicpm-v4_6_awq_quantize.md
             url:   quantization/awq
-          - title: { en: "GPTQ", zh: "GPTQ" }
-            src:   quantization/gptq/minicpm-v4_6_gptq_quantize.md
-            url:   quantization/gptq
 
       - group: { en: "Demos", zh: "演示" }
         items:
