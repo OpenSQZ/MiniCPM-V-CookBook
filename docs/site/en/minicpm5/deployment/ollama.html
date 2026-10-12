@@ -340,7 +340,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">Version</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="../../v4.6/deployment/ollama.html">MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.7/deployment/ollama.html">MiniCPM-V 4.7 [latest]</option>
+    <option value="../../v4.6/deployment/ollama.html">MiniCPM-V 4.6</option>
     <option value="../../v4.5/deployment/ollama.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/ollama.html">MiniCPM-o 4.5</option>
     <option value="ollama.html" selected>MiniCPM 5 [latest-llm]</option>
@@ -372,7 +373,20 @@ footer.page-footer a:hover { color: var(--primary); }
   <article><h1 id="minicpm-5-ollama">MiniCPM 5 - Ollama</h1>
 <div class="admonition admonition-note" markdown="0">
 <p class="admonition-title">Note</p>
-<p><a href="https://ollama.com">Ollama</a> is the easiest CLI / daemon path to run MiniCPM 5 on a laptop or desktop — one binary, no Python, no CUDA toolkit. It consumes the same GGUF files we ship for <code>llama.cpp</code>. Once published, MiniCPM 5 will appear on the <a href="https://ollama.com/openbmb">official OpenBMB Ollama registry</a>.</p>
+<p><a href="https://ollama.com">Ollama</a> is the easiest CLI / daemon path to run MiniCPM 5 on a laptop or desktop — one binary, no Python, no CUDA toolkit. It consumes the same GGUF files we ship for <code>llama.cpp</code>. MiniCPM 5 is published on the <a href="https://ollama.com/openbmb/minicpm5">official OpenBMB Ollama registry</a>.</p>
+</div>
+
+<div class="admonition admonition-important" markdown="0">
+<p class="admonition-title">Important</p>
+<p><strong>Upstream tokenizer support for MiniCPM 5 is still in flight</strong> (<a href="https://github.com/ggml-org/llama.cpp/pull/23384">llama.cpp PR #23384</a>). Stable Ollama (built against current upstream <code>llama.cpp</code>) produces correct output anyway because its <code>llama-bpe</code> pre-tokenizer is functionally equivalent to MiniCPM 5's two-stage regex for typical inputs.</p>
+<p>If you want the forward-compatible path — i.e. correctly handling future GGUFs that label <code>tokenizer.ggml.pre = "minicpm5"</code> and routing through Ollama's new Go engine — build from our fork until upstream merges:</p>
+<pre><code class="language-bash">git clone -b MiniCPM5 https://github.com/tc-mb/ollama.git
+cd ollama
+go build -o ollama .          # macOS Apple Silicon: Metal is built-in
+./ollama serve &amp;
+./ollama run openbmb/minicpm5
+</code></pre>
+<p>The patch lives entirely in <code>model/models/llama/model.go</code> — single Go-side tokenizer case that is identical to the upstream PR. No vendored <code>llama.cpp</code> surgery is required for MiniCPM 5.</p>
 </div>
 
 <h2 id="1-install-ollama">1. Install Ollama</h2>
@@ -409,17 +423,18 @@ huggingface-cli<span class="w"> </span>download<span class="w"> </span>openbmb/M
 cat<span class="w"> </span>&gt;<span class="w"> </span>Modelfile<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">FROM ./MiniCPM5-1B-${QUANT}.gguf</span>
 
-<span class="s"># MiniCPM 5 chat template (ChatML-style)</span>
-<span class="s">TEMPLATE &quot;&quot;&quot;{{- if .Messages -}}</span>
-<span class="s">{{- range .Messages -}}</span>
-<span class="s">&lt;|im_start|&gt;{{ .Role }}</span>
+<span class="s"># MiniCPM 5 chat template (ChatML-style).</span>
+<span class="s"># The leading &lt;s&gt; is REQUIRED — the official GGUF sets add_bos_token=False,</span>
+<span class="s"># so without an explicit BOS the model emits garbage (\`\`\`&lt;think&gt; ... loops).</span>
+<span class="s">TEMPLATE &quot;&quot;&quot;&lt;s&gt;{{ if .System }}&lt;|im_start|&gt;system</span>
+<span class="s">{{ .System }}&lt;|im_end|&gt;</span>
+<span class="s">{{ end }}{{ range .Messages }}&lt;|im_start|&gt;{{ .Role }}</span>
 <span class="s">{{ .Content }}&lt;|im_end|&gt;</span>
-<span class="s">{{ end -}}</span>
-<span class="s">&lt;|im_start|&gt;assistant</span>
-<span class="s">{{ end -}}&quot;&quot;&quot;</span>
+<span class="s">{{ end }}&lt;|im_start|&gt;assistant</span>
+<span class="s">&quot;&quot;&quot;</span>
 
 <span class="s">PARAMETER stop &quot;&lt;|im_end|&gt;&quot;</span>
-<span class="s">PARAMETER stop &quot;&lt;/s&gt;&quot;</span>
+<span class="s">PARAMETER stop &quot;&lt;|endoftext|&gt;&quot;</span>
 
 <span class="s"># Defaults are tuned for No-Think mode</span>
 <span class="s">PARAMETER temperature 0.7</span>

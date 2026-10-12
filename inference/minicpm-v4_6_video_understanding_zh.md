@@ -1,12 +1,25 @@
 # 视频理解（MiniCPM-V 4.6）
 
-> v4.6 的视频通路非常简洁：image processor 逐帧调用，单视频帧切片预算由 processor 上的 `max_slice_nums` 控制，**无需**特殊的视频后端。
+> v4.6 的视频走标准 message 流程：在 message 的 content 里放一个 `{"type": "video", ...}`
+> 条目，由 processor 自动解码 / 采样帧。帧预算与采样由 processor 参数控制 ——
+> **无需手动解帧**，也不需要特殊的视频后端。
 
-## 加载模型
+## 安装
+
+```bash
+pip install "transformers[torch]>=5.7.0" torchvision torchcodec
+```
+
+> **CUDA 提示：** `torchcodec`（视频解码）对 CUDA 版本较敏感。若遇到
+> `RuntimeError: Could not load libtorchcodec`，可改用 **PyAV** ——
+> `pip install "transformers[torch]>=5.7.0" torchvision av` ——
+> 或在装 torch 时指定匹配的 CUDA（如 CUDA 12.8）：
+> `pip install "transformers>=5.7.0" torchvision torchcodec --index-url https://download.pytorch.org/whl/cu128`
+
+## 初始化模型
 
 ```python
 import torch
-from PIL import Image
 from transformers import AutoProcessor, AutoModelForImageTextToText
 
 model_path = "openbmb/MiniCPM-V-4.6"  # 或 "openbmb/MiniCPM-V-4.6-Thinking"
@@ -14,67 +27,70 @@ model_path = "openbmb/MiniCPM-V-4.6"  # 或 "openbmb/MiniCPM-V-4.6-Thinking"
 processor = AutoProcessor.from_pretrained(model_path)
 model = AutoModelForImageTextToText.from_pretrained(
     model_path,
-    torch_dtype=torch.bfloat16,
-    attn_implementation="sdpa",
-).eval().cuda()
-```
+    torch_dtype="auto",
+    device_map="auto",
+)
 
-## 视频 → 帧序列
-
-```python
-from decord import VideoReader, cpu
-
-MAX_NUM_FRAMES = 32  # 显存吃紧时调小
-
-def encode_video(video_path: str):
-    def uniform_sample(indices, n):
-        gap = len(indices) / n
-        return [indices[int(i * gap + gap / 2)] for i in range(n)]
-
-    vr = VideoReader(video_path, ctx=cpu(0))
-    sample_fps = round(vr.get_avg_fps() / 1)  # 约 1 fps
-    frame_idx = list(range(0, len(vr), sample_fps))
-    if len(frame_idx) > MAX_NUM_FRAMES:
-        frame_idx = uniform_sample(frame_idx, MAX_NUM_FRAMES)
-    frames = vr.get_batch(frame_idx).asnumpy()
-    return [Image.fromarray(f.astype("uint8")) for f in frames]
+# 视频场景建议用 Flash Attention 2，加速并省显存
+# model = AutoModelForImageTextToText.from_pretrained(
+#     model_path,
+#     torch_dtype=torch.bfloat16,
+#     attn_implementation="flash_attention_2",
+#     device_map="auto",
+# )
 ```
 
 ## 视频对话
 
 ```python
-video_path = "assets/badminton.mp4"
-frames = encode_video(video_path)
-print("帧数:", len(frames))
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "video", "url": "https://huggingface.co/datasets/openbmb/DemoCase/resolve/main/football.mp4"},
+            {"type": "text", "text": "详细描述这段视频。按时间线展开，重点关注画面文字、界面变化、主要动作与场景切换。"},
+        ],
+    }
+]
 
-messages = [{
-    "role": "user",
-    "content": [
-        {"type": "video", "video": frames},
-        {"type": "text",  "text":  "描述这段视频"},
-    ],
-}]
+downsample_mode = "16x"  # 需要更精细的细节时用 "4x"
 
 inputs = processor.apply_chat_template(
-    messages,
-    add_generation_prompt=True,
-    tokenize=True,
-    return_dict=True,
-    return_tensors="pt",
-    # 需要时调整每个视频的切片预算（数值越小越省显存）
-    chat_template_kwargs={},
-    max_slice_nums=2,
+    messages, tokenize=True, add_generation_prompt=True,
+    return_dict=True, return_tensors="pt",
+    downsample_mode=downsample_mode,
+    max_num_frames=128,
+    stack_frames=1,
+    max_slice_nums=1,
+    use_image_id=False,
 ).to(model.device)
 
-out_ids = model.generate(**inputs, max_new_tokens=1024)
-answer = processor.decode(
-    out_ids[0][inputs["input_ids"].shape[-1]:],
-    skip_special_tokens=True,
+generated_ids = model.generate(**inputs, downsample_mode=downsample_mode, max_new_tokens=2048)
+generated_ids_trimmed = [
+    out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+]
+output_text = processor.batch_decode(
+    generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
 )
-print(answer)
+print(output_text[0])
 ```
 
-> 如果遇到 GPU OOM：
-> 1. 调小 `MAX_NUM_FRAMES`；
-> 2. 调小 `max_slice_nums`（设为 1 完全关闭切片）；
-> 3. 用 `bfloat16` + `attn_implementation="sdpa"` 运行。
+使用本地文件时直接传路径：
+
+```python
+{"type": "video", "url": "./assets/badminton.mp4"}
+```
+
+## 高级参数
+
+传给 `apply_chat_template`（标注了 `generate` 的也需传给 `generate`）：
+
+| 参数 | 默认 | 适用 | 说明 |
+|------|------|------|------|
+| `downsample_mode` | `"16x"` | 图像 & 视频 | 视觉 token 下采样。`"16x"` 合并 token 更高效；`"4x"` 保留 4 倍 token，细节更精细。**必须同时传给 `generate()`。** |
+| `max_slice_nums` | `9` | 图像 & 视频 | 高分辨率图像切片的最大数量。越大保留细节越多。建议：图像 `36`，视频 `1`。 |
+| `max_num_frames` | `128` | 仅视频 | 控制时间上下文长度、避免显存溢出。**短视频**（时长 ≤ `max_num_frames` 秒）：按 **1 FPS** 采样。**长视频**（> `max_num_frames` 秒）：在全时间线上均匀采样恰好 `max_num_frames` 帧。 |
+| `stack_frames` | `1` | 仅视频 | 每秒采样点数量。`1` = 仅主帧。`N`（N>1）= 每秒 1 主帧 + N−1 子帧，子帧合成为一张网格图。短视频建议 `1`，长视频建议 `3`~`5`。 |
+| `use_image_id` | `True` | 图像 & 视频 | 是否在每个图像/帧占位符前加 `<image_id>N</image_id>`。图像设 `True`，视频设 `False`。 |
+
+> **注意：** `downsample_mode` 必须**同时**传给 `apply_chat_template`（决定占位符数量）和 `generate`（作用于视觉编码器）。其余参数只传给 `apply_chat_template` 即可。

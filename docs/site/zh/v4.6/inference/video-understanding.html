@@ -340,7 +340,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">版本</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="video-understanding.html" selected>MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.7/inference/video-understanding.html">MiniCPM-V 4.7 [latest]</option>
+    <option value="video-understanding.html" selected>MiniCPM-V 4.6</option>
     <option value="../../v4.5/inference/video-understanding.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
     <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
@@ -382,11 +383,23 @@ footer.page-footer a:hover { color: var(--primary); }
 <main class="content" id="content">
   <article><h1 id="视频理解-minicpm-v-4-6">视频理解（MiniCPM-V 4.6）</h1>
 <blockquote>
-<p>v4.6 的视频通路非常简洁：image processor 逐帧调用，单视频帧切片预算由 processor 上的 <code>max_slice_nums</code> 控制，<strong>无需</strong>特殊的视频后端。</p>
+<p>v4.6 的视频走标准 message 流程：在 message 的 content 里放一个 <code>{"type": "video", ...}</code>
+条目，由 processor 自动解码 / 采样帧。帧预算与采样由 processor 参数控制 ——
+<strong>无需手动解帧</strong>，也不需要特殊的视频后端。</p>
 </blockquote>
-<h2 id="加载模型">加载模型</h2>
+<h2 id="安装">安装</h2>
+<div class="code"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;transformers[torch]&gt;=5.7.0&quot;</span><span class="w"> </span>torchvision<span class="w"> </span>torchcodec
+</code></pre></div>
+
+<blockquote>
+<p><strong>CUDA 提示：</strong> <code>torchcodec</code>（视频解码）对 CUDA 版本较敏感。若遇到
+<code>RuntimeError: Could not load libtorchcodec</code>，可改用 <strong>PyAV</strong> ——
+<code>pip install "transformers[torch]&gt;=5.7.0" torchvision av</code> ——
+或在装 torch 时指定匹配的 CUDA（如 CUDA 12.8）：
+<code>pip install "transformers&gt;=5.7.0" torchvision torchcodec --index-url https://download.pytorch.org/whl/cu128</code></p>
+</blockquote>
+<h2 id="初始化模型">初始化模型</h2>
 <div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoProcessor</span><span class="p">,</span> <span class="n">AutoModelForImageTextToText</span>
 
 <span class="n">model_path</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4.6&quot;</span>  <span class="c1"># 或 &quot;openbmb/MiniCPM-V-4.6-Thinking&quot;</span>
@@ -394,67 +407,102 @@ footer.page-footer a:hover { color: var(--primary); }
 <span class="n">processor</span> <span class="o">=</span> <span class="n">AutoProcessor</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForImageTextToText</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
     <span class="n">model_path</span><span class="p">,</span>
-    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>
-    <span class="n">attn_implementation</span><span class="o">=</span><span class="s2">&quot;sdpa&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
-</code></pre></div>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 
-<h2 id="视频-帧序列">视频 → 帧序列</h2>
-<div class="code"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">decord</span><span class="w"> </span><span class="kn">import</span> <span class="n">VideoReader</span><span class="p">,</span> <span class="n">cpu</span>
-
-<span class="n">MAX_NUM_FRAMES</span> <span class="o">=</span> <span class="mi">32</span>  <span class="c1"># 显存吃紧时调小</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">encode_video</span><span class="p">(</span><span class="n">video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">uniform_sample</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="n">gap</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">gap</span> <span class="o">+</span> <span class="n">gap</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-
-    <span class="n">vr</span> <span class="o">=</span> <span class="n">VideoReader</span><span class="p">(</span><span class="n">video_path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">cpu</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">sample_fps</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">vr</span><span class="o">.</span><span class="n">get_avg_fps</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 约 1 fps</span>
-    <span class="n">frame_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vr</span><span class="p">),</span> <span class="n">sample_fps</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_NUM_FRAMES</span><span class="p">:</span>
-        <span class="n">frame_idx</span> <span class="o">=</span> <span class="n">uniform_sample</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">,</span> <span class="n">MAX_NUM_FRAMES</span><span class="p">)</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="n">vr</span><span class="o">.</span><span class="n">get_batch</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">]</span>
+<span class="c1"># 视频场景建议用 Flash Attention 2，加速并省显存</span>
+<span class="c1"># model = AutoModelForImageTextToText.from_pretrained(</span>
+<span class="c1">#     model_path,</span>
+<span class="c1">#     torch_dtype=torch.bfloat16,</span>
+<span class="c1">#     attn_implementation=&quot;flash_attention_2&quot;,</span>
+<span class="c1">#     device_map=&quot;auto&quot;,</span>
+<span class="c1"># )</span>
 </code></pre></div>
 
 <h2 id="视频对话">视频对话</h2>
-<div class="code"><pre><span></span><code><span class="n">video_path</span> <span class="o">=</span> <span class="s2">&quot;assets/badminton.mp4&quot;</span>
-<span class="n">frames</span> <span class="o">=</span> <span class="n">encode_video</span><span class="p">(</span><span class="n">video_path</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;帧数:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">))</span>
+<div class="code"><pre><span></span><code><span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://huggingface.co/datasets/openbmb/DemoCase/resolve/main/football.mp4&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;详细描述这段视频。按时间线展开，重点关注画面文字、界面变化、主要动作与场景切换。&quot;</span><span class="p">},</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+<span class="p">]</span>
 
-<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span>
-    <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;video&quot;</span><span class="p">:</span> <span class="n">frames</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>  <span class="s2">&quot;text&quot;</span><span class="p">:</span>  <span class="s2">&quot;描述这段视频&quot;</span><span class="p">},</span>
-    <span class="p">],</span>
-<span class="p">}]</span>
+<span class="n">downsample_mode</span> <span class="o">=</span> <span class="s2">&quot;16x&quot;</span>  <span class="c1"># 需要更精细的细节时用 &quot;4x&quot;</span>
 
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
-    <span class="n">messages</span><span class="p">,</span>
-    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
-    <span class="c1"># 需要时调整每个视频的切片预算（数值越小越省显存）</span>
-    <span class="n">chat_template_kwargs</span><span class="o">=</span><span class="p">{},</span>
-    <span class="n">max_slice_nums</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">messages</span><span class="p">,</span> <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+    <span class="n">downsample_mode</span><span class="o">=</span><span class="n">downsample_mode</span><span class="p">,</span>
+    <span class="n">max_num_frames</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+    <span class="n">stack_frames</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_slice_nums</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">use_image_id</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-<span class="n">out_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-    <span class="n">out_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span>
-    <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="n">generated_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">downsample_mode</span><span class="o">=</span><span class="n">downsample_mode</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<span class="n">generated_ids_trimmed</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">out_ids</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">in_ids</span><span class="p">):]</span> <span class="k">for</span> <span class="n">in_ids</span><span class="p">,</span> <span class="n">out_ids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">generated_ids</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">output_text</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">batch_decode</span><span class="p">(</span>
+    <span class="n">generated_ids_trimmed</span><span class="p">,</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">clean_up_tokenization_spaces</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output_text</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </code></pre></div>
 
+<p>使用本地文件时直接传路径：</p>
+<div class="code"><pre><span></span><code><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;./assets/badminton.mp4&quot;</span><span class="p">}</span>
+</code></pre></div>
+
+<h2 id="高级参数">高级参数</h2>
+<p>传给 <code>apply_chat_template</code>（标注了 <code>generate</code> 的也需传给 <code>generate</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认</th>
+<th>适用</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>downsample_mode</code></td>
+<td><code>"16x"</code></td>
+<td>图像 &amp; 视频</td>
+<td>视觉 token 下采样。<code>"16x"</code> 合并 token 更高效；<code>"4x"</code> 保留 4 倍 token，细节更精细。<strong>必须同时传给 <code>generate()</code>。</strong></td>
+</tr>
+<tr>
+<td><code>max_slice_nums</code></td>
+<td><code>9</code></td>
+<td>图像 &amp; 视频</td>
+<td>高分辨率图像切片的最大数量。越大保留细节越多。建议：图像 <code>36</code>，视频 <code>1</code>。</td>
+</tr>
+<tr>
+<td><code>max_num_frames</code></td>
+<td><code>128</code></td>
+<td>仅视频</td>
+<td>控制时间上下文长度、避免显存溢出。<strong>短视频</strong>（时长 ≤ <code>max_num_frames</code> 秒）：按 <strong>1 FPS</strong> 采样。<strong>长视频</strong>（&gt; <code>max_num_frames</code> 秒）：在全时间线上均匀采样恰好 <code>max_num_frames</code> 帧。</td>
+</tr>
+<tr>
+<td><code>stack_frames</code></td>
+<td><code>1</code></td>
+<td>仅视频</td>
+<td>每秒采样点数量。<code>1</code> = 仅主帧。<code>N</code>（N&gt;1）= 每秒 1 主帧 + N−1 子帧，子帧合成为一张网格图。短视频建议 <code>1</code>，长视频建议 <code>3</code>~<code>5</code>。</td>
+</tr>
+<tr>
+<td><code>use_image_id</code></td>
+<td><code>True</code></td>
+<td>图像 &amp; 视频</td>
+<td>是否在每个图像/帧占位符前加 <code>&lt;image_id&gt;N&lt;/image_id&gt;</code>。图像设 <code>True</code>，视频设 <code>False</code>。</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
-<p>如果遇到 GPU OOM：
-1. 调小 <code>MAX_NUM_FRAMES</code>；
-2. 调小 <code>max_slice_nums</code>（设为 1 完全关闭切片）；
-3. 用 <code>bfloat16</code> + <code>attn_implementation="sdpa"</code> 运行。</p>
+<p><strong>注意：</strong> <code>downsample_mode</code> 必须<strong>同时</strong>传给 <code>apply_chat_template</code>（决定占位符数量）和 <code>generate</code>（作用于视觉编码器）。其余参数只传给 <code>apply_chat_template</code> 即可。</p>
 </blockquote></article>
 
   <footer class="page-footer">

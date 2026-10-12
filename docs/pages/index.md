@@ -4,10 +4,10 @@ Cook up amazing AI applications effortlessly with **MiniCPM-V**, **MiniCPM-o**, 
 
 ## What's new
 
-- 🎉 **MiniCPM-V 4.6** released — Instruct + Thinking variants, Qwen3.5 hybrid backbone, 256K context, simplified vision merger.
-  - Inference: [Single-image QA](v4.6/inference/single-image.html) · [Multi-image QA](v4.6/inference/multi-images.html) · [Video](v4.6/inference/video-understanding.html) · [OCR](v4.6/inference/ocr.html) · [PDF](v4.6/inference/pdf-parse.html) · [Grounding](v4.6/inference/grounding.html)
-  - Deployment: [vLLM](v4.6/deployment/vllm.html) · [SGLang](v4.6/deployment/sglang.html) · [llama.cpp](v4.6/deployment/llamacpp.html) · [Ollama](v4.6/deployment/ollama.html)
-  - Quantization: [GGUF](v4.6/quantization/gguf.html) · [BNB](v4.6/quantization/bnb.html) · [AWQ](v4.6/quantization/awq.html)
+- 🎉 **MiniCPM-V 4.7** released — two sizes (**1B** dense + **35B-A3B** MoE), SigLIP **canvas M-RoPE** vision tower, 256K context.
+  - Inference: [Single-image QA](v4.7/inference/single-image.html) · [Multi-image QA](v4.7/inference/multi-images.html) · [Video](v4.7/inference/video-understanding.html) · [OCR](v4.7/inference/ocr.html) · [PDF](v4.7/inference/pdf-parse.html) · [Grounding](v4.7/inference/grounding.html)
+  - Deployment: [vLLM](v4.7/deployment/vllm.html) · [SGLang](v4.7/deployment/sglang.html) · [llama.cpp](v4.7/deployment/llamacpp.html) · [Ollama](v4.7/deployment/ollama.html)
+  - Quantization: [GGUF](v4.7/quantization/gguf.html) · [BNB](v4.7/quantization/bnb.html) · [AWQ](v4.7/quantization/awq.html) · [FP8 / INT4](v4.7/quantization/llmcompressor.html)
 
 ## Pick the right recipe
 
@@ -15,16 +15,16 @@ Cook up amazing AI applications effortlessly with **MiniCPM-V**, **MiniCPM-o**, 
 
 Effortless inference on your own machine — runs on **CPU + GPU**, **macOS / Linux / Windows**, even on phones.
 
-- [Ollama](v4.6/deployment/ollama.html) — easiest setup
-- [llama.cpp](v4.6/deployment/llamacpp.html) — fastest CPU inference
+- [Ollama](v4.7/deployment/ollama.html) — easiest setup
+- [llama.cpp](v4.7/deployment/llamacpp.html) — fastest CPU inference
 - [iOS demo](shared/demos/ios.html) — runs on iPhone / iPad
 
 ### Enterprises
 
 High-throughput, scalable serving:
 
-- [vLLM](v4.6/deployment/vllm.html) — production-grade GPU inference
-- [SGLang](v4.6/deployment/sglang.html) — high-throughput GPU inference
+- [vLLM](v4.7/deployment/vllm.html) — production-grade GPU inference
+- [SGLang](v4.7/deployment/sglang.html) — high-throughput GPU inference
 
 ### Researchers
 
@@ -43,7 +43,8 @@ This cookbook tracks all currently supported MiniCPM releases:
 
 | Version | Status | Modality | Size | Highlights | Context |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **4.6** *(latest)* | Recommended | Image, Video | ~1.2B | Phone-ready edge MLLM, LLaVA-UHD v4 vision tower | 256K |
+| **4.7** *(latest)* | Recommended | Image, Video | 1B / 35B-A3B | Two sizes (dense + MoE), canvas M-RoPE vision tower | 256K |
+| 4.6 | Stable | Image, Video | ~1.2B | Phone-ready edge MLLM, LLaVA-UHD v4 vision tower | 256K |
 | 4.5 | Stable | Image, Video | 9B | Image + video understanding, optional thinking mode | 32K |
 
 ### MiniCPM-o

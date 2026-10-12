@@ -340,7 +340,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">版本</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="../../v4.6/deployment/ollama.html">MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.7/deployment/ollama.html">MiniCPM-V 4.7 [latest]</option>
+    <option value="../../v4.6/deployment/ollama.html">MiniCPM-V 4.6</option>
     <option value="../../v4.5/deployment/ollama.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/deployment/ollama.html">MiniCPM-o 4.5</option>
     <option value="ollama.html" selected>MiniCPM 5 [latest-llm]</option>
@@ -372,7 +373,20 @@ footer.page-footer a:hover { color: var(--primary); }
   <article><h1 id="minicpm-5-ollama">MiniCPM 5 - Ollama</h1>
 <div class="admonition admonition-note" markdown="0">
 <p class="admonition-title">说明</p>
-<p><a href="https://ollama.com">Ollama</a> 是在笔记本 / 桌面上运行 MiniCPM 5 最简单的 CLI / 守护进程方案 —— 单个二进制、无 Python、无 CUDA toolkit。它直接消费我们为 <code>llama.cpp</code> 提供的 GGUF 文件。模型上线后会出现在 <a href="https://ollama.com/openbmb">OpenBMB 官方 Ollama registry</a>。</p>
+<p><a href="https://ollama.com">Ollama</a> 是在笔记本 / 桌面上运行 MiniCPM 5 最简单的 CLI / 守护进程方案 —— 单个二进制、无 Python、无 CUDA toolkit。它直接消费我们为 <code>llama.cpp</code> 提供的 GGUF 文件。模型已发布在 <a href="https://ollama.com/openbmb/minicpm5">OpenBMB 官方 Ollama registry</a>。</p>
+</div>
+
+<div class="admonition admonition-important" markdown="0">
+<p class="admonition-title">重要</p>
+<p><strong>MiniCPM 5 的 tokenizer 上游支持还在路上</strong>（<a href="https://github.com/ggml-org/llama.cpp/pull/23384">llama.cpp PR #23384</a>）。稳定版 Ollama（基于当前上游 <code>llama.cpp</code> 编译）实际上能产出正确结果，因为它的 <code>llama-bpe</code> 预分词器对 MiniCPM 5 的两阶段正则在常见输入下功能等价。</p>
+<p>如果你想走 forward-compatible 路径 —— 即正确识别未来标注 <code>tokenizer.ggml.pre = "minicpm5"</code> 的 GGUF、并走 Ollama 新 Go engine —— 请在上游合入前临时使用我们的 fork：</p>
+<pre><code class="language-bash">git clone -b MiniCPM5 https://github.com/tc-mb/ollama.git
+cd ollama
+go build -o ollama .          # macOS Apple Silicon：内置 Metal
+./ollama serve &amp;
+./ollama run openbmb/minicpm5
+</code></pre>
+<p>补丁全部在 <code>model/models/llama/model.go</code> 一个 Go 文件里，与上游 PR 完全一致。MiniCPM 5 不需要 vendored <code>llama.cpp</code> 改动。</p>
 </div>
 
 <h2 id="1-安装-ollama">1. 安装 Ollama</h2>
@@ -409,17 +423,18 @@ huggingface-cli<span class="w"> </span>download<span class="w"> </span>openbmb/M
 cat<span class="w"> </span>&gt;<span class="w"> </span>Modelfile<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">FROM ./MiniCPM5-1B-${QUANT}.gguf</span>
 
-<span class="s"># MiniCPM 5 chat template（ChatML 风格）</span>
-<span class="s">TEMPLATE &quot;&quot;&quot;{{- if .Messages -}}</span>
-<span class="s">{{- range .Messages -}}</span>
-<span class="s">&lt;|im_start|&gt;{{ .Role }}</span>
+<span class="s"># MiniCPM 5 chat template（ChatML 风格）。</span>
+<span class="s"># 前缀的 &lt;s&gt; 是 **必须** 的——官方 GGUF 设置了 add_bos_token=False，</span>
+<span class="s"># 不显式加 BOS 模型会输出乱码（\`\`\`&lt;think&gt; ... 循环重复）。</span>
+<span class="s">TEMPLATE &quot;&quot;&quot;&lt;s&gt;{{ if .System }}&lt;|im_start|&gt;system</span>
+<span class="s">{{ .System }}&lt;|im_end|&gt;</span>
+<span class="s">{{ end }}{{ range .Messages }}&lt;|im_start|&gt;{{ .Role }}</span>
 <span class="s">{{ .Content }}&lt;|im_end|&gt;</span>
-<span class="s">{{ end -}}</span>
-<span class="s">&lt;|im_start|&gt;assistant</span>
-<span class="s">{{ end -}}&quot;&quot;&quot;</span>
+<span class="s">{{ end }}&lt;|im_start|&gt;assistant</span>
+<span class="s">&quot;&quot;&quot;</span>
 
 <span class="s">PARAMETER stop &quot;&lt;|im_end|&gt;&quot;</span>
-<span class="s">PARAMETER stop &quot;&lt;/s&gt;&quot;</span>
+<span class="s">PARAMETER stop &quot;&lt;|endoftext|&gt;&quot;</span>
 
 <span class="s"># 默认按 No-Think 模式调优</span>
 <span class="s">PARAMETER temperature 0.7</span>

@@ -4,10 +4,10 @@
 
 ## 最新动态
 
-- 🎉 **MiniCPM-V 4.6** 发布 —— Instruct 与 Thinking 双版本，Qwen3.5 hybrid backbone，256K 上下文，重构后的视觉 merger 结构。
-  - 推理：[单图问答](v4.6/inference/single-image.html) · [多图问答](v4.6/inference/multi-images.html) · [视频](v4.6/inference/video-understanding.html) · [OCR](v4.6/inference/ocr.html) · [PDF 解析](v4.6/inference/pdf-parse.html) · [Grounding](v4.6/inference/grounding.html)
-  - 部署：[vLLM](v4.6/deployment/vllm.html) · [SGLang](v4.6/deployment/sglang.html) · [llama.cpp](v4.6/deployment/llamacpp.html) · [Ollama](v4.6/deployment/ollama.html)
-  - 量化：[GGUF](v4.6/quantization/gguf.html) · [BNB](v4.6/quantization/bnb.html) · [AWQ](v4.6/quantization/awq.html)
+- 🎉 **MiniCPM-V 4.7** 发布 —— 两个尺寸（**1B** dense + **35B-A3B** MoE），SigLIP **canvas M-RoPE** 视觉塔，256K 上下文。
+  - 推理：[单图问答](v4.7/inference/single-image.html) · [多图问答](v4.7/inference/multi-images.html) · [视频](v4.7/inference/video-understanding.html) · [OCR](v4.7/inference/ocr.html) · [PDF 解析](v4.7/inference/pdf-parse.html) · [Grounding](v4.7/inference/grounding.html)
+  - 部署：[vLLM](v4.7/deployment/vllm.html) · [SGLang](v4.7/deployment/sglang.html) · [llama.cpp](v4.7/deployment/llamacpp.html) · [Ollama](v4.7/deployment/ollama.html)
+  - 量化：[GGUF](v4.7/quantization/gguf.html) · [BNB](v4.7/quantization/bnb.html) · [AWQ](v4.7/quantization/awq.html) · [FP8 / INT4](v4.7/quantization/llmcompressor.html)
 
 ## 按场景选择
 
@@ -15,16 +15,16 @@
 
 在自己机器上轻松推理 —— 支持 **CPU + GPU**、**macOS / Linux / Windows**，甚至手机。
 
-- [Ollama](v4.6/deployment/ollama.html) —— 配置最简单
-- [llama.cpp](v4.6/deployment/llamacpp.html) —— CPU 推理最快
+- [Ollama](v4.7/deployment/ollama.html) —— 配置最简单
+- [llama.cpp](v4.7/deployment/llamacpp.html) —— CPU 推理最快
 - [iOS Demo](shared/demos/ios.html) —— 运行在 iPhone / iPad
 
 ### 企业用户
 
 高吞吐、可规模化的服务化部署：
 
-- [vLLM](v4.6/deployment/vllm.html) —— 生产级 GPU 推理
-- [SGLang](v4.6/deployment/sglang.html) —— 高吞吐 GPU 推理
+- [vLLM](v4.7/deployment/vllm.html) —— 生产级 GPU 推理
+- [SGLang](v4.7/deployment/sglang.html) —— 高吞吐 GPU 推理
 
 ### 研究者
 
@@ -43,7 +43,8 @@
 
 | 版本 | 状态 | 模态 | 参数量 | 亮点 | 上下文 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **4.6** *(最新)* | 推荐 | 图像、视频 | ~1.2B | 可上手机的多模态大模型，LLaVA-UHD v4 视觉塔 | 256K |
+| **4.7** *(最新)* | 推荐 | 图像、视频 | 1B / 35B-A3B | 两个尺寸（dense + MoE），canvas M-RoPE 视觉塔 | 256K |
+| 4.6 | 稳定 | 图像、视频 | ~1.2B | 可上手机的多模态大模型，LLaVA-UHD v4 视觉塔 | 256K |
 | 4.5 | 稳定 | 图像、视频 | 9B | 图像 + 视频理解，可选思考模式 | 32K |
 
 ### MiniCPM-o

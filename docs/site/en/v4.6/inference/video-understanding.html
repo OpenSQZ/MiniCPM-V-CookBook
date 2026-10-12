@@ -340,7 +340,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">Version</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="video-understanding.html" selected>MiniCPM-V 4.6 [latest]</option>
+    <option value="../../v4.7/inference/video-understanding.html">MiniCPM-V 4.7 [latest]</option>
+    <option value="video-understanding.html" selected>MiniCPM-V 4.6</option>
     <option value="../../v4.5/inference/video-understanding.html">MiniCPM-V 4.5</option>
     <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
     <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
@@ -382,11 +383,24 @@ footer.page-footer a:hover { color: var(--primary); }
 <main class="content" id="content">
   <article><h1 id="video-understanding-minicpm-v-4-6">Video Understanding (MiniCPM-V 4.6)</h1>
 <blockquote>
-<p>v4.6 keeps the video pipeline simple: the image processor is invoked frame-by-frame, with the per-video frame budget controlled by <code>max_slice_nums</code> on the processor. No special video backend is required.</p>
+<p>v4.6 handles video through the normal message flow: put a <code>{"type": "video", ...}</code>
+entry in the message content and let the processor decode / sample frames. Frame
+budget and sampling are controlled by processor kwargs — no manual frame decoding
+and no special video backend required.</p>
+</blockquote>
+<h2 id="install">Install</h2>
+<div class="code"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;transformers[torch]&gt;=5.7.0&quot;</span><span class="w"> </span>torchvision<span class="w"> </span>torchcodec
+</code></pre></div>
+
+<blockquote>
+<p><strong>CUDA note:</strong> <code>torchcodec</code> (video decoding) can be picky about CUDA versions.
+If you hit <code>RuntimeError: Could not load libtorchcodec</code>, either
+<strong>use <code>PyAV</code> instead</strong> — <code>pip install "transformers[torch]&gt;=5.7.0" torchvision av</code> —
+or pin the CUDA build when installing torch (e.g. CUDA 12.8):
+<code>pip install "transformers&gt;=5.7.0" torchvision torchcodec --index-url https://download.pytorch.org/whl/cu128</code></p>
 </blockquote>
 <h2 id="initialize-model">Initialize model</h2>
 <div class="code"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoProcessor</span><span class="p">,</span> <span class="n">AutoModelForImageTextToText</span>
 
 <span class="n">model_path</span> <span class="o">=</span> <span class="s2">&quot;openbmb/MiniCPM-V-4.6&quot;</span>  <span class="c1"># or &quot;openbmb/MiniCPM-V-4.6-Thinking&quot;</span>
@@ -394,67 +408,103 @@ footer.page-footer a:hover { color: var(--primary); }
 <span class="n">processor</span> <span class="o">=</span> <span class="n">AutoProcessor</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForImageTextToText</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
     <span class="n">model_path</span><span class="p">,</span>
-    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span>
-    <span class="n">attn_implementation</span><span class="o">=</span><span class="s2">&quot;sdpa&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
-</code></pre></div>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 
-<h2 id="video-frames">Video → frames</h2>
-<div class="code"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">decord</span><span class="w"> </span><span class="kn">import</span> <span class="n">VideoReader</span><span class="p">,</span> <span class="n">cpu</span>
-
-<span class="n">MAX_NUM_FRAMES</span> <span class="o">=</span> <span class="mi">32</span>  <span class="c1"># reduce if you OOM on small GPUs</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">encode_video</span><span class="p">(</span><span class="n">video_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">uniform_sample</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="n">gap</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">gap</span> <span class="o">+</span> <span class="n">gap</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
-
-    <span class="n">vr</span> <span class="o">=</span> <span class="n">VideoReader</span><span class="p">(</span><span class="n">video_path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">cpu</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">sample_fps</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">vr</span><span class="o">.</span><span class="n">get_avg_fps</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># roughly 1 fps</span>
-    <span class="n">frame_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vr</span><span class="p">),</span> <span class="n">sample_fps</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_NUM_FRAMES</span><span class="p">:</span>
-        <span class="n">frame_idx</span> <span class="o">=</span> <span class="n">uniform_sample</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">,</span> <span class="n">MAX_NUM_FRAMES</span><span class="p">)</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="n">vr</span><span class="o">.</span><span class="n">get_batch</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">]</span>
+<span class="c1"># Flash Attention 2 is recommended for better acceleration and memory saving,</span>
+<span class="c1"># especially in video scenarios.</span>
+<span class="c1"># model = AutoModelForImageTextToText.from_pretrained(</span>
+<span class="c1">#     model_path,</span>
+<span class="c1">#     torch_dtype=torch.bfloat16,</span>
+<span class="c1">#     attn_implementation=&quot;flash_attention_2&quot;,</span>
+<span class="c1">#     device_map=&quot;auto&quot;,</span>
+<span class="c1"># )</span>
 </code></pre></div>
 
 <h2 id="chat-with-video">Chat with video</h2>
-<div class="code"><pre><span></span><code><span class="n">video_path</span> <span class="o">=</span> <span class="s2">&quot;assets/badminton.mp4&quot;</span>
-<span class="n">frames</span> <span class="o">=</span> <span class="n">encode_video</span><span class="p">(</span><span class="n">video_path</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num frames:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">))</span>
+<div class="code"><pre><span></span><code><span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://huggingface.co/datasets/openbmb/DemoCase/resolve/main/football.mp4&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Describe this video in detail. Follow the timeline and focus on on-screen text, interface changes, main actions, and scene changes.&quot;</span><span class="p">},</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+<span class="p">]</span>
 
-<span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span>
-    <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;video&quot;</span><span class="p">:</span> <span class="n">frames</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>  <span class="s2">&quot;text&quot;</span><span class="p">:</span>  <span class="s2">&quot;Describe the video&quot;</span><span class="p">},</span>
-    <span class="p">],</span>
-<span class="p">}]</span>
+<span class="n">downsample_mode</span> <span class="o">=</span> <span class="s2">&quot;16x&quot;</span>  <span class="c1"># use &quot;4x&quot; for finer detail</span>
 
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">apply_chat_template</span><span class="p">(</span>
-    <span class="n">messages</span><span class="p">,</span>
-    <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
-    <span class="c1"># tune frame slice budget if needed (lower = less memory)</span>
-    <span class="n">chat_template_kwargs</span><span class="o">=</span><span class="p">{},</span>
-    <span class="n">max_slice_nums</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">messages</span><span class="p">,</span> <span class="n">tokenize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">add_generation_prompt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+    <span class="n">downsample_mode</span><span class="o">=</span><span class="n">downsample_mode</span><span class="p">,</span>
+    <span class="n">max_num_frames</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+    <span class="n">stack_frames</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_slice_nums</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">use_image_id</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-<span class="n">out_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
-<span class="n">answer</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span>
-    <span class="n">out_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:],</span>
-    <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="n">generated_ids</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">,</span> <span class="n">downsample_mode</span><span class="o">=</span><span class="n">downsample_mode</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<span class="n">generated_ids_trimmed</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">out_ids</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">in_ids</span><span class="p">):]</span> <span class="k">for</span> <span class="n">in_ids</span><span class="p">,</span> <span class="n">out_ids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">generated_ids</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">output_text</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">batch_decode</span><span class="p">(</span>
+    <span class="n">generated_ids_trimmed</span><span class="p">,</span> <span class="n">skip_special_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">clean_up_tokenization_spaces</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output_text</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </code></pre></div>
 
+<p>To use a local file instead of a URL, pass the path directly:</p>
+<div class="code"><pre><span></span><code><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;./assets/badminton.mp4&quot;</span><span class="p">}</span>
+</code></pre></div>
+
+<h2 id="advanced-parameters">Advanced parameters</h2>
+<p>Pass these to <code>apply_chat_template</code> (and, where noted, to <code>generate</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Applies to</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>downsample_mode</code></td>
+<td><code>"16x"</code></td>
+<td>Image &amp; Video</td>
+<td>Visual token downsampling. <code>"16x"</code> merges tokens for efficiency; <code>"4x"</code> keeps 4× more tokens for finer detail. <strong>Must also be passed to <code>generate()</code>.</strong></td>
+</tr>
+<tr>
+<td><code>max_slice_nums</code></td>
+<td><code>9</code></td>
+<td>Image &amp; Video</td>
+<td>Maximum number of slices when splitting a high-resolution image. Higher values preserve more detail. Recommended: <code>36</code> for image, <code>1</code> for video.</td>
+</tr>
+<tr>
+<td><code>max_num_frames</code></td>
+<td><code>128</code></td>
+<td>Video only</td>
+<td>Controls the temporal context length and prevents VRAM overflow. <strong>Short videos</strong> (≤ <code>max_num_frames</code> sec): sampled at <strong>1 FPS</strong>. <strong>Long videos</strong> (&gt; <code>max_num_frames</code> sec): uniformly sampled to exactly <code>max_num_frames</code> frames.</td>
+</tr>
+<tr>
+<td><code>stack_frames</code></td>
+<td><code>1</code></td>
+<td>Video only</td>
+<td>Sample points per second. <code>1</code> = main frame only. <code>N</code> (N&gt;1) = 1 main frame + N−1 sub-frames per second, composited into a grid image. Recommended <code>1</code> for short videos, <code>3</code>–<code>5</code> for long videos.</td>
+</tr>
+<tr>
+<td><code>use_image_id</code></td>
+<td><code>True</code></td>
+<td>Image &amp; Video</td>
+<td>Whether to prepend <code>&lt;image_id&gt;N&lt;/image_id&gt;</code> before each image/frame placeholder. Set <code>True</code> for image, <code>False</code> for video.</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
-<p>If you hit GPU OOM:
-1. lower <code>MAX_NUM_FRAMES</code>,
-2. lower <code>max_slice_nums</code> (1 disables slicing entirely),
-3. or run in <code>bfloat16</code> with <code>attn_implementation="sdpa"</code>.</p>
+<p><strong>Note:</strong> <code>downsample_mode</code> must be passed to <strong>both</strong> <code>apply_chat_template</code> (for the correct placeholder count) and <code>generate</code> (for the vision encoder). All other parameters only need to go to <code>apply_chat_template</code>.</p>
 </blockquote></article>
 
   <footer class="page-footer">

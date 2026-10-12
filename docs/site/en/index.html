@@ -340,7 +340,8 @@ footer.page-footer a:hover { color: var(--primary); }
 <div class="sidebar-section-title">Version</div>
 <div class="version-switcher">
   <select id="version-switcher-select">
-    <option value="v4.6/overview.html" selected>MiniCPM-V 4.6 [latest]</option>
+    <option value="v4.7/overview.html" selected>MiniCPM-V 4.7 [latest]</option>
+    <option value="v4.6/overview.html">MiniCPM-V 4.6</option>
     <option value="v4.5/overview.html">MiniCPM-V 4.5</option>
     <option value="o4.5/overview.html">MiniCPM-o 4.5</option>
     <option value="minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
@@ -350,25 +351,22 @@ footer.page-footer a:hover { color: var(--primary); }
   </select>
 </div>
 <ul class="nav-list">
-<li><a class="" href="v4.6/overview.html">Overview</a></li>
-<li class="nav-group"><div class="nav-group-header">Inference</div><ul class="nav-group-children"><li><a class="" href="v4.6/inference/single-image.html">Single-image QA</a></li>
-<li><a class="" href="v4.6/inference/multi-images.html">Multi-image QA</a></li>
-<li><a class="" href="v4.6/inference/video-understanding.html">Video QA</a></li>
-<li class="nav-group collapsed"><div class="nav-group-header">Other visual tasks</div><ul class="nav-group-children"><li><a class="" href="v4.6/inference/ocr.html">OCR</a></li>
-<li><a class="" href="v4.6/inference/pdf-parse.html">PDF parsing</a></li>
-<li><a class="" href="v4.6/inference/grounding.html">Visual grounding</a></li></ul></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Deployment</div><ul class="nav-group-children"><li><a class="" href="v4.6/deployment/vllm.html">vLLM</a></li>
-<li><a class="" href="v4.6/deployment/sglang.html">SGLang</a></li>
-<li><a class="" href="v4.6/deployment/llamacpp.html">llama.cpp</a></li>
-<li><a class="" href="v4.6/deployment/ollama.html">Ollama</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="v4.6/quantization/gguf.html">GGUF</a></li>
-<li><a class="" href="v4.6/quantization/bnb.html">BNB</a></li>
-<li><a class="" href="v4.6/quantization/awq.html">AWQ</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Demos</div><ul class="nav-group-children"><li><a class="" href="v4.6/demos/gradio.html">Gradio</a></li>
-<li><a class="" href="v4.6/demos/ios.html">iOS</a></li></ul></li>
-<li class="nav-group"><div class="nav-group-header">Fine-tuning</div><ul class="nav-group-children"><li><a class="" href="v4.6/finetune/llamafactory.html">LLaMA-Factory (Counting example)</a></li>
-<li><a class="" href="v4.6/finetune/swift.html">ms-swift (Counting example)</a></li>
-<li><a class="" href="v4.6/finetune/swift-dpo.html">ms-swift (DPO)</a></li></ul></li>
+<li><a class="" href="v4.7/overview.html">Overview</a></li>
+<li class="nav-group"><div class="nav-group-header">Inference</div><ul class="nav-group-children"><li><a class="" href="v4.7/inference/single-image.html">Single-image QA</a></li>
+<li><a class="" href="v4.7/inference/multi-images.html">Multi-image QA</a></li>
+<li><a class="" href="v4.7/inference/video-understanding.html">Video QA</a></li>
+<li class="nav-group collapsed"><div class="nav-group-header">Other visual tasks</div><ul class="nav-group-children"><li><a class="" href="v4.7/inference/ocr.html">OCR</a></li>
+<li><a class="" href="v4.7/inference/pdf-parse.html">PDF parsing</a></li>
+<li><a class="" href="v4.7/inference/grounding.html">Visual grounding</a></li></ul></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Deployment</div><ul class="nav-group-children"><li><a class="" href="v4.7/deployment/vllm.html">vLLM</a></li>
+<li><a class="" href="v4.7/deployment/sglang.html">SGLang</a></li>
+<li><a class="" href="v4.7/deployment/llamacpp.html">llama.cpp</a></li>
+<li><a class="" href="v4.7/deployment/ollama.html">Ollama</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">Quantization</div><ul class="nav-group-children"><li><a class="" href="v4.7/quantization/gguf.html">GGUF</a></li>
+<li><a class="" href="v4.7/quantization/bnb.html">BNB</a></li>
+<li><a class="" href="v4.7/quantization/awq.html">AWQ</a></li>
+<li><a class="" href="v4.7/quantization/gptq.html">GPTQ</a></li>
+<li><a class="" href="v4.7/quantization/llmcompressor.html">FP8 / INT4 (llm-compressor)</a></li></ul></li>
 </ul>
 <div class="sidebar-section-title">Cross-version</div>
 <ul class="nav-list">
@@ -384,24 +382,24 @@ footer.page-footer a:hover { color: var(--primary); }
 <p>Cook up amazing AI applications effortlessly with <strong>MiniCPM-V</strong>, <strong>MiniCPM-o</strong>, and the <strong>MiniCPM LLM</strong> series — bringing text, vision, speech, and live-streaming capabilities right to your fingertips.</p>
 <h2 id="what-s-new">What's new</h2>
 <ul>
-<li>🎉 <strong>MiniCPM-V 4.6</strong> released — Instruct + Thinking variants, Qwen3.5 hybrid backbone, 256K context, simplified vision merger.</li>
-<li>Inference: <a href="v4.6/inference/single-image.html">Single-image QA</a> · <a href="v4.6/inference/multi-images.html">Multi-image QA</a> · <a href="v4.6/inference/video-understanding.html">Video</a> · <a href="v4.6/inference/ocr.html">OCR</a> · <a href="v4.6/inference/pdf-parse.html">PDF</a> · <a href="v4.6/inference/grounding.html">Grounding</a></li>
-<li>Deployment: <a href="v4.6/deployment/vllm.html">vLLM</a> · <a href="v4.6/deployment/sglang.html">SGLang</a> · <a href="v4.6/deployment/llamacpp.html">llama.cpp</a> · <a href="v4.6/deployment/ollama.html">Ollama</a></li>
-<li>Quantization: <a href="v4.6/quantization/gguf.html">GGUF</a> · <a href="v4.6/quantization/bnb.html">BNB</a> · <a href="v4.6/quantization/awq.html">AWQ</a></li>
+<li>🎉 <strong>MiniCPM-V 4.7</strong> released — two sizes (<strong>1B</strong> dense + <strong>35B-A3B</strong> MoE), SigLIP <strong>canvas M-RoPE</strong> vision tower, 256K context.</li>
+<li>Inference: <a href="v4.7/inference/single-image.html">Single-image QA</a> · <a href="v4.7/inference/multi-images.html">Multi-image QA</a> · <a href="v4.7/inference/video-understanding.html">Video</a> · <a href="v4.7/inference/ocr.html">OCR</a> · <a href="v4.7/inference/pdf-parse.html">PDF</a> · <a href="v4.7/inference/grounding.html">Grounding</a></li>
+<li>Deployment: <a href="v4.7/deployment/vllm.html">vLLM</a> · <a href="v4.7/deployment/sglang.html">SGLang</a> · <a href="v4.7/deployment/llamacpp.html">llama.cpp</a> · <a href="v4.7/deployment/ollama.html">Ollama</a></li>
+<li>Quantization: <a href="v4.7/quantization/gguf.html">GGUF</a> · <a href="v4.7/quantization/bnb.html">BNB</a> · <a href="v4.7/quantization/awq.html">AWQ</a> · <a href="v4.7/quantization/llmcompressor.html">FP8 / INT4</a></li>
 </ul>
 <h2 id="pick-the-right-recipe">Pick the right recipe</h2>
 <h3 id="individuals">Individuals</h3>
 <p>Effortless inference on your own machine — runs on <strong>CPU + GPU</strong>, <strong>macOS / Linux / Windows</strong>, even on phones.</p>
 <ul>
-<li><a href="v4.6/deployment/ollama.html">Ollama</a> — easiest setup</li>
-<li><a href="v4.6/deployment/llamacpp.html">llama.cpp</a> — fastest CPU inference</li>
+<li><a href="v4.7/deployment/ollama.html">Ollama</a> — easiest setup</li>
+<li><a href="v4.7/deployment/llamacpp.html">llama.cpp</a> — fastest CPU inference</li>
 <li><a href="shared/demos/ios.html">iOS demo</a> — runs on iPhone / iPad</li>
 </ul>
 <h3 id="enterprises">Enterprises</h3>
 <p>High-throughput, scalable serving:</p>
 <ul>
-<li><a href="v4.6/deployment/vllm.html">vLLM</a> — production-grade GPU inference</li>
-<li><a href="v4.6/deployment/sglang.html">SGLang</a> — high-throughput GPU inference</li>
+<li><a href="v4.7/deployment/vllm.html">vLLM</a> — production-grade GPU inference</li>
+<li><a href="v4.7/deployment/sglang.html">SGLang</a> — high-throughput GPU inference</li>
 </ul>
 <h3 id="researchers">Researchers</h3>
 <p>Train / fine-tune / customize:</p>
@@ -427,8 +425,16 @@ footer.page-footer a:hover { color: var(--primary); }
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>4.6</strong> <em>(latest)</em></td>
+<td style="text-align: left;"><strong>4.7</strong> <em>(latest)</em></td>
 <td style="text-align: left;">Recommended</td>
+<td style="text-align: left;">Image, Video</td>
+<td style="text-align: left;">1B / 35B-A3B</td>
+<td style="text-align: left;">Two sizes (dense + MoE), canvas M-RoPE vision tower</td>
+<td style="text-align: left;">256K</td>
+</tr>
+<tr>
+<td style="text-align: left;">4.6</td>
+<td style="text-align: left;">Stable</td>
 <td style="text-align: left;">Image, Video</td>
 <td style="text-align: left;">~1.2B</td>
 <td style="text-align: left;">Phone-ready edge MLLM, LLaVA-UHD v4 vision tower</td>
