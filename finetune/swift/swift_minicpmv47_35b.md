@@ -157,7 +157,6 @@ ${SWIFT_BIN} sft \
 Key parameter notes
 
 - Training supports two visual token compression ratios, `16x` and `4x`, which are controlled by `export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"`.
-- The runs used eight A100 80GB GPUs and a global batch size of 128. The `16x` run used `PER_DEVICE_TRAIN_BATCH_SIZE=2` and `GRADIENT_ACCUMULATION_STEPS=8`; the `4x` run used the same settings for epoch 1, then resumed with batch size 1 and accumulation 16 for epochs 2-4.
 - For this Qwen3.5-based model, please use `--packing false`, as in the verified training runs.
 - `--add_non_thinking_prefix true` can append `<think>\n\n</think>\n\n` to training prompts, achieve no-thinking training.
 
