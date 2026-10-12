@@ -63,6 +63,13 @@ of pure weight memory.
 
 | Model              | Params | Precision         | Backend       | GPU VRAM     | CPU RAM    |
 | :----------------- | :----- | :---------------- | :------------ | :---------:  | :--------: |
+| **MiniCPM-V 4.7**  | 1B     | BF16 / FP16       | vLLM / SGLang / transformers | **≥ 4 GB**  |    —    |
+|                    |        | GGUF Q4_K_M       | llama.cpp / Ollama | ≥ 3 GB  | ≥ 4 GB     |
+|                    |        | GGUF Q8_0         | llama.cpp / Ollama | ≥ 6 GB  | ≥ 7 GB     |
+| **MiniCPM-V 4.7-35B-A3B** | 35B / ~3.5B act | BF16 / FP16 | vLLM / SGLang | **≥ 80 GB** |    —    |
+|                    |        | FP8 / INT4 / AWQ / GPTQ (compressed-tensors) | vLLM | **≥ 40 GB** |    —    |
+|                    |        | GGUF Q4_K_M       | llama.cpp / Ollama | ≥ 24 GB | ≥ 24 GB    |
+|                    |        | GGUF mix_q3gud_im | llama.cpp     | ≥ 18 GB      | ≥ 18 GB    |
 | **MiniCPM-V 4.6**  | 9B     | BF16 / FP16       | vLLM / SGLang | **≥ 20 GB**  |    —       |
 |                    |        | AWQ / GPTQ (int4) | vLLM / SGLang | **≥ 9 GB**   |    —       |
 |                    |        | BNB nf4 (int4)    | transformers  | **≥ 9 GB**   |    —       |
@@ -82,6 +89,7 @@ Mac, …), see each model's HuggingFace card.
 ## Framework Support Matrix
 
 For the up-to-date upstream merge status across all MiniCPM-V & o versions
-(including v4.6 with `MiniCPMV4_6ForConditionalGeneration` in transformers,
+(including v4.7 with `MiniCPMV4_7ForConditionalGeneration` and v4.6 with
+`MiniCPMV4_6ForConditionalGeneration` in transformers,
 the in-flight vLLM / SGLang PRs, etc.), see the
 **[Framework Support Matrix in the root README](../README.md#framework-support-matrix)**.

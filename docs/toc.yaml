@@ -105,6 +105,15 @@ versions:
             src:   quantization/llmcompressor/minicpm-v4_7_llmcompressor_quantize.md
             url:   quantization/llmcompressor
 
+      - group: { en: "Fine-tuning", zh: "微调" }
+        items:
+          - title: { en: "ms-swift (Counting example, 1B)", zh: "ms-swift（Counting 示例，1B）" }
+            src:   finetune/swift/swift_minicpmv47_1b.md
+            url:   finetune/swift-1b
+          - title: { en: "ms-swift (Counting example, 35B-A3B)", zh: "ms-swift（Counting 示例，35B-A3B）" }
+            src:   finetune/swift/swift_minicpmv47_35b.md
+            url:   finetune/swift-35b
+
   - id: v4.6
     label: { en: "MiniCPM-V 4.6",  zh: "MiniCPM-V 4.6" }
     nav:

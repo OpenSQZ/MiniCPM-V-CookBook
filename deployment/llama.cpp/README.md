@@ -32,7 +32,8 @@ In this guide, we will show how to "use" [llama.cpp](https://github.com/ggml-org
 
 | Version | English | 中文 |
 | :--- | :---: | :---: |
-| **MiniCPM-V 4.6** *(latest)* | [Guide](./minicpm-v4_6_llamacpp.md) | [指南](./minicpm-v4_6_llamacpp_zh.md) |
+| **MiniCPM-V 4.7** *(latest)* | [Guide](./minicpm-v4_7_llamacpp.md) | [指南](./minicpm-v4_7_llamacpp_zh.md) |
+| MiniCPM-V 4.6 | [Guide](./minicpm-v4_6_llamacpp.md) | [指南](./minicpm-v4_6_llamacpp_zh.md) |
 | MiniCPM-V 4.5 | [Guide](./minicpm-v4_5_llamacpp.md) | [指南](./minicpm-v4_5_llamacpp_zh.md) |
 | MiniCPM-V 4.0 | [Guide](./minicpm-v4_llamacpp.md)   | [指南](./minicpm-v4_llamacpp_zh.md)   |
 | MiniCPM-o 4.5 | [Guide](./minicpm-o4_5_llamacpp.md) | [指南](./minicpm-o4_5_llamacpp_zh.md) |

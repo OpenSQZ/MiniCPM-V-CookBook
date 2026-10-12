@@ -16,12 +16,13 @@ pip install -r requirements.txt
 
 | Example | Description |
 | ------- | ----------- |
-| [Single Image](./minicpm-v4_5_single_image.md) | Image understanding with object detection and scene description |
-| [Multi Images](./minicpm-v4_5_multi_images.md) | Compare and analyze multiple images for similarities and differences |
-| [OCR](./minicpm-v4_5_ocr.md) | Optical character recognition with layout analysis |
+| [Single Image](./minicpm-v4_7_single_image.md) | Image understanding with object detection and scene description |
+| [Multi Images](./minicpm-v4_7_multi_images.md) | Compare and analyze multiple images for similarities and differences |
+| [OCR](./minicpm-v4_7_ocr.md) | Optical character recognition with layout analysis |
+| [Grounding](./minicpm-v4_7_grounding.md) | Visual grounding and object localization |
+| [PDF Parse](./minicpm-v4_7_pdf_parse.md) | Parse PDF documents with structured text extraction |
+| [Video Understanding](./minicpm-v4_7_video_understanding.md) | Video content analysis and event extraction |
 | [Scene Text Recognition](./minicpm-v4_5_scene_text_recognize.md) | Text detection and recognition in real-world scenes |
-| [PDF Parse](./minicpm-v4_5_pdf_parse.md) | Parse PDF documents with structured text extraction |
-| [Video Understanding](./minicpm-v4_5_video_understanding.md) | Video content analysis and event extraction |
 | [Speech-to-Text](./speech2text.md) | Speech recognition with multi-language support |
 | [Text-to-Speech](./text2speech.md) | Speech synthesis with emotion control |
 | [Voice Clone](./voice_clone.md) | Extract voice features for personalized speech synthesis |

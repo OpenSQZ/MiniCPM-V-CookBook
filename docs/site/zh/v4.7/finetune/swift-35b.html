@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="no-transitions">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ms-swift（Counting 示例，35B-A3B） — 视觉 / 语音 / 实时流多模态 AI 的实战手册。">
+<title>ms-swift（Counting 示例，35B-A3B） — MiniCPM-V & o Cookbook</title>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="../../../assets/logos/openbmb.png">
+<link rel="stylesheet" id="hljs-light-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+<link rel="stylesheet" id="hljs-dark-css" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" media="not all">
+<style>
+:root {
+  --primary: #3680ff;
+  --accent:  #1AC8DB;
+  --sidebar-w: 280px;
+  --bg: #fff;
+  --bg-elevated: #fff;
+  --bg-side: #fafbfc;
+  --bg-code: #f6f8fa;
+  --bg-stripe: #fafbfc;
+  --bg-hover: #ebeff3;
+  --c1: #24292f;
+  --c2: #57606a;
+  --c3: #8b949e;
+  --border: #d0d7de;
+  --border-soft: #eaecef;
+  --nav-active-bg: rgba(54, 128, 255, .08);
+  --nav-active-fg: var(--primary);
+  --link: var(--primary);
+  --warn-bg: #fff8c5;
+  --warn-bd: #d4a72c;
+  --note-bg: #ddf4ff;
+  --note-bd: #54aeff;
+  --tip-bg:  #dafbe1;
+  --tip-bd:  #1f883d;
+  --important-bg: #fbefff;
+  --important-bd: #8250df;
+  --logo-filter: none;
+  color-scheme: light;
+}
+
+/* Dark theme: applied when JS sets data-effective-theme="dark" on <html>.
+   The bootstrap script in <head> resolves the user's saved preference
+   ("auto" | "light" | "dark") and the system `prefers-color-scheme` into
+   that attribute before first paint, so the page never flashes white. */
+:root[data-effective-theme="dark"] {
+  --bg: #0d1117;
+  --bg-elevated: #161b22;
+  --bg-side: #161b22;
+  --bg-code: #161b22;
+  --bg-stripe: #11161d;
+  --bg-hover: #21262d;
+  --c1: #e6edf3;
+  --c2: #9aa4ae;
+  --c3: #6e7681;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --nav-active-bg: rgba(88, 166, 255, .15);
+  --nav-active-fg: #58a6ff;
+  --link: #58a6ff;
+  --warn-bg: rgba(187, 128, 9, .15);
+  --warn-bd: #9e6a03;
+  --note-bg: rgba(56, 139, 253, .15);
+  --note-bd: #1f6feb;
+  --tip-bg: rgba(46, 160, 67, .15);
+  --tip-bd: #238636;
+  --important-bg: rgba(163, 113, 247, .15);
+  --important-bd: #8250df;
+  --logo-filter: brightness(.95);
+  color-scheme: dark;
+}
+
+/* Smooth crossfade when toggling. `html.no-transitions` is set briefly by JS
+   while applying the saved theme on first load, so the initial paint never
+   animates. */
+body, .topbar, .sidebar, .topbar-search input, .version-switcher select,
+article pre, article code, article th, article tr, article blockquote,
+article .admonition, .topbar-action-btn {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+html.no-transitions, html.no-transitions * { transition: none !important; }
+
+/* Pagefind UI overrides — its built-in dark mode keys off prefers-color-scheme,
+   which doesn't honor our explicit toggle. Force its variables to match
+   whatever our effective theme is. */
+:root[data-effective-theme="light"] .pagefind-ui {
+  --pagefind-ui-primary: #3680ff;
+  --pagefind-ui-text: #24292f;
+  --pagefind-ui-background: #ffffff;
+  --pagefind-ui-border: #d0d7de;
+  --pagefind-ui-tag: #f6f8fa;
+}
+:root[data-effective-theme="dark"] .pagefind-ui {
+  --pagefind-ui-primary: #58a6ff;
+  --pagefind-ui-text: #e6edf3;
+  --pagefind-ui-background: #0d1117;
+  --pagefind-ui-border: #30363d;
+  --pagefind-ui-tag: #161b22;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+               "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  color: var(--c1);
+  line-height: 1.65;
+  background: var(--bg);
+  font-size: 15px;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 18px;
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar-brand img { height: 30px; filter: var(--logo-filter); }
+.topbar-brand .brand-text { font-weight: 600; font-size: 15px; color: var(--c1); white-space: nowrap; }
+.topbar-search { flex: 1; max-width: 480px; position: relative; }
+.topbar-search input {
+  width: 100%; padding: 8px 12px 8px 34px; font-size: 14px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-side);
+  outline: none; transition: border-color .15s;
+}
+.topbar-search input:focus { border-color: var(--primary); }
+.topbar-search::before {
+  content: "🔍"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  font-size: 13px; opacity: .5;
+}
+.topbar-actions { display: flex; align-items: center; gap: 14px; font-size: 14px; }
+.topbar-actions a { color: var(--c2); }
+.topbar-actions a:hover { color: var(--primary); }
+.topbar-toggle {
+  display: none; background: none; border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 10px; font-size: 16px; cursor: pointer; color: var(--c1);
+}
+
+/* Theme toggle button: cycles auto → light → dark and persists to localStorage. */
+.topbar-action-btn {
+  background: none; border: 1px solid transparent;
+  color: var(--c2); font: inherit; font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.topbar-action-btn:hover { color: var(--primary); background: var(--bg-hover); border-color: var(--border); }
+.theme-toggle-icon { font-size: 16px; line-height: 1; }
+.theme-toggle-label { font-size: 12px; color: var(--c2); }
+@media (max-width: 720px) {
+  .theme-toggle-label { display: none; }
+}
+
+/* ---------- sidebar ---------- */
+.sidebar {
+  position: fixed; top: 56px; left: 0; bottom: 0; width: var(--sidebar-w);
+  overflow-y: auto; background: var(--bg-side); border-right: 1px solid var(--border);
+  padding: 16px 0 32px;
+  transition: transform .25s;
+}
+.sidebar-header { padding: 4px 18px 14px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.sidebar-lang-switch {
+  display: inline-block; font-size: 12px; color: var(--primary);
+  text-decoration: none; padding: 3px 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  transition: background .15s, border-color .15s;
+}
+.sidebar-lang-switch:hover { background: var(--nav-active-bg); border-color: var(--primary); text-decoration: none; }
+.sidebar-lang-switch::before { content: "🌐 "; opacity: .8; margin-right: 2px; }
+
+.version-switcher { padding: 0 18px 12px; }
+.version-switcher select {
+  width: 100%; padding: 7px 10px; font-size: 14px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-elevated); color: var(--c1);
+  cursor: pointer; outline: none;
+}
+.version-switcher .badge {
+  display: inline-block; margin-left: 6px; padding: 1px 7px; font-size: 11px;
+  border-radius: 999px; background: var(--accent); color: #fff;
+  vertical-align: middle; font-weight: 600;
+}
+.nav-list { list-style: none; padding: 4px 12px; }
+.nav-list a { display: block; padding: 6px 12px; color: var(--c2); border-radius: 6px;
+              font-size: 14px; transition: background .15s, color .15s; }
+.nav-list a:hover { background: var(--bg-hover); color: var(--c1); text-decoration: none; }
+.nav-list a.active { background: var(--nav-active-bg); color: var(--nav-active-fg); font-weight: 600; }
+.nav-group { margin-top: 8px; }
+.nav-group-header {
+  padding: 6px 12px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--c1); cursor: pointer;
+  user-select: none; display: flex; align-items: center; gap: 6px;
+  border-radius: 6px; transition: background .15s;
+}
+.nav-group-header:hover { background: var(--bg-hover); }
+.nav-group-header::before {
+  content: ""; width: 0; height: 0;
+  border-left: 5px solid var(--c2); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+  transition: transform .2s; transform: rotate(90deg);
+}
+.nav-group.collapsed .nav-group-header::before { transform: rotate(0); }
+.nav-group-children { list-style: none; margin: 2px 0 4px 22px; padding-left: 12px;
+                       border-left: 2px solid var(--border-soft);
+                       max-height: 800px; overflow: hidden;
+                       transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
+                       opacity: 1; }
+.nav-group.collapsed .nav-group-children { max-height: 0; opacity: 0; }
+.nav-group-children a { font-size: 13px; padding: 4px 10px; }
+
+.sidebar-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--c3); padding: 14px 18px 4px;
+}
+
+/* ---------- content ---------- */
+.content {
+  margin-left: var(--sidebar-w); margin-top: 56px;
+  max-width: 920px; padding: 36px 56px 80px;
+}
+article h1, article h2, article h3, article h4, article h5 {
+  font-weight: 600; color: var(--c1); margin: 32px 0 12px; line-height: 1.35;
+}
+article h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-top: 0; }
+article h2 { font-size: 22px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
+article h3 { font-size: 18px; }
+article h4 { font-size: 15px; }
+article p, article ul, article ol, article blockquote { margin-bottom: 14px; }
+article ul, article ol { padding-left: 24px; }
+article li { margin-bottom: 4px; }
+article code { background: var(--bg-code); padding: 2px 6px; border-radius: 4px;
+                font-size: 13px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+article pre {
+  background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; margin-bottom: 16px;
+  font-size: 13.5px; line-height: 1.55;
+}
+article pre code { background: none; padding: 0; }
+article table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
+article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+article th { background: var(--bg-code); font-weight: 600; }
+article tr:nth-child(even) { background: var(--bg-stripe); }
+article hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+article blockquote {
+  border-left: 4px solid var(--primary); padding: 6px 16px; color: var(--c2);
+  background: var(--bg-side); border-radius: 0 6px 6px 0;
+}
+
+article .admonition {
+  border-radius: 8px; padding: 12px 18px; margin: 16px 0;
+  border-left: 4px solid var(--note-bd); background: var(--note-bg);
+}
+article .admonition .admonition-title {
+  font-weight: 700; margin: 0 0 4px; font-size: 13px; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--c1);
+}
+article .admonition-warning  { border-left-color: var(--warn-bd); background: var(--warn-bg); }
+article .admonition-caution  { border-left-color: var(--warn-bd); background: var(--warn-bg); }
+article .admonition-tip      { border-left-color: var(--tip-bd);  background: var(--tip-bg); }
+article .admonition-important{ border-left-color: var(--important-bd); background: var(--important-bg); }
+
+article .mermaid { margin: 16px auto; text-align: center; }
+article .toc { background: var(--bg-side); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 16px 0; }
+article .toc > ul { padding-left: 20px; margin: 0; }
+
+article a.headerlink { margin-left: 6px; opacity: 0; }
+article :hover > a.headerlink { opacity: .5; }
+
+footer.page-footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border);
+                     color: var(--c2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+footer.page-footer a { color: var(--c2); }
+footer.page-footer a:hover { color: var(--primary); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .topbar-toggle { display: inline-block; }
+  .topbar-search { display: none; }
+  .sidebar { transform: translateX(-100%); box-shadow: 2px 0 12px rgba(0,0,0,.08); }
+  .sidebar.open { transform: translateX(0); }
+  .content { margin-left: 0; padding: 28px 22px 60px; }
+}
+</style>
+<script>
+  // Theme bootstrap — runs before <body> so the page never flashes the wrong
+  // colour. Resolves the saved choice ("auto" | "light" | "dark") against the
+  // OS-level `prefers-color-scheme` and writes both values onto <html>:
+  //   data-theme           → what the user chose (drives the toggle UI)
+  //   data-effective-theme → what we actually rendered (drives CSS + hljs)
+  (function() {
+    try {
+      var saved = localStorage.getItem('cookbook-theme');
+      if (saved !== 'light' && saved !== 'dark' && saved !== 'auto') saved = 'auto';
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var effective = saved === 'auto' ? (prefersDark ? 'dark' : 'light') : saved;
+      var html = document.documentElement;
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      var l = document.getElementById('hljs-light-css');
+      var d = document.getElementById('hljs-dark-css');
+      if (l) l.media = effective === 'dark' ? 'not all' : 'all';
+      if (d) d.media = effective === 'dark' ? 'all' : 'not all';
+    } catch (e) { /* localStorage may be blocked (private mode, etc.) — leave defaults */ }
+  })();
+</script>
+</head>
+<body data-version="v4.7" data-lang="zh" data-slug="v4.7/finetune/swift-35b">
+
+<header class="topbar">
+  <button class="topbar-toggle" aria-label="Toggle navigation" onclick="toggleSidebar()">☰</button>
+  <a class="topbar-brand" href="../../index.html">
+    <img src="../../../assets/logos/minicpmv.png" alt="MiniCPM-V">
+    <span class="brand-text">MiniCPM-V & o Cookbook</span>
+  </a>
+  <div class="topbar-search">
+    <input type="search" placeholder="搜索文档…" id="pagefind-search">
+  </div>
+  <nav class="topbar-actions">
+    <button class="topbar-action-btn" id="theme-toggle" type="button" aria-label="切换主题（自动 / 浅色 / 深色）" title="切换主题（自动 / 浅色 / 深色）">
+      <span class="theme-toggle-icon" aria-hidden="true">🌓</span>
+      <span class="theme-toggle-label">自动</span>
+    </button>
+    <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://huggingface.co/openbmb" target="_blank" rel="noopener">HuggingFace</a>
+    <a href="https://modelscope.cn/organization/OpenBMB" target="_blank" rel="noopener">魔搭社区</a>
+    <a href="https://discord.gg/rftuRMbqzf" target="_blank" rel="noopener">Discord</a>
+    <a href="https://huggingface.co/papers/2509.18154" target="_blank" rel="noopener">技术报告</a>
+  </nav>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <a class="sidebar-lang-switch" href="../../../en/v4.7/finetune/swift-35b.html" rel="alternate" hreflang="en">English</a>
+  </div>
+  <ul class="nav-list">
+  <li><a class="" href="../../index.html">首页</a></li>
+</ul>
+<div class="sidebar-section-title">版本</div>
+<div class="version-switcher">
+  <select id="version-switcher-select">
+    <option value="swift-35b.html" selected>MiniCPM-V 4.7 [latest]</option>
+    <option value="../../v4.6/overview.html">MiniCPM-V 4.6</option>
+    <option value="../../v4.5/overview.html">MiniCPM-V 4.5</option>
+    <option value="../../o4.5/overview.html">MiniCPM-o 4.5</option>
+    <option value="../../minicpm5/overview.html">MiniCPM 5 [latest-llm]</option>
+    <option value="../../minicpm4_1/overview.html">MiniCPM 4.1</option>
+    <option value="../../minicpm4/overview.html">MiniCPM 4</option>
+    <option value="../../minicpm-sala/overview.html">MiniCPM-SALA [research]</option>
+  </select>
+</div>
+<ul class="nav-list">
+<li><a class="" href="../overview.html">概览</a></li>
+<li class="nav-group"><div class="nav-group-header">推理</div><ul class="nav-group-children"><li><a class="" href="../inference/single-image.html">单图问答</a></li>
+<li><a class="" href="../inference/multi-images.html">多图问答</a></li>
+<li><a class="" href="../inference/video-understanding.html">视频理解</a></li>
+<li class="nav-group collapsed"><div class="nav-group-header">其他视觉任务</div><ul class="nav-group-children"><li><a class="" href="../inference/ocr.html">OCR</a></li>
+<li><a class="" href="../inference/pdf-parse.html">PDF 解析</a></li>
+<li><a class="" href="../inference/grounding.html">视觉定位</a></li></ul></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">部署</div><ul class="nav-group-children"><li><a class="" href="../deployment/vllm.html">vLLM</a></li>
+<li><a class="" href="../deployment/sglang.html">SGLang</a></li>
+<li><a class="" href="../deployment/llamacpp.html">llama.cpp</a></li>
+<li><a class="" href="../deployment/ollama.html">Ollama</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">量化</div><ul class="nav-group-children"><li><a class="" href="../quantization/gguf.html">GGUF</a></li>
+<li><a class="" href="../quantization/bnb.html">BNB</a></li>
+<li><a class="" href="../quantization/awq.html">AWQ</a></li>
+<li><a class="" href="../quantization/gptq.html">GPTQ</a></li>
+<li><a class="" href="../quantization/llmcompressor.html">FP8 / INT4（llm-compressor）</a></li></ul></li>
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="swift-1b.html">ms-swift（Counting 示例，1B）</a></li>
+<li><a class="active" href="swift-35b.html">ms-swift（Counting 示例，35B-A3B）</a></li></ul></li>
+</ul>
+<div class="sidebar-section-title">跨版本</div>
+<ul class="nav-list">
+<li class="nav-group"><div class="nav-group-header">微调</div><ul class="nav-group-children"><li><a class="" href="../../shared/finetune/official.html">官方脚本微调</a></li>
+<li><a class="" href="../../shared/finetune/llamafactory.html">LLaMA-Factory</a></li>
+<li><a class="" href="../../shared/finetune/swift.html">SWIFT</a></li>
+<li><a class="" href="../../shared/finetune/align-anything.html">Align-anything</a></li></ul></li>
+</ul>
+</aside>
+
+<main class="content" id="content">
+  <article><h1 id="minicpm-v-4-7-35b-a3b-微调教程-ms-swift">MiniCPM-V 4.7 35B-A3B 微调教程 (ms-swift)</h1>
+<h2 id="模型与任务概览">模型与任务概览</h2>
+<p>本章节以 counting 任务 <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> 作为微调示例。</p>
+<p>训练任务：</p>
+<ul>
+<li>输入一张图片和一个计数问题</li>
+<li><code>assistant</code> 目标输出以单个整数表示最终数量，例如 <code>0</code>、<code>3</code>、<code>10</code>。</li>
+</ul>
+<h2 id="环境说明">环境说明</h2>
+<p><strong>最小可运行安装步骤</strong></p>
+<div class="code"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.7-35B-A3B-Counting&quot;</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12<span class="w"> </span>-y
+conda<span class="w"> </span>activate<span class="w"> </span><span class="s2">&quot;MiniCPM-V-4.7-35B-A3B-Counting&quot;</span>
+
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.10.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.25.0
+
+pip<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.18.0<span class="w"> </span><span class="nv">accelerate</span><span class="o">==</span><span class="m">1</span>.15.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">deepspeed</span><span class="o">==</span><span class="m">0</span>.18.3<span class="w"> </span><span class="nv">peft</span><span class="o">==</span><span class="m">0</span>.18.1<span class="w"> </span><span class="nv">trl</span><span class="o">==</span><span class="m">0</span>.24.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>flash-linear-attention<span class="o">==</span><span class="m">0</span>.5.2<span class="w"> </span>wandb<span class="w"> </span>ninja<span class="w"> </span>einops<span class="w"> </span>safetensors<span class="w"> </span>tokenizers<span class="w"> </span>sentencepiece
+
+<span class="nv">MAX_JOBS</span><span class="o">=</span><span class="m">32</span><span class="w"> </span><span class="nv">NVCC_THREADS</span><span class="o">=</span><span class="m">4</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-build-isolation<span class="w"> </span>--no-binary<span class="w"> </span>causal-conv1d<span class="w"> </span>causal-conv1d<span class="o">==</span><span class="m">1</span>.7.0
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/modelscope/ms-swift.git
+<span class="nb">cd</span><span class="w"> </span>ms-swift
+git<span class="w"> </span>fetch<span class="w"> </span>origin<span class="w"> </span>pull/10338/head
+git<span class="w"> </span>checkout<span class="w"> </span>FETCH_HEAD
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span><span class="nv">transformers</span><span class="o">==</span><span class="m">5</span>.18.0
+</code></pre></div>
+
+<p>注意：MiniCPM-V 4.7 35B-A3B 在 <code>transformers&gt;=5.18.0</code> 版本被官方支持。请保证最后安装的 <code>transformers</code> 版本为 <code>5.18.0</code> 及以上。</p>
+<p><strong>依赖版本参考</strong></p>
+<div class="code"><pre><span></span><code>python                        3.12.3
+accelerate                    1.15.0
+deepspeed                     0.18.3
+flash-linear-attention        0.5.2
+ms_swift                      4.6.0.dev0 (PR #10338)
+torch                         2.10.0+cu128
+torchvision                   0.25.0
+transformers                  5.18.0
+</code></pre></div>
+
+<h2 id="数据准备">数据准备</h2>
+<p>从 <a href="https://huggingface.co/datasets/allenai/pixmo-count">allenai/pixmo-count</a> 下载数据集，并将其转换为 ms-swift 格式。</p>
+<p><strong>数据格式参考：</strong>
+  <code>json
+  {
+      "messages": [
+          {
+              "content": "&lt;image&gt;\nCarefully observe the image. How many people are there in the image? Answer with a single integer only.",
+              "role": "user"
+          },
+          {
+              "content": "8",
+              "role": "assistant"
+          }
+      ],
+      "images": [
+          "/path/to/images/*.jpg"
+      ],
+      "source_file": "pixmo-count-train",
+      "orig_index": 1,
+      "channel": "pixmo-count-no-points"
+  }</code></p>
+<h2 id="启动训练">启动训练</h2>
+<p>配置好模型路径、训练集路径、验证集路径和输出目录后，执行以下脚本即可以开始训练。</p>
+<div class="code"><pre><span></span><code><span class="c1"># run_swift.sh</span>
+<span class="c1">#!/bin/bash</span>
+<span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="k">:-</span><span class="nv">0</span><span class="p">,1,2,3,4,5,6,7</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">NPROC_PER_NODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NPROC_PER_NODE</span><span class="k">:-</span><span class="nv">8</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MASTER_PORT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MASTER_PORT</span><span class="k">:-</span><span class="nv">29632</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTORCH_ALLOC_CONF</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PYTORCH_ALLOC_CONF</span><span class="k">:-</span><span class="nv">expandable_segments</span><span class="p">:</span><span class="nv">True</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_API_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_API_KEY</span><span class="k">:-</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_PROJECT</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_PROJECT</span><span class="k">:-</span><span class="nv">MiniCPMV47</span><span class="p">-35B-A3B-Counting</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_RUN_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="k">:-</span><span class="nv">mcpmv47_35b_count</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WANDB_NAME</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_NAME</span><span class="k">:-</span><span class="nv">mcpmv47_35b_count</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nb">export</span><span class="w"> </span><span class="nv">DOWNSAMPLE_MODE</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DOWNSAMPLE_MODE</span><span class="k">:-</span><span class="nv">4x</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">SWIFT_BIN</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SWIFT_BIN</span><span class="k">:-</span><span class="nv">swift</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="k">:-</span><span class="p">/path/to/MiniCPM-V-4.7-35B-A3B</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">TRAIN_DATA</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAIN_DATA</span><span class="k">:-</span><span class="p">/path/to/task_dataset/train.jsonl</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">VALID_DATA</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALID_DATA</span><span class="k">:-</span><span class="p">/path/to/task_dataset/validation.jsonl</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="nv">DEEPSPEED_CONFIG</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEEPSPEED_CONFIG</span><span class="k">:-</span><span class="nv">zero3</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEEPSPEED_CONFIG</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">==</span><span class="w"> </span>zero3<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nv">DEEPSPEED_CONFIG</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+<span class="s">import json</span>
+<span class="s">from importlib.resources import files</span>
+
+<span class="s">config = json.loads(files(&#39;swift&#39;).joinpath(&#39;config/zero3.json&#39;).read_text())</span>
+<span class="s">config[&#39;zero_optimization&#39;][&#39;sub_group_size&#39;] = 100000000</span>
+<span class="s">print(json.dumps(config))</span>
+<span class="s">PY</span>
+<span class="k">)</span><span class="s2">&quot;</span>
+<span class="k">fi</span>
+<span class="nv">SCRIPT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="k">:-</span><span class="nv">path</span><span class="p">/to/outdir</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="si">${</span><span class="nv">SWIFT_BIN</span><span class="si">}</span><span class="w"> </span>sft<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model_type<span class="w"> </span>minicpmv4_7<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--template<span class="w"> </span>minicpmv4_7<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--add_non_thinking_prefix<span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--run_name<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">WANDB_RUN_NAME</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAIN_DATA</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--val_dataset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALID_DATA</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--deepspeed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DEEPSPEED_CONFIG</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--experts_impl<span class="w"> </span>grouped_mm<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--tuner_type<span class="w"> </span>full<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--torch_dtype<span class="w"> </span>bfloat16<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--freeze_vit<span class="w"> </span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--freeze_aligner<span class="w"> </span>False<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--packing<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--padding_side<span class="w"> </span>left<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--gradient_checkpointing<span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max_length<span class="w"> </span><span class="m">4096</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--num_train_epochs<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--per_device_train_batch_size<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PER_DEVICE_TRAIN_BATCH_SIZE</span><span class="k">:-</span><span class="nv">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--gradient_accumulation_steps<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">GRADIENT_ACCUMULATION_STEPS</span><span class="k">:-</span><span class="nv">16</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--learning_rate<span class="w"> </span>5e-6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--warmup_ratio<span class="w"> </span><span class="m">0</span>.05<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--logging_steps<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--save_steps<span class="w"> </span><span class="m">132</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--eval_strategy<span class="w"> </span>steps<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--eval_steps<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--save_total_limit<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--load_from_cache_file<span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset_num_proc<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataloader_num_workers<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--enable_channel_loss<span class="w"> </span>True<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--attn_impl<span class="w"> </span>sdpa<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--loss_scale<span class="w"> </span>ignore_empty_think<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output_dir<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--report_to<span class="w"> </span>wandb
+</code></pre></div>
+
+<p>关键参数说明</p>
+<ul>
+<li>训练支持 <code>16x</code>、<code>4x</code> 两种视觉 Token 压缩率，通过 <code>export DOWNSAMPLE_MODE="${DOWNSAMPLE_MODE:-4x}"</code> 参数进行控制。</li>
+<li>对于这个基于 Qwen3.5 的模型，请使用 <code>--packing false</code>，与已验证的训练配置保持一致。</li>
+<li><code>--add_non_thinking_prefix true</code> 可以在训练提示词后加入 <code>&lt;think&gt;\n\n&lt;/think&gt;\n\n</code>，实现无 thinking 训练。</li>
+</ul>
+<h2 id="训练过程">训练过程</h2>
+<p><img src="../assets/finetune_minicpmv47_35b/minicpmv47_35b_swift_ft_dynamics.png" alt="ms-swift 训练过程" /></p>
+<h2 id="评测结果">评测结果</h2>
+<p>评测指标说明：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acc@0</td>
+<td>精确匹配率，即预测值与真实值完全一致</td>
+</tr>
+<tr>
+<td>Acc@0 Top1</td>
+<td>验证集 Acc@0 最高的 checkpoint 在测试集上的 Acc@0 分数</td>
+</tr>
+<tr>
+<td>Acc@0 Avg.Top3</td>
+<td>按验证集 Acc@0 排名前三的 checkpoint 在测试集上的 Acc@0 平均分数</td>
+</tr>
+</tbody>
+</table>
+<p>下表展示了两种视觉 Token 压缩率设置下的评测结果：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>视觉 Token 压缩率</th>
+<th>Acc@0 Top1</th>
+<th>Acc@0 Avg.Top3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MiniCPM-V 4.7 35B-A3B</td>
+<td>16</td>
+<td>69.1</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>MiniCPM-V 4.7 35B-A3B</td>
+<td>4</td>
+<td>73.2</td>
+<td>N/A [1]</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>16</td>
+<td>81.4</td>
+<td>81.3</td>
+</tr>
+<tr>
+<td>Fine-tuned model</td>
+<td>4</td>
+<td>85.0</td>
+<td>84.3</td>
+</tr>
+</tbody>
+</table>
+<p><small>[1]: MiniCPM-V 4.7 35B-A3B 为原始模型，未经微调，仅有一个 Acc@0 结果 (Acc@0 Top1)，无法计算 Acc@0 Avg.Top3。</small></p>
+<p>输出样例：</p>
+<p>```text
+  Q: Carefully observe the image. How many airplanes are there in the image? Answer with a single integer only.</p>
+<p>A: 7
+  ```</p>
+<p><img src="../assets/finetune_minicpmv47_35b/minicpmv47_35b_sample_prediction.png" alt="ms-swift sample" /></p></article>
+
+  <footer class="page-footer">
+    <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>
+    <span>由 <code>build_docs.py</code> 自动生成</span>
+  </footer>
+</main>
+
+<script>
+  // ----- core UI behaviour (must run even if external CDNs are blocked) -----
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  document.querySelectorAll('.nav-group-header').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+  });
+
+  // Close sidebar when clicking a link on mobile.
+  document.querySelectorAll('.sidebar a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    });
+  });
+
+  // Version switcher dropdown.
+  const verSel = document.getElementById('version-switcher-select');
+  if (verSel) {
+    verSel.addEventListener('change', e => {
+      const target = e.target.value;
+      if (target) window.location.href = target;
+    });
+  }
+
+  // ----- theme toggle (auto → light → dark, persisted in localStorage) -----
+  (function() {
+    var html = document.documentElement;
+    var lang = (document.body.dataset.lang === 'zh') ? 'zh' : 'en';
+    var labels = lang === 'zh'
+      ? { auto: '主题：自动（跟随系统）', light: '主题：浅色', dark: '主题：深色' }
+      : { auto: 'Theme: Auto (follow system)', light: 'Theme: Light', dark: 'Theme: Dark' };
+    var shortLabels = lang === 'zh' ? { auto: '自动', light: '浅色', dark: '深色' }
+                                    : { auto: 'Auto', light: 'Light', dark: 'Dark' };
+    var icons = { auto: '🌓', light: '☀️', dark: '🌙' };
+    var btn = document.getElementById('theme-toggle');
+    var iconEl = btn ? btn.querySelector('.theme-toggle-icon') : null;
+    var labelEl = btn ? btn.querySelector('.theme-toggle-label') : null;
+    var hljsLight = document.getElementById('hljs-light-css');
+    var hljsDark  = document.getElementById('hljs-dark-css');
+    // Stash the original mermaid source so we can re-render after a theme
+    // change (otherwise the diagrams stay in their original colours).
+    document.querySelectorAll('.mermaid').forEach(function(n) {
+      n.setAttribute('data-mermaid-src', n.textContent);
+    });
+    function rerenderMermaid(effective) {
+      if (typeof window.mermaid === 'undefined') return;
+      var nodes = document.querySelectorAll('.mermaid');
+      if (!nodes.length) return;
+      nodes.forEach(function(n) {
+        var src = n.getAttribute('data-mermaid-src');
+        if (src !== null) {
+          n.removeAttribute('data-processed');
+          n.textContent = src;
+        }
+      });
+      try {
+        window.mermaid.initialize({ startOnLoad: false, theme: effective === 'dark' ? 'dark' : 'default', securityLevel: 'loose' });
+        window.mermaid.run({ querySelector: '.mermaid' });
+      } catch (e) { console.warn('mermaid re-run failed:', e); }
+    }
+    function compute(saved) {
+      if (saved === 'light' || saved === 'dark') return saved;
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+    function apply(saved, persist) {
+      if (['auto', 'light', 'dark'].indexOf(saved) < 0) saved = 'auto';
+      var effective = compute(saved);
+      html.setAttribute('data-theme', saved);
+      html.setAttribute('data-effective-theme', effective);
+      if (hljsLight) hljsLight.media = effective === 'dark' ? 'not all' : 'all';
+      if (hljsDark)  hljsDark.media  = effective === 'dark' ? 'all' : 'not all';
+      if (btn) {
+        btn.setAttribute('aria-label', labels[saved]);
+        btn.setAttribute('title', labels[saved]);
+        if (iconEl)  iconEl.textContent  = icons[saved];
+        if (labelEl) labelEl.textContent = shortLabels[saved];
+      }
+      rerenderMermaid(effective);
+      if (persist) {
+        try { localStorage.setItem('cookbook-theme', saved); } catch (e) {}
+      }
+    }
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var current = html.getAttribute('data-theme') || 'auto';
+        var next = current === 'auto' ? 'light' : (current === 'light' ? 'dark' : 'auto');
+        apply(next, true);
+      });
+    }
+    // While the user is in 'auto' mode, follow the OS scheme as it changes.
+    if (window.matchMedia) {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var handler = function() {
+        if ((html.getAttribute('data-theme') || 'auto') === 'auto') apply('auto', false);
+      };
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    }
+    // Seed the button label/icon to match whatever the bootstrap picked.
+    apply(html.getAttribute('data-theme') || 'auto', false);
+    // Enable CSS transitions only after the first paint, so the initial render
+    // doesn't visibly animate from the wrong colour.
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { html.classList.remove('no-transitions'); });
+    });
+  })();
+</script>
+
+<!-- Optional enhancements below. Wrapped so a CDN hiccup never breaks the
+     interactive sidebar / version switcher above. -->
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/core.min.js" onerror="window.__hljsBlocked=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/common.min.js" onerror="window.__hljsBlocked=true"></script>
+<script>
+  try { if (typeof hljs !== 'undefined') hljs.highlightAll(); } catch (e) { console.warn('hljs failed:', e); }
+</script>
+<script type="module">
+  try {
+    const m = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+    window.mermaid = m.default;
+    var initialTheme = document.documentElement.getAttribute('data-effective-theme') === 'dark' ? 'dark' : 'default';
+    m.default.initialize({ startOnLoad: true, theme: initialTheme, securityLevel: 'loose' });
+  } catch (e) { console.warn('mermaid failed:', e); }
+</script>
+<link href="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/css/ui.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@pagefind/default-ui@1/npm/index.js"></script>
+<script>
+  // Pagefind is loaded from a relative path emitted at build time.
+  const inp = document.getElementById("pagefind-search");
+  if (inp) {
+    inp.addEventListener("focus", function once() {
+      inp.removeEventListener("focus", once);
+      const root = inp.parentElement;
+      const div = document.createElement("div"); div.id = "search"; root.appendChild(div);
+      new PagefindUI({ element: "#search", showSubResults: true });
+    });
+  }
+</script>
+
+</body>
+</html>

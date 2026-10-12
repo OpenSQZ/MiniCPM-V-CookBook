@@ -8,7 +8,8 @@ This directory contains Ollama deployment guides for different MiniCPM versions.
 
 | Version | English | 中文 |
 | :--- | :---: | :---: |
-| **MiniCPM-V 4.6** *(latest)* | [Guide](./minicpm-v4_6_ollama.md) | [指南](./minicpm-v4_6_ollama_zh.md) |
+| **MiniCPM-V 4.7** *(latest)* | [Guide](./minicpm-v4_7_ollama.md) | [指南](./minicpm-v4_7_ollama_zh.md) |
+| MiniCPM-V 4.6 | [Guide](./minicpm-v4_6_ollama.md) | [指南](./minicpm-v4_6_ollama_zh.md) |
 | MiniCPM-V 4.5 | [Guide](./minicpm-v4_5_ollama.md) | [指南](./minicpm-v4_5_ollama_zh.md) |
 | MiniCPM-V 4.0 | [Guide](./minicpm-v4_ollama.md)   | [指南](./minicpm-v4_ollama_zh.md)   |
 | MiniCPM-o 4.5 | [Guide](./minicpm-o4_5_ollama.md) | [指南](./minicpm-o4_5_ollama_zh.md) |
