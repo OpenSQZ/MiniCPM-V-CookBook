@@ -443,7 +443,9 @@ gives a ~14.4 GiB model that matches <code>Q4_K_M</code> on benchmarks. Put this
 
 <blockquote>
 <p><code>--tensor-type-file</code> rules are <strong>first-match-wins</strong> — put more specific rules first.</p>
-</blockquote></article>
+</blockquote>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

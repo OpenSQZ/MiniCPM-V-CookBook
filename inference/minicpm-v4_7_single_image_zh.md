@@ -96,3 +96,7 @@ print(answer)
 4.7 每个尺寸只有一个 checkpoint：对话模板默认带 `<think>` 块，除非传入
 `chat_template_kwargs={"enable_thinking": False}`。重 OCR / 推理类任务可保留思考；
 普通问答建议关闭以获得更快的直答。
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

@@ -583,7 +583,9 @@ vllm<span class="w"> </span>serve<span class="w"> </span>&lt;model_path&gt;<span
 <li><strong>Memory</strong>: the 1B model fits on a single consumer GPU; <strong>35B-A3B</strong> (~70 GB bf16) needs multiple GPUs or 4-bit weights (<code>-AWQ</code> / <code>-GPTQ</code> / <code>-FP8</code> / <code>-INT4</code>). Tune <code>--gpu_memory_utilization</code>, <code>--max-model-len</code>, <code>--max-num-batched-tokens</code>.</li>
 <li><strong>Multimodal limits</strong>: set <code>--limit-mm-per-prompt</code> for multi-image / multi-video sessions.</li>
 <li><strong>No <code>trust_remote_code</code></strong>: 4.7 is native in <code>transformers &gt;= 5.18.0</code>.</li>
-</ol></article>
+</ol>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

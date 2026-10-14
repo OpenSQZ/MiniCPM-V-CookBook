@@ -127,3 +127,7 @@ To **enable** thinking (for hard OCR / reasoning tasks), use `--reasoning on` (`
 | `-c, --ctx-size` | Maximum context size |
 | `-rea, --reasoning [on\|off\|auto]` | Enable / disable thinking. Default `auto` (read from the template). **Use `off` for plain replies** |
 | `--jinja` | Use the model's Jinja chat template (enabled by default in recent builds) |
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

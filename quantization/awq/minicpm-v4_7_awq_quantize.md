@@ -173,3 +173,7 @@ python minicpm-v4_7_awq_quantize.py \
 | Bit width / group size | 4 / 128 |
 | Zero point | yes |
 | Size | ~2.3 GB (from 3.0 GB bf16) |
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

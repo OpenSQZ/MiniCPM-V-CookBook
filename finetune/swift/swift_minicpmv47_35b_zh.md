@@ -194,3 +194,7 @@ ${SWIFT_BIN} sft \
   ```
 
   <img src="../assets/finetune_minicpmv47_35b/minicpmv47_35b_sample_prediction.png" alt="ms-swift sample" />
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

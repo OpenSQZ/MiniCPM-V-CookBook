@@ -480,7 +480,9 @@ footer.page-footer a:hover { color: var(--primary); }
 <h2 id="思考模式说明">思考模式说明</h2>
 <p>4.7 每个尺寸只有一个 checkpoint：对话模板默认带 <code>&lt;think&gt;</code> 块，除非传入
 <code>chat_template_kwargs={"enable_thinking": False}</code>。重 OCR / 推理类任务可保留思考；
-普通问答建议关闭以获得更快的直答。</p></article>
+普通问答建议关闭以获得更快的直答。</p>
+<h2 id="推荐采样参数">推荐采样参数</h2>
+<p>在 instruct 模式下生成时，推荐使用：<code>temperature=0.7</code>、<code>top_p=0.95</code>、<code>top_k=100</code>、<code>min_p=0.0</code>、<code>presence_penalty=0</code>、<code>repetition_penalty=1.03</code>。</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>

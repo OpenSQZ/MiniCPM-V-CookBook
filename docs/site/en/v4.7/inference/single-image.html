@@ -480,7 +480,9 @@ architecture <code>MiniCPMV4_7ForConditionalGeneration</code>, so the standard H
 <h2 id="notes-on-thinking">Notes on thinking</h2>
 <p>4.7 is a single checkpoint per size: the chat template emits a <code>&lt;think&gt;</code> block unless you pass
 <code>chat_template_kwargs={"enable_thinking": False}</code>. Leave thinking on for hard OCR / reasoning
-tasks; turn it off for snappy plain replies.</p></article>
+tasks; turn it off for snappy plain replies.</p>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

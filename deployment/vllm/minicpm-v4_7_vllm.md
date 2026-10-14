@@ -206,3 +206,7 @@ print(outputs[0].outputs[0].text)
 3. **Memory**: the 1B model fits on a single consumer GPU; **35B-A3B** (~70 GB bf16) needs multiple GPUs or 4-bit weights (`-AWQ` / `-GPTQ` / `-FP8` / `-INT4`). Tune `--gpu_memory_utilization`, `--max-model-len`, `--max-num-batched-tokens`.
 4. **Multimodal limits**: set `--limit-mm-per-prompt` for multi-image / multi-video sessions.
 5. **No `trust_remote_code`**: 4.7 is native in `transformers >= 5.18.0`.
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

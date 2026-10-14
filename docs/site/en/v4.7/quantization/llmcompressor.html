@@ -479,7 +479,9 @@ and embeddings at full precision — quantizing them either breaks the canvas M-
 or costs accuracy with little size benefit. The fused expert <code>gate_up_proj</code> / <code>down_proj</code> <strong>are</strong>
 quantized, which is the whole point for the MoE model.</p>
 </blockquote>
-<p>See the <code>recipe.yaml</code> shipped in each 35B-A3B quant repository for the exact recipe used.</p></article>
+<p>See the <code>recipe.yaml</code> shipped in each 35B-A3B quant repository for the exact recipe used.</p>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

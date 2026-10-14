@@ -502,7 +502,9 @@ footer.page-footer a:hover { color: var(--primary); }
 </table>
 <blockquote>
 <p><strong>注意：</strong> <code>downsample_mode</code> 必须<strong>同时</strong>传给 <code>apply_chat_template</code>（决定占位符数量）和 <code>generate</code>（作用于视觉编码器）。其余参数只传给 <code>apply_chat_template</code> 即可。</p>
-</blockquote></article>
+</blockquote>
+<h2 id="推荐采样参数">推荐采样参数</h2>
+<p>在 instruct 模式下生成时，推荐使用：<code>temperature=0.7</code>、<code>top_p=0.95</code>、<code>top_k=100</code>、<code>min_p=0.0</code>、<code>presence_penalty=0</code>、<code>repetition_penalty=1.03</code>。</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>

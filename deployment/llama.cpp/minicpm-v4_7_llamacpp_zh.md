@@ -124,3 +124,7 @@ cd build/bin/
 | `-c, --ctx-size` | 最大上下文长度 |
 | `-rea, --reasoning [on\|off\|auto]` | 是否开启思考。默认 `auto`（读模板）。**普通问答用 `off`** |
 | `--jinja` | 使用模型 Jinja 对话模板（近期构建默认开启） |
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

@@ -106,3 +106,7 @@ What is in the picture? xx.jpg
   Ollama 走 native 模式，使用 GGUF 内嵌对话模板 + mmproj。
 - **思考**：模板默认开启；如需直答，可通过请求传 `enable_thinking: false`
   （或改用支持 `chat_template_kwargs` 的运行时）。
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

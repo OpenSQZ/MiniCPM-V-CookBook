@@ -125,3 +125,7 @@ python -m sglang.launch_server --model-path /your/local/MiniCPM-V-4.7-1B --port 
 > v4.7 使用 Qwen3.5 词表 —— 若模型在答案后继续输出，传入 `stop_token_ids = [248044, 248046]`。
 >
 > 如需关闭 `<think>` 块，传 `chat_template_kwargs={"enable_thinking": false}`（或服务端等价默认值）。
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

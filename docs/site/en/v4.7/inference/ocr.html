@@ -431,7 +431,9 @@ footer.page-footer a:hover { color: var(--primary); }
 <p>For Chinese-heavy or dense text pages, enabling thinking (<code>chat_template_kwargs={"enable_thinking": True}</code>)
 often produces more faithful transcriptions because the model inspects the layout before answering.
 Turn it off for short / well-cropped text to get faster answers.</p>
-</blockquote></article>
+</blockquote>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

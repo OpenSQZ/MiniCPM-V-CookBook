@@ -125,3 +125,7 @@ python -m sglang.launch_server --model-path /your/local/MiniCPM-V-4.7-1B --port 
 > v4.7 uses the Qwen3.5 vocabulary — pass `stop_token_ids = [248044, 248046]` if the model continues past the answer.
 >
 > To disable the `<think>` block, pass `chat_template_kwargs={"enable_thinking": false}` (or the equivalent server default).
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

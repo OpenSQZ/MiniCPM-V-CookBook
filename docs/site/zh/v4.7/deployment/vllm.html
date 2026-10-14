@@ -583,7 +583,9 @@ vllm<span class="w"> </span>serve<span class="w"> </span>&lt;model_path&gt;<span
    （<code>-AWQ</code> / <code>-GPTQ</code> / <code>-FP8</code> / <code>-INT4</code>）。按硬件调 <code>--gpu_memory_utilization</code> / <code>--max-model-len</code> / <code>--max-num-batched-tokens</code>。</li>
 <li><strong>多模态上限</strong>：多图/多视频会话用 <code>--limit-mm-per-prompt</code>。</li>
 <li><strong>无需 <code>trust_remote_code</code></strong>：4.7 在 <code>transformers &gt;= 5.18.0</code> 中原生支持。</li>
-</ol></article>
+</ol>
+<h2 id="推荐采样参数">推荐采样参数</h2>
+<p>在 instruct 模式下生成时，推荐使用：<code>temperature=0.7</code>、<code>top_p=0.95</code>、<code>top_k=100</code>、<code>min_p=0.0</code>、<code>presence_penalty=0</code>、<code>repetition_penalty=1.03</code>。</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub 仓库</a></span>

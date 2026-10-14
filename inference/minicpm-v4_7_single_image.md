@@ -96,3 +96,7 @@ print(answer)
 4.7 is a single checkpoint per size: the chat template emits a `<think>` block unless you pass
 `chat_template_kwargs={"enable_thinking": False}`. Leave thinking on for hard OCR / reasoning
 tasks; turn it off for snappy plain replies.
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

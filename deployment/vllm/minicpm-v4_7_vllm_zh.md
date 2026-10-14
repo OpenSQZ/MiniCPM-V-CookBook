@@ -206,3 +206,7 @@ print(outputs[0].outputs[0].text)
    （`-AWQ` / `-GPTQ` / `-FP8` / `-INT4`）。按硬件调 `--gpu_memory_utilization` / `--max-model-len` / `--max-num-batched-tokens`。
 4. **多模态上限**：多图/多视频会话用 `--limit-mm-per-prompt`。
 5. **无需 `trust_remote_code`**：4.7 在 `transformers >= 5.18.0` 中原生支持。
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

@@ -504,7 +504,9 @@ or pin the CUDA build when installing torch (e.g. CUDA 12.8):
 </table>
 <blockquote>
 <p><strong>Note:</strong> <code>downsample_mode</code> must be passed to <strong>both</strong> <code>apply_chat_template</code> (for the correct placeholder count) and <code>generate</code> (for the vision encoder). All other parameters only need to go to <code>apply_chat_template</code>.</p>
-</blockquote></article>
+</blockquote>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

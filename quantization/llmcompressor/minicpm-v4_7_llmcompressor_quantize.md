@@ -111,3 +111,7 @@ processor.save_pretrained(SAVE)
 > quantized, which is the whole point for the MoE model.
 
 See the `recipe.yaml` shipped in each 35B-A3B quant repository for the exact recipe used.
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

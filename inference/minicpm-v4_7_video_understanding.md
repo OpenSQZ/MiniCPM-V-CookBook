@@ -96,3 +96,7 @@ Pass these to `apply_chat_template` (and, where noted, to `generate`):
 | `use_image_id` | `True` | Image & Video | Whether to prepend `<image_id>N</image_id>` before each image/frame placeholder. Set `True` for image, `False` for video. |
 
 > **Note:** `downsample_mode` must be passed to **both** `apply_chat_template` (for the correct placeholder count) and `generate` (for the vision encoder). All other parameters only need to go to `apply_chat_template`.
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

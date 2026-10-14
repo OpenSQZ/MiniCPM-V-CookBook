@@ -487,7 +487,9 @@ ollama<span class="w"> </span>run<span class="w"> </span>minicpm-v4.7
 <li><strong>Thinking</strong>: enabled by default in the template; to get plain replies, add
   <code>PARAMETER</code> support for <code>enable_thinking: false</code> (via the request) or serve the GGUF through a
   runtime that lets you pass <code>chat_template_kwargs</code>.</li>
-</ul></article>
+</ul>
+<h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
+<p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 
   <footer class="page-footer">
     <span>© OpenBMB · <a href="https://github.com/OpenSQZ/MiniCPM-V-CookBook">GitHub</a></span>

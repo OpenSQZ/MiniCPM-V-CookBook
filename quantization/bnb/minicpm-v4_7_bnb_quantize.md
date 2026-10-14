@@ -110,3 +110,7 @@ The quantized model is saved at `save_path` and reloads with
 | Bit width | 4 (NF4, double quant) |
 | `quant_method` | `bitsandbytes` |
 | Size | ~1.5 GB (from 3.0 GB bf16) |
+
+## Recommended sampling parameters
+
+For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.

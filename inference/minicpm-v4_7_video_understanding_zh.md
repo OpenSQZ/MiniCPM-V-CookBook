@@ -94,3 +94,7 @@ print(output_text[0])
 | `use_image_id` | `True` | 图像 & 视频 | 是否在每个图像/帧占位符前加 `<image_id>N</image_id>`。图像设 `True`，视频设 `False`。 |
 
 > **注意：** `downsample_mode` 必须**同时**传给 `apply_chat_template`（决定占位符数量）和 `generate`（作用于视觉编码器）。其余参数只传给 `apply_chat_template` 即可。
+
+## 推荐采样参数
+
+在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。
