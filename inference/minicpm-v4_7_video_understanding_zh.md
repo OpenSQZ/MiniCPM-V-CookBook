@@ -65,7 +65,19 @@ inputs = processor.apply_chat_template(
     use_image_id=False,
 ).to(model.device)
 
-generated_ids = model.generate(**inputs, downsample_mode=downsample_mode, max_new_tokens=2048)
+generated_ids = model.generate(
+    **inputs,
+    downsample_mode=downsample_mode,
+    max_new_tokens=2048,
+    # recommended instruct-mode sampling parameters
+    do_sample=True,
+    temperature=0.7,
+    top_p=0.95,
+    top_k=100,
+    min_p=0.0,
+    presence_penalty=0,
+    repetition_penalty=1.03,
+)
 generated_ids_trimmed = [
     out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
 ]

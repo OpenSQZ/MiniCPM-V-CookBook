@@ -50,7 +50,18 @@ inputs = processor.apply_chat_template(
     return_dict=True, return_tensors="pt",
 ).to(model.device)
 
-out = model.generate(**inputs, max_new_tokens=256)
+out = model.generate(
+    **inputs,
+    max_new_tokens=256,
+    # recommended instruct-mode sampling parameters
+    do_sample=True,
+    temperature=0.7,
+    top_p=0.95,
+    top_k=100,
+    min_p=0.0,
+    presence_penalty=0,
+    repetition_penalty=1.03,
+)
 print(processor.decode(out[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True))
 ```
 
