@@ -111,6 +111,7 @@ For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top
 - Base: `MiniCPM-V-4.7-1B`, `MiniCPM-V-4.7-35B-A3B`
 - Quantized: `-gguf`, `-int4`, `-AWQ`, `-GPTQ` (1B) · `-gguf`, `-FP8`, `-INT4`, `-AWQ`, `-GPTQ`, `-int4` (35B-A3B)
 - Speculative decoding draft: `MiniCPM-V-4.7-1B-DSpark`, `MiniCPM-V-4.7-35B-A3B-DSpark`
+- Speculative decoding draft (GGUF): `MiniCPM-V-4.7-1B-DSpark-gguf`, `MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
 
 ## Where to next
 

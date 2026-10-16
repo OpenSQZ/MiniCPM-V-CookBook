@@ -105,6 +105,7 @@ inputs = processor.apply_chat_template(
 - 基座：`MiniCPM-V-4.7-1B`、`MiniCPM-V-4.7-35B-A3B`
 - 量化：`-gguf`、`-int4`、`-AWQ`、`-GPTQ`（1B）· `-gguf`、`-FP8`、`-INT4`、`-AWQ`、`-GPTQ`、`-int4`（35B-A3B）
 - 投机解码 draft：`MiniCPM-V-4.7-1B-DSpark`、`MiniCPM-V-4.7-35B-A3B-DSpark`
+- 投机解码 draft（GGUF）：`MiniCPM-V-4.7-1B-DSpark-gguf`、`MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
 
 ## 下一步
 
