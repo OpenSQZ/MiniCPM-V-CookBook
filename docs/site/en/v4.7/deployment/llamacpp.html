@@ -536,6 +536,39 @@ assistant replies</strong>.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="4-speculative-decoding-with-dspark">4. Speculative decoding with DSpark</h2>
+<p>MiniCPM-V 4.7 ships <strong>DSpark</strong> draft heads that accelerate generation with speculative decoding. Download the draft GGUF that matches your target size:</p>
+<ul>
+<li>HuggingFace: <code>openbmb/MiniCPM-V-4.7-1B-DSpark-gguf</code> / <code>openbmb/MiniCPM-V-4.7-35B-A3B-DSpark-gguf</code></li>
+<li>ModelScope: <code>OpenBMB/MiniCPM-V-4.7-1B-DSpark-gguf</code> / <code>OpenBMB/MiniCPM-V-4.7-35B-A3B-DSpark-gguf</code></li>
+</ul>
+<p>Each repository ships the same K-quant set as the target (<code>F16</code>, <code>Q8_0</code>, <code>Q6_K</code>, <code>Q5_K_M</code>, <code>Q5_K_S</code>, <code>Q5_1</code>, <code>Q5_0</code>, <code>Q4_K_M</code>, <code>Q4_K_S</code>, <code>Q4_1</code>, <code>Q4_0</code>). Speculative decoding is exact — the target verifies every draft token — so draft quantization only affects acceptance length (speed), never the output; pick the smallest quant that fits, <code>Q8_0</code> / <code>Q6_K</code> are good defaults.</p>
+<div class="admonition admonition-important" markdown="0">
+<p class="admonition-title">Important</p>
+<p><code>llama-mtmd-cli</code> does <strong>not</strong> support draft models. Use <code>llama-cli</code> (handles both the image projector and the draft) or <code>llama-server</code>.</p>
+</div>
+
+<div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>build/bin/
+
+<span class="c1"># Image + speculative decoding</span>
+./llama-cli<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-m<span class="w">  </span>/path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mmproj<span class="w"> </span>/path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-md<span class="w"> </span>/path/to/MiniCPM-V-4.7-1B-DSpark-gguf/dspark-MiniCPM-V-4_7-1B-Q8_0.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--spec-type<span class="w"> </span>draft-dspark<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span><span class="m">8192</span><span class="w"> </span>--reasoning<span class="w"> </span>off<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--image<span class="w"> </span>xx.jpg<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;What is in the image?&quot;</span>
+
+<span class="c1"># Serve instead of using the CLI</span>
+./llama-server<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-m<span class="w">  </span>/path/to/MiniCPM-V-4.7-35B-A3B/MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mmproj<span class="w"> </span>/path/to/MiniCPM-V-4.7-35B-A3B/mmproj-model-f16.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-md<span class="w"> </span>/path/to/MiniCPM-V-4.7-35B-A3B-DSpark-gguf/dspark-MiniCPM-V-4_7-35B-A3B-Q8_0.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--spec-type<span class="w"> </span>draft-dspark<span class="w"> </span>--spec-draft-n-max<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span><span class="m">8192</span><span class="w"> </span>--jinja<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span>
+</code></pre></div>
+
+<p>The draft is paired with one specific target; always use the draft whose name matches the target size. <code>llama-server</code> reports the accepted length in each response (<code>draft_n</code> / <code>draft_n_accepted</code>).</p>
 <h2 id="recommended-sampling-parameters">Recommended sampling parameters</h2>
 <p>For instruct-mode generation we recommend: <code>temperature=0.7</code>, <code>top_p=0.95</code>, <code>top_k=100</code>, <code>min_p=0.0</code>, <code>presence_penalty=0</code>, <code>repetition_penalty=1.03</code>.</p></article>
 

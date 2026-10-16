@@ -125,6 +125,41 @@ cd build/bin/
 | `-rea, --reasoning [on\|off\|auto]` | 是否开启思考。默认 `auto`（读模板）。**普通问答用 `off`** |
 | `--jinja` | 使用模型 Jinja 对话模板（近期构建默认开启） |
 
+## 4. 使用 DSpark 投机解码
+
+MiniCPM-V 4.7 提供了 **DSpark** 草稿模型，可通过投机解码加速生成。请下载与目标模型规格匹配的 draft GGUF：
+
+- HuggingFace：`openbmb/MiniCPM-V-4.7-1B-DSpark-gguf` / `openbmb/MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
+- ModelScope：`OpenBMB/MiniCPM-V-4.7-1B-DSpark-gguf` / `OpenBMB/MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
+
+两个仓库提供的量化档与目标模型一致（`F16`、`Q8_0`、`Q6_K`、`Q5_K_M`、`Q5_K_S`、`Q5_1`、`Q5_0`、`Q4_K_M`、`Q4_K_S`、`Q4_1`、`Q4_0`）。投机解码是无损的——每个候选 token 都由目标模型校验——因此 draft 量化只影响接受长度（速度），不影响输出；选显存放得下的最小档即可，`Q8_0` / `Q6_K` 是稳妥的默认值。
+
+> [!IMPORTANT]
+> `llama-mtmd-cli` **不支持** draft 模型。请使用 `llama-cli`（同时支持视觉投影与 draft）或 `llama-server`。
+
+```bash
+cd build/bin/
+
+# 图像 + 投机解码
+./llama-cli \
+    -m  /path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf \
+    --mmproj /path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf \
+    -md /path/to/MiniCPM-V-4.7-1B-DSpark-gguf/dspark-MiniCPM-V-4_7-1B-Q8_0.gguf \
+    --spec-type draft-dspark \
+    -c 8192 --reasoning off \
+    --image xx.jpg -p "What is in the image?"
+
+# 或使用服务模式
+./llama-server \
+    -m  /path/to/MiniCPM-V-4.7-35B-A3B/MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf \
+    --mmproj /path/to/MiniCPM-V-4.7-35B-A3B/mmproj-model-f16.gguf \
+    -md /path/to/MiniCPM-V-4.7-35B-A3B-DSpark-gguf/dspark-MiniCPM-V-4_7-35B-A3B-Q8_0.gguf \
+    --spec-type draft-dspark --spec-draft-n-max 15 \
+    -c 8192 --jinja --port 8080
+```
+
+draft 与目标模型一一配对，务必使用与目标规格同名的 draft。`llama-server` 会在每次响应中报告接受长度（`draft_n` / `draft_n_accepted`）。
+
 ## 推荐采样参数
 
 在 instruct 模式下生成时，推荐使用：`temperature=0.7`、`top_p=0.95`、`top_k=100`、`min_p=0.0`、`presence_penalty=0`、`repetition_penalty=1.03`。

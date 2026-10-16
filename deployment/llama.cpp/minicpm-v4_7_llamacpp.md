@@ -128,6 +128,41 @@ To **enable** thinking (for hard OCR / reasoning tasks), use `--reasoning on` (`
 | `-rea, --reasoning [on\|off\|auto]` | Enable / disable thinking. Default `auto` (read from the template). **Use `off` for plain replies** |
 | `--jinja` | Use the model's Jinja chat template (enabled by default in recent builds) |
 
+## 4. Speculative decoding with DSpark
+
+MiniCPM-V 4.7 ships **DSpark** draft heads that accelerate generation with speculative decoding. Download the draft GGUF that matches your target size:
+
+- HuggingFace: `openbmb/MiniCPM-V-4.7-1B-DSpark-gguf` / `openbmb/MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
+- ModelScope: `OpenBMB/MiniCPM-V-4.7-1B-DSpark-gguf` / `OpenBMB/MiniCPM-V-4.7-35B-A3B-DSpark-gguf`
+
+Each repository ships the same K-quant set as the target (`F16`, `Q8_0`, `Q6_K`, `Q5_K_M`, `Q5_K_S`, `Q5_1`, `Q5_0`, `Q4_K_M`, `Q4_K_S`, `Q4_1`, `Q4_0`). Speculative decoding is exact — the target verifies every draft token — so draft quantization only affects acceptance length (speed), never the output; pick the smallest quant that fits, `Q8_0` / `Q6_K` are good defaults.
+
+> [!IMPORTANT]
+> `llama-mtmd-cli` does **not** support draft models. Use `llama-cli` (handles both the image projector and the draft) or `llama-server`.
+
+```bash
+cd build/bin/
+
+# Image + speculative decoding
+./llama-cli \
+    -m  /path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf \
+    --mmproj /path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf \
+    -md /path/to/MiniCPM-V-4.7-1B-DSpark-gguf/dspark-MiniCPM-V-4_7-1B-Q8_0.gguf \
+    --spec-type draft-dspark \
+    -c 8192 --reasoning off \
+    --image xx.jpg -p "What is in the image?"
+
+# Serve instead of using the CLI
+./llama-server \
+    -m  /path/to/MiniCPM-V-4.7-35B-A3B/MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf \
+    --mmproj /path/to/MiniCPM-V-4.7-35B-A3B/mmproj-model-f16.gguf \
+    -md /path/to/MiniCPM-V-4.7-35B-A3B-DSpark-gguf/dspark-MiniCPM-V-4_7-35B-A3B-Q8_0.gguf \
+    --spec-type draft-dspark --spec-draft-n-max 15 \
+    -c 8192 --jinja --port 8080
+```
+
+The draft is paired with one specific target; always use the draft whose name matches the target size. `llama-server` reports the accepted length in each response (`draft_n` / `draft_n_accepted`).
+
 ## Recommended sampling parameters
 
 For instruct-mode generation we recommend: `temperature=0.7`, `top_p=0.95`, `top_k=100`, `min_p=0.0`, `presence_penalty=0`, `repetition_penalty=1.03`.
