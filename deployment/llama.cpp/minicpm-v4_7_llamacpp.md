@@ -75,9 +75,11 @@ To export the 4× vision variant, copy the model directory, set `"downsample_mod
 ## 3. Model Inference
 
 > [!IMPORTANT]
-> Recent `llama.cpp` builds default `--reasoning` to `auto`, which enables thinking from the chat
-> template. The v4.7 template enables thinking by default, so **pass `--reasoning off` for plain
-> assistant replies**.
+> `llama.cpp` always injects `enable_thinking` into the chat template (its own default is `true`),
+> so the template's default is **not** what decides this — the runtime is. The GGUFs in this
+> repository pre-disable thinking inside the embedded template, so **plain assistant replies are the
+> default and no flag is needed**. Passing `--reasoning on` has no effect: these GGUFs cannot think.
+> (If you build your own GGUF from the unmodified template, pass `--reasoning off` instead.)
 
 ```bash
 cd build/bin/
@@ -107,7 +109,10 @@ cd build/bin/
     --image xx.jpg -i
 ```
 
-To **enable** thinking (for hard OCR / reasoning tasks), use `--reasoning on` (`--jinja` is on by default):
+Thinking cannot be enabled with the GGUFs in this repository: their embedded template always emits an
+empty think block, so the model answers directly regardless of `--reasoning`. If you need the
+thinking trace, use the Transformers weights (`enable_thinking=True`) or build a GGUF from the
+unmodified template. For reference, `--jinja` is on by default and the flag would be `--reasoning on`:
 
 ```bash
 ./llama-mtmd-cli \
@@ -125,7 +130,7 @@ To **enable** thinking (for hard OCR / reasoning tasks), use `--reasoning on` (`
 | `--image` | Path to the input image |
 | `-p, --prompt` | The prompt |
 | `-c, --ctx-size` | Maximum context size |
-| `-rea, --reasoning [on\|off\|auto]` | Enable / disable thinking. Default `auto` (read from the template). **Use `off` for plain replies** |
+| `-rea, --reasoning [on\|off\|auto]` | Enable / disable thinking. Default `auto`. **These GGUFs hard-disable thinking, so this flag has no effect** |
 | `--jinja` | Use the model's Jinja chat template (enabled by default in recent builds) |
 
 ## 4. Speculative decoding with DSpark

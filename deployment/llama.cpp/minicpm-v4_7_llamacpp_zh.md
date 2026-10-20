@@ -73,8 +73,10 @@ python ./convert_hf_to_gguf.py /path/to/MiniCPM-V-4.7-1B \
 ## 3. 模型推理
 
 > [!IMPORTANT]
-> 近期 `llama.cpp` 默认 `--reasoning` 为 `auto`，会依据对话模板开启思考。v4.7 模板**默认开启思考**，
-> 因此**普通问答请显式传 `--reasoning off`**。
+> `llama.cpp` 会**无条件注入** `enable_thinking`（其自身默认值为 `true`），所以决定是否思考的是运行时，
+> 而不是模板的默认值。本仓库提供的 GGUF 已在**内嵌模板里硬关闭思考**，因此**默认就是普通问答，无需任何参数**；
+> 传 `--reasoning on` 也不会生效（这些 GGUF 无法进入思考模式）。
+> （若你自己用未修改的模板重新转换 GGUF，则需要传 `--reasoning off`。）
 
 ```bash
 cd build/bin/
@@ -104,7 +106,9 @@ cd build/bin/
     --image xx.jpg -i
 ```
 
-**开启**思考（重 OCR / 推理任务）用 `--reasoning on`（`--jinja` 默认已开）：
+本仓库提供的 GGUF **无法开启**思考：内嵌模板始终输出空的 think 块，无论 `--reasoning` 怎么设都直接作答。
+若需要思考轨迹，请使用 Transformers 权重（`enable_thinking=True`），或用未修改的模板自行转换 GGUF。
+作为参考，`--jinja` 默认已开，对应参数为 `--reasoning on`：
 
 ```bash
 ./llama-mtmd-cli \
@@ -122,7 +126,7 @@ cd build/bin/
 | `--image` | 输入图片路径 |
 | `-p, --prompt` | 提示词 |
 | `-c, --ctx-size` | 最大上下文长度 |
-| `-rea, --reasoning [on\|off\|auto]` | 是否开启思考。默认 `auto`（读模板）。**普通问答用 `off`** |
+| `-rea, --reasoning [on\|off\|auto]` | 是否开启思考。默认 `auto`。**本仓库 GGUF 已硬关闭思考，该参数不生效** |
 | `--jinja` | 使用模型 Jinja 对话模板（近期构建默认开启） |
 
 ## 4. 使用 DSpark 投机解码

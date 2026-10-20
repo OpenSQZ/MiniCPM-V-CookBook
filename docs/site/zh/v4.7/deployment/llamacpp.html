@@ -456,8 +456,10 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 <h2 id="3-模型推理">3. 模型推理</h2>
 <div class="admonition admonition-important" markdown="0">
 <p class="admonition-title">重要</p>
-<p>近期 <code>llama.cpp</code> 默认 <code>--reasoning</code> 为 <code>auto</code>，会依据对话模板开启思考。v4.7 模板<strong>默认开启思考</strong>，
-因此<strong>普通问答请显式传 <code>--reasoning off</code></strong>。</p>
+<p><code>llama.cpp</code> 会<strong>无条件注入</strong> <code>enable_thinking</code>（其自身默认值为 <code>true</code>），所以决定是否思考的是运行时，
+而不是模板的默认值。本仓库提供的 GGUF 已在<strong>内嵌模板里硬关闭思考</strong>，因此<strong>默认就是普通问答，无需任何参数</strong>；
+传 <code>--reasoning on</code> 也不会生效（这些 GGUF 无法进入思考模式）。
+（若你自己用未修改的模板重新转换 GGUF，则需要传 <code>--reasoning off</code>。）</p>
 </div>
 
 <div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>build/bin/
@@ -487,7 +489,9 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 <span class="w">    </span>--image<span class="w"> </span>xx.jpg<span class="w"> </span>-i
 </code></pre></div>
 
-<p><strong>开启</strong>思考（重 OCR / 推理任务）用 <code>--reasoning on</code>（<code>--jinja</code> 默认已开）：</p>
+<p>本仓库提供的 GGUF <strong>无法开启</strong>思考：内嵌模板始终输出空的 think 块，无论 <code>--reasoning</code> 怎么设都直接作答。
+若需要思考轨迹，请使用 Transformers 权重（<code>enable_thinking=True</code>），或用未修改的模板自行转换 GGUF。
+作为参考，<code>--jinja</code> 默认已开，对应参数为 <code>--reasoning on</code>：</p>
 <div class="code"><pre><span></span><code>./llama-mtmd-cli<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-m<span class="w">  </span>/path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--mmproj<span class="w"> </span>/path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf<span class="w"> </span><span class="se">\</span>
@@ -525,7 +529,7 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 </tr>
 <tr>
 <td style="text-align: left;"><code>-rea, --reasoning [on\|off\|auto]</code></td>
-<td style="text-align: left;">是否开启思考。默认 <code>auto</code>（读模板）。<strong>普通问答用 <code>off</code></strong></td>
+<td style="text-align: left;">是否开启思考。默认 <code>auto</code>。<strong>本仓库 GGUF 已硬关闭思考，该参数不生效</strong></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>--jinja</code></td>
