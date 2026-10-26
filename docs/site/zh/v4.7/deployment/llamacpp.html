@@ -457,9 +457,9 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 <div class="admonition admonition-important" markdown="0">
 <p class="admonition-title">重要</p>
 <p><code>llama.cpp</code> 会<strong>无条件注入</strong> <code>enable_thinking</code>（其自身默认值为 <code>true</code>），所以决定是否思考的是运行时，
-而不是模板的默认值。本仓库提供的 GGUF 已在<strong>内嵌模板里硬关闭思考</strong>，因此<strong>默认就是普通问答，无需任何参数</strong>；
-传 <code>--reasoning on</code> 也不会生效（这些 GGUF 无法进入思考模式）。
-（若你自己用未修改的模板重新转换 GGUF，则需要传 <code>--reasoning off</code>。）</p>
+而不是模板的默认值。仓库<strong>根目录</strong>的 GGUF 已在<strong>内嵌模板里硬关闭思考</strong>，因此<strong>默认就是普通问答，
+无需任何参数</strong>，传 <code>--reasoning on</code> 也不会生效。若需要思考版本，请使用 <code>thinking/</code> 子目录，
+见<a href="#思考模式">思考模式</a>。</p>
 </div>
 
 <div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>build/bin/
@@ -489,9 +489,25 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 <span class="w">    </span>--image<span class="w"> </span>xx.jpg<span class="w"> </span>-i
 </code></pre></div>
 
-<p>本仓库提供的 GGUF <strong>无法开启</strong>思考：内嵌模板始终输出空的 think 块，无论 <code>--reasoning</code> 怎么设都直接作答。
-若需要思考轨迹，请使用 Transformers 权重（<code>enable_thinking=True</code>），或用未修改的模板自行转换 GGUF。
-作为参考，<code>--jinja</code> 默认已开，对应参数为 <code>--reasoning on</code>：</p>
+<h3 id="思考模式">思考模式</h3>
+<p>仓库<strong>根目录</strong>的 GGUF 无法思考：内嵌模板始终输出空的 think 块，无论 <code>--reasoning</code> 怎么设都直接作答。
+要获得思考轨迹，有两种方式：</p>
+<ol>
+<li><strong>使用 <code>thinking/</code> 版本</strong>（推荐）。每个 GGUF 仓库在 <code>thinking/</code> 下提供了同样的量化档，文件名带
+   <code>-thinking</code> 后缀；这些文件恢复了上游官方模板，除内嵌模板外与根目录文件完全一致：</li>
+</ol>
+<p><code>bash
+   ./llama-cli -m thinking/MiniCPM-V-4_7-1B-Q4_K_M-thinking.gguf \
+               --mmproj mmproj-model-f16.gguf --image xx.jpg -p "图里是什么？" -n 1024</code></p>
+<p>该版本默认开启思考；传 <code>--reasoning off</code> 可关闭。</p>
+<ol>
+<li><strong>使用 Transformers 权重</strong>并传 <code>enable_thinking=True</code>，或用未修改的模板自行转换 GGUF。</li>
+</ol>
+<blockquote>
+<p>该模型并非专门针对推理训练——思考轨迹便于查看中间步骤，但会成倍增加生成的 token 数，
+请相应调大 <code>-n</code>。</p>
+</blockquote>
+<p>作为参考，<code>--jinja</code> 默认已开，对应参数为 <code>--reasoning on</code>：</p>
 <div class="code"><pre><span></span><code>./llama-mtmd-cli<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-m<span class="w">  </span>/path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--mmproj<span class="w"> </span>/path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf<span class="w"> </span><span class="se">\</span>

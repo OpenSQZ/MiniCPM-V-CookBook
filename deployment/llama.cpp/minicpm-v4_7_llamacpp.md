@@ -76,10 +76,11 @@ To export the 4× vision variant, copy the model directory, set `"downsample_mod
 
 > [!IMPORTANT]
 > `llama.cpp` always injects `enable_thinking` into the chat template (its own default is `true`),
-> so the template's default is **not** what decides this — the runtime is. The GGUFs in this
-> repository pre-disable thinking inside the embedded template, so **plain assistant replies are the
-> default and no flag is needed**. Passing `--reasoning on` has no effect: these GGUFs cannot think.
-> (If you build your own GGUF from the unmodified template, pass `--reasoning off` instead.)
+> so the template's default is **not** what decides this — the runtime is. The GGUFs at the root of
+> the repository pre-disable thinking inside the embedded template, so **plain assistant replies are
+> the default and no flag is needed**. Passing `--reasoning on` has no effect on those files.
+> For a thinking-enabled build, use the `thinking/` subfolder — see
+> [Thinking mode](#thinking-mode).
 
 ```bash
 cd build/bin/
@@ -109,10 +110,29 @@ cd build/bin/
     --image xx.jpg -i
 ```
 
-Thinking cannot be enabled with the GGUFs in this repository: their embedded template always emits an
-empty think block, so the model answers directly regardless of `--reasoning`. If you need the
-thinking trace, use the Transformers weights (`enable_thinking=True`) or build a GGUF from the
-unmodified template. For reference, `--jinja` is on by default and the flag would be `--reasoning on`:
+### Thinking mode
+
+The repository root GGUFs cannot think: their embedded template always emits an empty think block,
+so the model answers directly regardless of `--reasoning`. Two ways to get a reasoning trace:
+
+1. **Use the `thinking/` variants** (recommended). Every GGUF repository ships the same quantization
+   levels under `thinking/` with a `-thinking` suffix; those files restore the upstream template and
+   are identical to the root files except for the embedded template:
+
+   ```bash
+   llama-cli -m thinking/MiniCPM-V-4_7-1B-Q4_K_M-thinking.gguf \
+             --mmproj mmproj-model-f16.gguf --image xx.jpg -p "What is in the image?" -n 1024
+   ```
+
+   Thinking is on by default there; pass `--reasoning off` to suppress it.
+
+2. **Use the Transformers weights** with `enable_thinking=True`, or build your own GGUF from the
+   unmodified template.
+
+> The model is not trained as a dedicated reasoning model — the trace is useful for inspecting
+> intermediate steps, but it also multiplies the generated token count, so raise `-n` accordingly.
+
+For reference, `--jinja` is on by default and the underlying flag is `--reasoning on`:
 
 ```bash
 ./llama-mtmd-cli \

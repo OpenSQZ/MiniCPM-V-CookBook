@@ -74,9 +74,9 @@ python ./convert_hf_to_gguf.py /path/to/MiniCPM-V-4.7-1B \
 
 > [!IMPORTANT]
 > `llama.cpp` 会**无条件注入** `enable_thinking`（其自身默认值为 `true`），所以决定是否思考的是运行时，
-> 而不是模板的默认值。本仓库提供的 GGUF 已在**内嵌模板里硬关闭思考**，因此**默认就是普通问答，无需任何参数**；
-> 传 `--reasoning on` 也不会生效（这些 GGUF 无法进入思考模式）。
-> （若你自己用未修改的模板重新转换 GGUF，则需要传 `--reasoning off`。）
+> 而不是模板的默认值。仓库**根目录**的 GGUF 已在**内嵌模板里硬关闭思考**，因此**默认就是普通问答，
+> 无需任何参数**，传 `--reasoning on` 也不会生效。若需要思考版本，请使用 `thinking/` 子目录，
+> 见[思考模式](#思考模式)。
 
 ```bash
 cd build/bin/
@@ -106,8 +106,26 @@ cd build/bin/
     --image xx.jpg -i
 ```
 
-本仓库提供的 GGUF **无法开启**思考：内嵌模板始终输出空的 think 块，无论 `--reasoning` 怎么设都直接作答。
-若需要思考轨迹，请使用 Transformers 权重（`enable_thinking=True`），或用未修改的模板自行转换 GGUF。
+### 思考模式
+
+仓库**根目录**的 GGUF 无法思考：内嵌模板始终输出空的 think 块，无论 `--reasoning` 怎么设都直接作答。
+要获得思考轨迹，有两种方式：
+
+1. **使用 `thinking/` 版本**（推荐）。每个 GGUF 仓库在 `thinking/` 下提供了同样的量化档，文件名带
+   `-thinking` 后缀；这些文件恢复了上游官方模板，除内嵌模板外与根目录文件完全一致：
+
+   ```bash
+   ./llama-cli -m thinking/MiniCPM-V-4_7-1B-Q4_K_M-thinking.gguf \
+               --mmproj mmproj-model-f16.gguf --image xx.jpg -p "图里是什么？" -n 1024
+   ```
+
+   该版本默认开启思考；传 `--reasoning off` 可关闭。
+
+2. **使用 Transformers 权重**并传 `enable_thinking=True`，或用未修改的模板自行转换 GGUF。
+
+> 该模型并非专门针对推理训练——思考轨迹便于查看中间步骤，但会成倍增加生成的 token 数，
+> 请相应调大 `-n`。
+
 作为参考，`--jinja` 默认已开，对应参数为 `--reasoning on`：
 
 ```bash

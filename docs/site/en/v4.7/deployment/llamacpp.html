@@ -459,10 +459,11 @@ python<span class="w"> </span>./convert_hf_to_gguf.py<span class="w"> </span>/pa
 <div class="admonition admonition-important" markdown="0">
 <p class="admonition-title">Important</p>
 <p><code>llama.cpp</code> always injects <code>enable_thinking</code> into the chat template (its own default is <code>true</code>),
-so the template's default is <strong>not</strong> what decides this — the runtime is. The GGUFs in this
-repository pre-disable thinking inside the embedded template, so <strong>plain assistant replies are the
-default and no flag is needed</strong>. Passing <code>--reasoning on</code> has no effect: these GGUFs cannot think.
-(If you build your own GGUF from the unmodified template, pass <code>--reasoning off</code> instead.)</p>
+so the template's default is <strong>not</strong> what decides this — the runtime is. The GGUFs at the root of
+the repository pre-disable thinking inside the embedded template, so <strong>plain assistant replies are
+the default and no flag is needed</strong>. Passing <code>--reasoning on</code> has no effect on those files.
+For a thinking-enabled build, use the <code>thinking/</code> subfolder — see
+<a href="#thinking-mode">Thinking mode</a>.</p>
 </div>
 
 <div class="code"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>build/bin/
@@ -492,10 +493,27 @@ default and no flag is needed</strong>. Passing <code>--reasoning on</code> has 
 <span class="w">    </span>--image<span class="w"> </span>xx.jpg<span class="w"> </span>-i
 </code></pre></div>
 
-<p>Thinking cannot be enabled with the GGUFs in this repository: their embedded template always emits an
-empty think block, so the model answers directly regardless of <code>--reasoning</code>. If you need the
-thinking trace, use the Transformers weights (<code>enable_thinking=True</code>) or build a GGUF from the
-unmodified template. For reference, <code>--jinja</code> is on by default and the flag would be <code>--reasoning on</code>:</p>
+<h3 id="thinking-mode">Thinking mode</h3>
+<p>The repository root GGUFs cannot think: their embedded template always emits an empty think block,
+so the model answers directly regardless of <code>--reasoning</code>. Two ways to get a reasoning trace:</p>
+<ol>
+<li><strong>Use the <code>thinking/</code> variants</strong> (recommended). Every GGUF repository ships the same quantization
+   levels under <code>thinking/</code> with a <code>-thinking</code> suffix; those files restore the upstream template and
+   are identical to the root files except for the embedded template:</li>
+</ol>
+<p><code>bash
+   llama-cli -m thinking/MiniCPM-V-4_7-1B-Q4_K_M-thinking.gguf \
+             --mmproj mmproj-model-f16.gguf --image xx.jpg -p "What is in the image?" -n 1024</code></p>
+<p>Thinking is on by default there; pass <code>--reasoning off</code> to suppress it.</p>
+<ol>
+<li><strong>Use the Transformers weights</strong> with <code>enable_thinking=True</code>, or build your own GGUF from the
+   unmodified template.</li>
+</ol>
+<blockquote>
+<p>The model is not trained as a dedicated reasoning model — the trace is useful for inspecting
+intermediate steps, but it also multiplies the generated token count, so raise <code>-n</code> accordingly.</p>
+</blockquote>
+<p>For reference, <code>--jinja</code> is on by default and the underlying flag is <code>--reasoning on</code>:</p>
 <div class="code"><pre><span></span><code>./llama-mtmd-cli<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>-m<span class="w">  </span>/path/to/MiniCPM-V-4.7-1B/MiniCPM-V-4_7-1B-Q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--mmproj<span class="w"> </span>/path/to/MiniCPM-V-4.7-1B/mmproj-model-f16.gguf<span class="w"> </span><span class="se">\</span>
