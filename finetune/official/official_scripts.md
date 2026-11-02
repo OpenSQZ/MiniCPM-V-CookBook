@@ -63,7 +63,7 @@ Dataset loading and preprocessing mainly rely on the `SupervisedDataset` class. 
 
 - The conversation must start with user, and role only supports "user" and "assistant".
 - Image paths must be valid and support local paths.
-- For multiple images, use `<image_xx>` placeholders in conversations to correspond to the image dictionary.
+- For multiple images, use `<image_xx>` placeholders in conversations to correspond to the image dictionary. Image features follow placeholder order across conversation turns. Repeated placeholders repeat the matching image and its complete slice group; unreferenced images do not add features.
 - For large images, it is recommended to configure `slice_config` for slicing.
 - If data loading fails, the logger will automatically resample a data sample.
 
