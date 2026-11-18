@@ -26,23 +26,16 @@ pip install -e "python[all]"
 python -c "import torch, transformers; print('torch', torch.__version__, '| cuda', torch.version.cuda, '| transformers', transformers.__version__)"
 ```
 
-### 安装 FlashInfer（可选，推荐）
+### FlashInfer 依赖
 
-> [!IMPORTANT]
-> FlashInfer 的 wheel 与特定 `(torch, cuda)` 组合绑定。请选择与上面刚验证过的 torch + CUDA
-> **匹配**的索引 —— 不要盲目照抄 `cu121/torch2.4` 这类 URL。
+fork [将 FlashInfer 声明为依赖](https://github.com/tc-mb/sglang/blob/Support-MiniCPM-V4.7/python/pyproject.toml)，
+因此上面的可编辑安装在正常解析依赖时会包含它；这并不证明在你的环境中安装能够成功。
+不要再从无关的 torch/CUDA wheel 索引单独安装 FlashInfer，
+以免覆盖当前 fork 所需的版本。创建或更新环境时，应保持 fork 声明的
+Torch、CUDA 和 FlashInfer 版本组合，并检查所用修订版本中的依赖文件。
 
-通用索引见 <https://flashinfer.ai/whl/>，例如：
-
-| 你的 torch / CUDA      | 索引 URL                                    |
-| :--------------------- | :------------------------------------------ |
-| torch 2.7 + CUDA 12.8  | <https://flashinfer.ai/whl/cu128/torch2.7/> |
-
-```bash
-pip install flashinfer-python -i <上表对应索引 URL>
-```
-
-Docker 镜像与纯 CPU 回退见 [SGLang 官方安装文档](https://docs.sglang.ai/start/install.html)。
+通用平台前提见 [SGLang 官方安装文档](https://docs.sglang.io/docs/get-started/install)。
+上游标准安装包或 Docker 镜像不能替代上文要求的 MiniCPM-V 4.7 专用 fork。
 
 ## 2. 启动推理服务
 
