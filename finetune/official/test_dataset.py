@@ -92,5 +92,46 @@ class PreprocessSingleImagePlacementTest(unittest.TestCase):
         )
 
 
+class MiniCPMTokenizer:
+    eos_token = "</s>"
+    eos_id = 2
+    im_start_id = 101
+    im_end_id = 102
+
+    def encode(self, text):
+        return [1] + [10 + len(word) for word in text.split()]
+
+
+class ConversationToIdsMiniCPMTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.dataset = load_dataset_module()
+
+    def setUp(self):
+        self.conversation = [
+            {"role": "user", "content": "What is in the picture?"},
+            {"role": "assistant", "content": "A cat on a sofa."},
+        ]
+
+    def test_builds_ids_for_minicpm_llm_type(self):
+        ret = self.dataset.conversation_to_ids(
+            self.conversation, MiniCPMTokenizer(), llm_type="minicpm"
+        )
+
+        self.assertEqual(ret["input_ids"].shape[-1], 12)
+        self.assertEqual(ret["target"].shape[-1], 12)
+
+    def test_truncates_to_max_length_for_minicpm_llm_type(self):
+        ret = self.dataset.conversation_to_ids(
+            self.conversation,
+            MiniCPMTokenizer(),
+            llm_type="minicpm",
+            max_length=10,
+        )
+
+        self.assertEqual(ret["input_ids"].shape[-1], 10)
+        self.assertEqual(ret["target"].shape[-1], 10)
+
+
 if __name__ == "__main__":
     unittest.main()
