@@ -26,23 +26,19 @@ pip install -e "python[all]"
 python -c "import torch, transformers; print('torch', torch.__version__, '| cuda', torch.version.cuda, '| transformers', transformers.__version__)"
 ```
 
-### Installing FlashInfer (optional but recommended)
+### FlashInfer dependencies
 
-> [!IMPORTANT]
-> FlashInfer wheels are pinned to a specific `(torch, cuda)` combo. Pick the wheel index that
-> matches the torch + CUDA you just verified above — don't blindly copy a `cu121/torch2.4` URL.
+The fork [declares FlashInfer as a dependency](https://github.com/tc-mb/sglang/blob/Support-MiniCPM-V4.7/python/pyproject.toml),
+so normal dependency resolution for the editable install above includes it.
+This does not verify that installation succeeds in your environment.
+Do not install FlashInfer again from an unrelated torch/CUDA wheel index: doing
+so can replace the version required by the checked-out fork. Keep the fork's
+Torch, CUDA and FlashInfer dependency versions together when creating or updating
+your environment, and check the dependency file at the revision you use.
 
-The general index lives at <https://flashinfer.ai/whl/>. For example:
-
-| Your torch / CUDA      | Index URL                                   |
-| :--------------------- | :------------------------------------------ |
-| torch 2.7 + CUDA 12.8  | <https://flashinfer.ai/whl/cu128/torch2.7/> |
-
-```bash
-pip install flashinfer-python -i <index URL from table above>
-```
-
-See the [official SGLang installation docs](https://docs.sglang.ai/start/install.html) for Docker images and CPU-only fallback.
+See the [official SGLang installation docs](https://docs.sglang.io/docs/get-started/install)
+for general platform prerequisites. The standard upstream package or Docker image
+does not replace the MiniCPM-V 4.7 fork required above.
 
 ## 2. Launching the Inference Server
 
