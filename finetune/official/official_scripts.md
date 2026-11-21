@@ -65,7 +65,7 @@ Dataset loading and preprocessing mainly rely on the `SupervisedDataset` class. 
 - Image paths must be valid and support local paths.
 - For multiple images, use `<image_xx>` placeholders in conversations to correspond to the image dictionary.
 - For large images, it is recommended to configure `slice_config` for slicing.
-- If data loading fails, the logger will automatically resample a data sample.
+- If sample loading or preprocessing fails, the dataset logs the error and tries subsequent records in order, wrapping at the end. Each record is attempted at most once. If all records fail, it raises `RuntimeError` with the last exception as its cause. Out-of-range dataset indices raise `IndexError` directly.
 
 ## 2. Full-parameter Fine-tuning
 
